@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janna — Idle Viewer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: linear-gradient(135deg, #0f0c1a 0%, #1a1028 50%, #0c1a2e 100%);
+    height: 100vh; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+  }
+  #canvas-container {
+    position: relative; width: 100%; height: 100vh;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+  #ui {
+    position: absolute; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 10px; align-items: center;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50px; padding: 10px 20px;
+  }
+  .btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer;
+    font-size: 13px; transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.2); }
+  .btn.active { background: rgba(120,200,255,0.25); border-color: rgba(120,200,255,0.5); }
+  #status {
+    position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.5); padding: 8px 20px; border-radius: 20px;
+    font-size: 13px; color: #aaa; pointer-events: none;
+  }
+  #title {
+    position: absolute; top: 20px; left: 24px;
+    font-size: 22px; font-weight: 300; letter-spacing: 4px;
+    color: rgba(255,255,255,0.8);
+    text-shadow: 0 0 30px rgba(120,180,255,0.4);
+  }
+  #title span { color: rgba(120,200,255,0.9); }
+  .label { font-size: 12px; color: rgba(255,255,255,0.5); padding: 0 4px; }
+  input[type=range] {
+    width: 80px; accent-color: rgba(120,200,255,0.8);
+  }
+</style>
+</head>
+<body>
+<div id="canvas-container">
+  <canvas id="three-canvas"></canvas>
+  <div id="title">JANNA <span>·</span> IDLE</div>
+  <div id="status">Memuat model VRM...</div>
+  <div id="ui">
+    <span class="label">Kamera</span>
+    <button class="btn active" onclick="setCam('front')">Depan</button>
+    <button class="btn" onclick="setCam('side')">Samping</button>
+    <button class="btn" onclick="setCam('top')">Atas</button>
+    <span class="label" style="margin-left:8px">Kecepatan</span>
+    <input type="range" id="speed" min="0.2" max="2" step="0.1" value="1">
+    <span class="label" id="speed-val">1.0x</span>
+    <span class="label" style="margin-left:8px">BG</span>
+    <button class="btn" onclick="toggleBg()">Ganti</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/",
+    "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@2.1.0/lib/three-vrm.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
+
+const status = document.getElementById('status');
+const canvas = document.getElementById('three-canvas');
+const speedSlider = document.getElementById('speed');
+const speedVal = document.getElementById('speed-val');
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+// Scene
+const scene = new THREE.Scene();
+const bgColors = [
+  new THREE.Color(0x0f0c1a),
+  new THREE.Color(0x1a0f2e),
+  new THREE.Color(0x0c1a2e),
+  new THREE.Color(0x1a1a1a),
+];
+let bgIdx = 0;
+scene.background = bgColors[bgIdx];
+
+// Fog
+scene.fog = new THREE.FogExp2(0x0f0c1a, 0.035);
+
+// Camera
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.4, 3.5);
+
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.9, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 0.5;
+controls.maxDistance = 8;
+controls.maxPolarAngle = Math.PI * 0.85;
+controls.update();
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffeeff, 0.4);
+scene.add(ambientLight);
+
+const dirLight = new THREE.DirectionalLight(0xfff5ee, 1.8);
+dirLight.position.set(1.5, 4, 2);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+dirLight.shadow.camera.near = 0.1;
+dirLight.shadow.camera.far = 20;
+dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -3;
+dirLight.shadow.camera.right = dirLight.shadow.camera.top = 3;
+dirLight.shadow.bias = -0.0001;
+scene.add(dirLight);
+
+const rimLight = new THREE.DirectionalLight(0x88ccff, 0.6);
+rimLight.position.set(-2, 2, -2);
+scene.add(rimLight);
+
+const fillLight = new THREE.DirectionalLight(0xffd0ff, 0.3);
+fillLight.position.set(0, 1, -3);
+scene.add(fillLight);
+
+// Floor
+const floorGeo = new THREE.CircleGeometry(3, 64);
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1030,
+  roughness: 0.8, metalness: 0.1,
+  transparent: true, opacity: 0.6
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Floor glow ring
+const ringGeo = new THREE.RingGeometry(0.4, 1.2, 64);
+const ringMat = new THREE.MeshBasicMaterial({
+  color: 0x7755ff, transparent: true, opacity: 0.15, side: THREE.DoubleSide
+});
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = -Math.PI / 2;
+ring.position.y = 0.001;
+scene.add(ring);
+
+// Particles
+const particles = [];
+const partGeo = new THREE.SphereGeometry(0.015, 4, 4);
+const partMat = new THREE.MeshBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0.4 });
+for (let i = 0; i < 30; i++) {
+  const m = new THREE.Mesh(partGeo, partMat.clone());
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 0.5 + Math.random() * 1.5;
+  m.position.set(Math.cos(angle) * radius, Math.random() * 2.5, Math.sin(angle) * radius);
+  m._baseY = m.position.y;
+  m._speed = 0.3 + Math.random() * 0.5;
+  m._phase = Math.random() * Math.PI * 2;
+  scene.add(m);
+  particles.push(m);
+}
+
+let vrm = null;
+let clock = new THREE.Clock();
+let animSpeed = 1.0;
+let t = 0;
+
+// Idle animation state
+const idle = {
+  breathPhase: 0,
+  swayPhase: 0,
+  headPhase: 0,
+  armPhase: 0,
+  blinkTimer: 0,
+  blinkDuration: 0,
+  blinkInterval: 3.5 + Math.random() * 2,
+  eyeMovePhase: 0,
+  hairPhase: 0,
+  skirtPhase: 0,
+  microPhase: 0,
+};
+
+// Load VRM
+const loader = new GLTFLoader();
+loader.register(parser => new VRMLoaderPlugin(parser));
+
+loader.load(
+  'Janna.vrm',
+  (gltf) => {
+    vrm = gltf.userData.vrm;
+    VRMUtils.removeUnnecessaryJoints(vrm.scene);
+    VRMUtils.removeUnnecessaryVertices(vrm.scene);
+    vrm.scene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+        if (obj.material) {
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach(m => { if (m.side !== undefined) m.side = THREE.FrontSide; });
+          }
+        }
+      }
+    });
+    scene.add(vrm.scene);
+    status.style.display = 'none';
+    clock.start();
+  },
+  (progress) => {
+    const pct = Math.round((progress.loaded / progress.total) * 100);
+    status.textContent = `Memuat VRM... ${isNaN(pct) ? '' : pct + '%'}`;
+  },
+  (err) => {
+    status.textContent = 'Gagal memuat. Pastikan file Janna.vrm ada di folder yang sama.';
+    console.error(err);
+  }
+);
+
+// VRM Humanoid bone helper
+function getBone(humanoidName) {
+  if (!vrm?.humanoid) return null;
+  return vrm.humanoid.getNormalizedBoneNode(humanoidName);
+}
+
+// Smooth lerp
+function lerpAngle(current, target, alpha) {
+  return current + (target - current) * alpha;
+}
+
+// Natural idle animation
+function updateIdleAnimation(delta) {
+  if (!vrm) return;
+  t += delta * animSpeed;
+
+  // Phase counters
+  idle.breathPhase += delta * animSpeed * 0.8;
+  idle.swayPhase += delta * animSpeed * 0.3;
+  idle.headPhase += delta * animSpeed * 0.25;
+  idle.armPhase += delta * animSpeed * 0.4;
+  idle.eyeMovePhase += delta * animSpeed * 0.15;
+  idle.hairPhase += delta * animSpeed * 1.2;
+  idle.skirtPhase += delta * animSpeed * 0.5;
+  idle.microPhase += delta * animSpeed * 2.1;
+
+  // === BREATHING — chest/spine rise ===
+  const breathAmp = 0.012;
+  const breath = Math.sin(idle.breathPhase) * breathAmp;
+  const breathSlow = Math.sin(idle.breathPhase * 0.5) * 0.005;
+
+  const spine = getBone('spine');
+  const chest = getBone('chest');
+  const upperChest = getBone('upperChest');
+
+  if (spine) {
+    spine.rotation.x = breath * 1.5 + 0.01;
+    spine.rotation.z = Math.sin(idle.swayPhase) * 0.008;
+  }
+  if (chest) {
+    chest.rotation.x = breath * 1.2;
+    chest.rotation.z = Math.sin(idle.swayPhase + 0.3) * 0.006;
+  }
+  if (upperChest) {
+    upperChest.rotation.x = breath;
+    upperChest.rotation.z = Math.sin(idle.swayPhase + 0.6) * 0.005;
+  }
+
+  // === HIPS — gentle sway ===
+  const hips = getBone('hips');
+  if (hips) {
+    const swayX = Math.sin(idle.swayPhase) * 0.008;
+    const swayZ = Math.sin(idle.swayPhase * 0.7 + 0.5) * 0.006;
+    hips.rotation.x = swayX;
+    hips.rotation.z = swayZ;
+    hips.position.y = Math.sin(idle.breathPhase) * 0.003;
+  }
+
+  // === HEAD — natural subtle look around ===
+  const neck = getBone('neck');
+  const head = getBone('head');
+  const headSwayX = Math.sin(idle.headPhase) * 0.035 + Math.sin(idle.headPhase * 2.3) * 0.01;
+  const headSwayY = Math.sin(idle.headPhase * 0.7 + 1.0) * 0.04;
+  const headSwayZ = Math.sin(idle.headPhase * 1.4) * 0.015;
+
+  if (neck) {
+    neck.rotation.x = headSwayX * 0.4;
+    neck.rotation.y = headSwayY * 0.3;
+    neck.rotation.z = headSwayZ * 0.3;
+  }
+  if (head) {
+    head.rotation.x = headSwayX * 0.6 - 0.02;
+    head.rotation.y = headSwayY * 0.7;
+    head.rotation.z = headSwayZ * 0.5;
+  }
+
+  // === BLINK ===
+  idle.blinkTimer += delta * animSpeed;
+  if (idle.blinkTimer >= idle.blinkInterval) {
+    idle.blinkTimer = 0;
+    idle.blinkDuration = 0;
+    idle.blinkInterval = 2.5 + Math.random() * 3.5;
+  }
+  idle.blinkDuration += delta * animSpeed;
+  let blinkValue = 0;
+  if (idle.blinkDuration < 0.08) {
+    blinkValue = idle.blinkDuration / 0.08;
+  } else if (idle.blinkDuration < 0.15) {
+    blinkValue = 1;
+  } else if (idle.blinkDuration < 0.25) {
+    blinkValue = 1 - (idle.blinkDuration - 0.15) / 0.1;
+  }
+  if (vrm.expressionManager) {
+    vrm.expressionManager.setValue('blink', Math.max(0, Math.min(1, blinkValue)));
+    // Subtle breathing expression — slight mouth open
+    const breathExpr = Math.max(0, Math.sin(idle.breathPhase) * 0.04);
+    vrm.expressionManager.setValue('aa', breathExpr);
+  }
+
+  // === SHOULDERS ===
+  const leftShoulder = getBone('leftShoulder');
+  const rightShoulder = getBone('rightShoulder');
+  if (leftShoulder) {
+    leftShoulder.rotation.z = Math.sin(idle.armPhase + 0.5) * 0.015 + breath * 0.5;
+  }
+  if (rightShoulder) {
+    rightShoulder.rotation.z = -Math.sin(idle.armPhase + 0.5) * 0.015 - breath * 0.5;
+  }
+
+  // === ARMS — gentle swing ===
+  const leftUpperArm = getBone('leftUpperArm');
+  const rightUpperArm = getBone('rightUpperArm');
+  const leftLowerArm = getBone('leftLowerArm');
+  const rightLowerArm = getBone('rightLowerArm');
+
+  if (leftUpperArm) {
+    leftUpperArm.rotation.x = Math.sin(idle.armPhase) * 0.025 - 0.05;
+    leftUpperArm.rotation.z = 0.08 + Math.sin(idle.armPhase * 0.6) * 0.015;
+  }
+  if (rightUpperArm) {
+    rightUpperArm.rotation.x = Math.sin(idle.armPhase + Math.PI) * 0.025 - 0.05;
+    rightUpperArm.rotation.z = -(0.08 + Math.sin(idle.armPhase * 0.6 + 1) * 0.015);
+  }
+  if (leftLowerArm) {
+    leftLowerArm.rotation.y = Math.sin(idle.armPhase * 0.8) * 0.02;
+    leftLowerArm.rotation.z = Math.sin(idle.armPhase * 0.5) * 0.015;
+  }
+  if (rightLowerArm) {
+    rightLowerArm.rotation.y = Math.sin(idle.armPhase * 0.8 + 1) * 0.02;
+    rightLowerArm.rotation.z = -Math.sin(idle.armPhase * 0.5 + 1) * 0.015;
+  }
+
+  // === HANDS slight curl/uncurl ===
+  const leftHand = getBone('leftHand');
+  const rightHand = getBone('rightHand');
+  if (leftHand) {
+    leftHand.rotation.z = Math.sin(idle.microPhase * 0.3) * 0.02;
+  }
+  if (rightHand) {
+    rightHand.rotation.z = Math.sin(idle.microPhase * 0.3 + 1) * 0.02;
+  }
+
+  // === LEGS slight weight shift ===
+  const leftUpperLeg = getBone('leftUpperLeg');
+  const rightUpperLeg = getBone('rightUpperLeg');
+  if (leftUpperLeg) {
+    leftUpperLeg.rotation.z = Math.sin(idle.swayPhase * 0.5) * 0.01;
+  }
+  if (rightUpperLeg) {
+    rightUpperLeg.rotation.z = -Math.sin(idle.swayPhase * 0.5) * 0.01;
+  }
+
+  // === VRM update ===
+  vrm.update(delta * animSpeed);
+}
+
+// Camera presets
+window.setCam = function(preset) {
+  document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (preset === 'front') {
+    camera.position.set(0, 1.4, 3.5);
+    controls.target.set(0, 0.9, 0);
+  } else if (preset === 'side') {
+    camera.position.set(2.5, 1.4, 1.5);
+    controls.target.set(0, 0.9, 0);
+  } else if (preset === 'top') {
+    camera.position.set(0, 3, 0.5);
+    controls.target.set(0, 1.2, 0);
+  }
+  controls.update();
+};
+
+window.toggleBg = function() {
+  bgIdx = (bgIdx + 1) % bgColors.length;
+  scene.background = bgColors[bgIdx];
+  scene.fog.color = bgColors[bgIdx];
+};
+
+speedSlider.addEventListener('input', () => {
+  animSpeed = parseFloat(speedSlider.value);
+  speedVal.textContent = animSpeed.toFixed(1) + 'x';
+});
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animate loop
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  // Particles float up
+  particles.forEach(p => {
+    p.position.y += delta * p._speed * 0.1;
+    p.material.opacity = 0.15 + Math.sin(t + p._phase) * 0.15;
+    if (p.position.y > 3) p.position.y = 0;
+  });
+
+  // Ring glow pulse
+  ring.material.opacity = 0.08 + Math.sin(t * 1.2) * 0.07;
+  ring.rotation.z += delta * 0.1;
+
+  updateIdleAnimation(delta);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
