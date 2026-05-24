@@ -8,6 +8,7 @@
   <a href="https://x.com/heeyyitslumi"><img src="https://img.shields.io/badge/%40heeyyitslumi-black?style=flat&logo=x&labelColor=%23101419&color=%232d2e30"></a> 
 </p>
 
+
 <h1 align="center">Project LUMI-AI</h1>
 
 <p align="center">CA :</p>
