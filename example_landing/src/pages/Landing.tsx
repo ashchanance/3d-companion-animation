@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Bot, Cpu, Gamepad2, Globe, MessageSquare, Mic } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Grainient from '../components/Grainient';
 
 const fadeIn: any = {
     hidden: { opacity: 0, y: 20 },
@@ -64,19 +65,35 @@ export default function Landing() {
             </nav>
 
             {/* Hero Section */}
-            <section className="relative z-10 overflow-hidden" style={{ backgroundColor: '#9d9d9d' }}>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-20 lg:top-0">
-                    <div className="absolute inset-y-0 left-[58%] w-[120vw] -translate-x-1/2 lg:left-[64%] lg:w-[110vw]">
-                        <video
-                            src="/M3.mp4"
-                            className="h-full w-full object-contain object-[65%_center] opacity-95"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                        />
-                    </div>
+            <section className="relative z-10 overflow-hidden">
+                {/* Grainient Background */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <Grainient
+                        color1="#fde68a"
+                        color2="#fed7aa"
+                        color3="#fbcfe8"
+                        timeSpeed={0.15}
+                        colorBalance={0.1}
+                        warpStrength={0.6}
+                        warpFrequency={3.5}
+                        warpSpeed={1.0}
+                        warpAmplitude={30.0}
+                        blendAngle={45.0}
+                        blendSoftness={0.1}
+                        rotationAmount={200.0}
+                        noiseScale={1.5}
+                        grainAmount={0.03}
+                        grainScale={1.5}
+                        grainAnimated={true}
+                        contrast={1.2}
+                        gamma={1.0}
+                        saturation={1.1}
+                        centerX={0.0}
+                        centerY={0.0}
+                        zoom={0.95}
+                    />
                 </div>
+
 
                 <main className="relative z-10 pt-32 pb-8 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12 items-start">
                     <motion.div

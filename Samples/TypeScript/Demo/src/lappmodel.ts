@@ -816,8 +816,8 @@ export class LAppModel extends CubismUserModel {
    * @param y             判定を行うY座標
    */
   public hitTest(hitArenaName: string, x: number, y: number): boolean {
-    // 透明時は当たり判定無し。
-    if (this._opacity < 1) {
+    // 透明時や設定ファイルが読み込まれていない場合は当たり判定無し。
+    if (this._opacity < 1 || this._modelSetting == null) {
       return false;
     }
 

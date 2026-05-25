@@ -13,5 +13,21 @@ const publicResources = [
   {src: '../../../Framework/Shaders', dst: './public/Framework/Shaders'},
 ];
 
-publicResources.forEach((e)=>{if (fs.existsSync(e.dst)) fs.rmSync(e.dst, { recursive: true })});
-publicResources.forEach((e)=>fs.cpSync(e.src, e.dst, {recursive: true}));
+publicResources.forEach((e) => {
+  try {
+    if (fs.existsSync(e.dst)) {
+      fs.rmSync(e.dst, { recursive: true, force: true });
+    }
+  } catch (err) {
+    console.warn(`[Warning] Could not clean directory ${e.dst}: ${err.message}. Overwriting files in-place instead.`);
+  }
+});
+
+publicResources.forEach((e) => {
+  try {
+    fs.cpSync(e.src, e.dst, { recursive: true });
+    console.log(`[Success] Copied resources from ${e.src} to ${e.dst}`);
+  } catch (err) {
+    console.error(`[Error] Failed to copy resources from ${e.src} to ${e.dst}: ${err.message}`);
+  }
+});

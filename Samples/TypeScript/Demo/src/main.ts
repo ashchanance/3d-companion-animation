@@ -8,6 +8,7 @@
 import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
 import { ChatManager } from './chatmanager';
+import { Grainient } from './grainient';
 
 /**
  * ブラウザロード後の処理
@@ -41,6 +42,35 @@ window.addEventListener(
 
     // Initialize ChatManager to handle dynamic LLM interaction and speech bubbles
     (window as any).chatManager = new ChatManager();
+
+    // Initialize Grainient background
+    const bgContainer = document.getElementById('grainient-bg');
+    if (bgContainer) {
+      new Grainient(bgContainer, {
+        color1: '#FAF6F0',            // Cardigan cream
+        color2: '#F5EBE6',            // Warm cream
+        color3: '#EBD0B9',            // Primary 200 (warm golden sand)
+        timeSpeed: 0.12,
+        colorBalance: 0.05,
+        warpStrength: 0.5,
+        warpFrequency: 4.0,
+        warpSpeed: 0.8,
+        warpAmplitude: 35.0,
+        blendAngle: 30.0,
+        blendSoftness: 0.08,
+        rotationAmount: 180.0,
+        noiseScale: 1.6,
+        grainAmount: 0.02,
+        grainScale: 1.2,
+        grainAnimated: true,
+        contrast: 1.1,
+        gamma: 0.95,
+        saturation: 1.0,
+        centerX: 0.0,
+        centerY: 0.0,
+        zoom: 0.95
+      });
+    }
   },
   { passive: true }
 );
