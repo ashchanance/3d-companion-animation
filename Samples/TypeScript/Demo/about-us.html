@@ -636,7 +636,21 @@
         
         <div class="char-card-frame">
           <div class="char-media-container">
-            <img class="char-media-img" src="hiyori_avatar.png" alt="Haruka Character Portrait">
+            <video id="haruka-video" class="char-media-img" autoplay loop muted playsinline>
+              <source src="m.mp4#t=2" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            <script>
+              const harukaVideo = document.getElementById('haruka-video');
+              if (harukaVideo) {
+                harukaVideo.currentTime = 2;
+                harukaVideo.addEventListener('timeupdate', () => {
+                  if (harukaVideo.currentTime < 2) {
+                    harukaVideo.currentTime = 2;
+                  }
+                });
+              }
+            </script>
           </div>
           <div class="char-details">
             <h3>Haruka</h3>
