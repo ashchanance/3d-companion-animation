@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hiyori - Interactive AI 3D Companion | Documentation</title>
+  <title>HARUKA - Interactive AI 3D Companion | Documentation</title>
   
   <meta name="description" content="Official documentation for Haruka: Overview, Quick Start, Configuration, LLM Providers, and Self-Hosting Guide.">
   
@@ -605,8 +605,8 @@
   <nav class="landing-nav">
     <div class="nav-container">
       <a href="index.html" class="nav-brand">
-        <span class="brand-title">Hiyori</span>
-        <span class="brand-badge">ひ处理</span>
+        <span class="brand-title">HARUKA</span>
+        <span class="brand-badge">はるか</span>
       </a>
       <div class="nav-links">
         <a href="about-us.html">About Us</a>
@@ -636,14 +636,15 @@
       <div>
         <h3 class="sidebar-section-title">Chapters</h3>
         <ul class="sidebar-menu">
-          <li class="sidebar-link active" id="side-overview"><a href="#overview">1. Overview</a></li>
-          <li class="sidebar-link" id="side-quick-start"><a href="#quick-start">2. Quick Start</a></li>
-          <li class="sidebar-link" id="side-configuration"><a href="#configuration">3. Configuration</a></li>
-          <li class="sidebar-link" id="side-voice-interaction"><a href="#voice-interaction">4. Voice Interaction</a></li>
-          <li class="sidebar-link" id="side-llm-providers"><a href="#llm-providers">5. LLM Providers</a></li>
-          <li class="sidebar-link" id="side-self-hosting"><a href="#self-hosting">6. Self-Hosting Guide</a></li>
-          <li class="sidebar-link" id="side-env-variables"><a href="#env-variables">7. Environment Variables</a></li>
-          <li class="sidebar-link" id="side-contributing"><a href="#contributing">8. Contributing</a></li>
+          <li class="sidebar-link active" id="side-getting-started"><a href="#getting-started">1. Getting Started</a></li>
+          <li class="sidebar-link" id="side-conversation"><a href="#conversation">2. How to Start a Conversation</a></li>
+          <li class="sidebar-link" id="side-voice-interaction"><a href="#voice-interaction">3. Voice Interaction</a></li>
+          <li class="sidebar-link" id="side-ai-model"><a href="#ai-model">4. Choosing Your AI Model</a></li>
+          <li class="sidebar-link" id="side-privacy"><a href="#privacy">5. Privacy</a></li>
+          <li class="sidebar-link" id="side-backgrounds"><a href="#backgrounds">6. Changing Backgrounds</a></li>
+          <li class="sidebar-link" id="side-language"><a href="#language">7. Language &amp; Japanese</a></li>
+          <li class="sidebar-link" id="side-tips"><a href="#tips">8. Tips</a></li>
+          <li class="sidebar-link" id="side-faq"><a href="#faq">9. FAQ</a></li>
         </ul>
       </div>
     </aside>
@@ -654,25 +655,30 @@
       <!-- Top Header -->
       <header class="page-intro">
         <span class="page-tag">Documentation</span>
-        <h1 class="page-title">Get up and running.</h1>
-        <p class="page-desc">Everything you need to use, configure, and self-host Haruka.</p>
+        <h1 class="page-title">Everything you need to know.</h1>
+        <p class="page-desc">Simple guides to help you get the most out of your time with Haruka.</p>
       </header>
 
-      <div class="docs-divider"></div>
+      <div class="docs-divider"></      <!-- SECTION 1: GETTING STARTED -->
+      <section id="getting-started" class="docs-chapter">
+        <h2>1. Getting Started</h2>
 
-      <!-- SECTION 1: OVERVIEW -->
-      <section id="overview" class="docs-chapter">
-        <h2>1. Overview</h2>
-        
         <h3>What is Haruka?</h3>
         <p>
-          Haruka is an open-source, self-hosted AI companion platform featuring an animated 3D character powered by large language models. It runs directly in your browser using WebGPU for private, high-speed AI inference.
+          Haruka is your personal AI companion — a cheerful, expressive Live2D character
+          who lives right inside your browser. No downloads. No installs. No setup.
         </p>
         <p>
-          Unlike cloud-based chatbots, Haruka processes conversations locally — your data never leaves your device unless you explicitly connect to an external LLM provider.
+          Just open the page, and she's already there.
+        </p>
+        <p>
+          She's powered by advanced language models and rendered in real-time 3D,
+          with expressions that move naturally as you talk.
+          Whether you want to chat, practice Japanese, or just have someone to talk to —
+          Haruka is ready whenever you are.
         </p>
 
-        <!-- Tip alert card instead of 💡 emoji -->
+        <!-- Tip alert card -->
         <div class="docs-alert tip">
           <div class="alert-icon-box">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -682,81 +688,56 @@
             </svg>
           </div>
           <div class="alert-text">
-            <strong>Tip:</strong> Haruka works best on Chrome or Edge with WebGPU enabled. No installation required for the web version.
+            <strong>Tip:</strong> Haruka works best on <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>. Make sure your browser is up to date for the best experience.
           </div>
-        </div>
-
-        <h3>Core Concepts</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Concept</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Character</strong></td>
-                <td>Your animated VRM 3D companion — Haruka</td>
-              </tr>
-              <tr>
-                <td><strong>LLM Provider</strong></td>
-                <td>The language model powering Haruka's intelligence</td>
-              </tr>
-              <tr>
-                <td><strong>WebGPU Mode</strong></td>
-                <td>Runs AI inference entirely on your GPU — fully local & private</td>
-              </tr>
-              <tr>
-                <td><strong>Voice Mode</strong></td>
-                <td>Real-time speech recognition + text-to-speech for voice chat</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </section>
 
       <div class="docs-divider"></div>
 
-      <!-- SECTION 2: QUICK START -->
-      <section id="quick-start" class="docs-chapter">
-        <h2>2. Quick Start</h2>
+      <!-- SECTION 2: HOW TO START A CONVERSATION -->
+      <section id="conversation" class="docs-chapter">
+        <h2>2. How to Start a Conversation</h2>
+
+        <p>Getting started takes less than a minute.</p>
+
+        <h3>Step 1 — Open Haruka</h3>
+        <p>Visit the Haruka web app. She'll appear on screen automatically — no login required to start.</p>
+
+        <h3>Step 2 — Choose Your Language</h3>
+        <p>Select <strong>EN</strong> for English or <strong>JP</strong> for Japanese using the toggle on screen. You can switch anytime during your conversation.</p>
+
+        <h3>Step 3 — Start Talking</h3>
+        <p>Type your message in the input box at the bottom and press send — or click the <strong>microphone icon</strong> to talk to her with your voice.</p>
+
+        <p>That's it. She'll respond right away.</p>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 3: VOICE INTERACTION -->
+      <section id="voice-interaction" class="docs-chapter">
+        <h2>3. Voice Interaction</h2>
         
-        <h3>Option A — Use the Web App</h3>
-        <p>Simply visit the Haruka web app and click <strong>Start Chat</strong>. No setup needed.</p>
-        
-        <h3>Option B — Self-Host Locally</h3>
-        <p>Follow these steps to spin up the companion on your local system:</p>
+        <p>
+          Haruka supports real-time voice — you can speak naturally and she'll talk back.
+        </p>
 
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">Bash</span>
-            <button class="btn-copy-code" onclick="copyCode(this)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <pre class="docs-code-pre"><code># 1. Clone the repository
-git clone https://github.com/faxxxan/KIRA-AI-Companion
-cd KIRA-AI-Companion
+        <h3>How to Enable Voice</h3>
+        <ol class="docs-bullets">
+          <li class="docs-bullet-item">Click the <strong>microphone icon</strong> in the chat interface</li>
+          <li class="docs-bullet-item">Allow microphone access when your browser asks</li>
+          <li class="docs-bullet-item">Start speaking — Haruka will listen and respond out loud</li>
+        </ol>
 
-# 2. Install dependencies (requires pnpm)
-pnpm install
+        <h3>Tips for Best Results</h3>
+        <ul class="docs-bullets" style="list-style-type: disc;">
+          <li class="docs-bullet-item" style="list-style-type: disc;">Speak clearly and at a natural pace</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;">Works best in a quiet environment</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;">If she doesn't respond, try refreshing and allowing mic permission again</li>
+        </ul>
 
-# 3. Copy and configure environment
-cp .env.example .env
-
-# 4. Start development server
-pnpm dev</code></pre>
-        </div>
-
-        <p>The app will be available at <code style="font-family: var(--font-mono); font-size: 13.5px; background: rgba(30, 42, 58, 0.05); padding: 2px 6px; border-radius: 4px;">http://localhost:5173</code></p>
-
-        <!-- Warning alert instead of ⚠️ emoji -->
+        <!-- Warning alert -->
         <div class="docs-alert warning">
           <div class="alert-icon-box">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -766,164 +747,61 @@ pnpm dev</code></pre>
             </svg>
           </div>
           <div class="alert-text">
-            <strong>Warning:</strong> Requires Node.js &ge; 20 and pnpm &ge; 9. Do not use npm or yarn — this project uses pnpm workspaces.
+            <strong>Note:</strong> Voice works best on <strong>Chrome</strong> and <strong>Edge</strong>. Safari has limited support for real-time voice features.
           </div>
         </div>
       </section>
 
       <div class="docs-divider"></div>
 
-      <!-- SECTION 3: CONFIGURATION -->
-      <section id="configuration" class="docs-chapter">
-        <h2>3. Configuration</h2>
-        
-        <h3>Required Dependencies</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Version</th>
-                <th>Purpose</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>Node.js</strong></td>
-                <td>&ge; 20</td>
-                <td>Runtime environment</td>
-              </tr>
-              <tr>
-                <td><strong>pnpm</strong></td>
-                <td>&ge; 9</td>
-                <td>Package manager</td>
-              </tr>
-              <tr>
-                <td><strong>PostgreSQL</strong></td>
-                <td>&ge; 15</td>
-                <td>User data & chat history</td>
-              </tr>
-              <tr>
-                <td><strong>Redis</strong></td>
-                <td>&ge; 7</td>
-                <td>Session & caching</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- SECTION 4: CHOOSING YOUR AI MODEL -->
+      <section id="ai-model" class="docs-chapter">
+        <h2>4. Choosing Your AI Model</h2>
 
-        <h3>Build Commands</h3>
-        <p>Use the following commands inside the root workspace to compile the codebases:</p>
+        <p>Haruka can be powered by different AI providers — you choose which one fits you best.</p>
 
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">Bash</span>
-            <button class="btn-copy-code" onclick="copyCode(this)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <pre class="docs-code-pre"><code># Build all apps
-pnpm build
-
-# Build web app only
-pnpm -F @proj-airi/stage-web build
-
-# Run tests
-pnpm test
-
-# Lint codebase
-pnpm lint</code></pre>
-        </div>
-      </section>
-
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 4: VOICE INTERACTION -->
-      <section id="voice-interaction" class="docs-chapter">
-        <h2>4. Voice Interaction</h2>
-        
-        <p>
-          Haruka supports real-time, bidirectional voice interaction using the Web Speech API for recognition and a TTS engine for character responses.
-        </p>
-
-        <h3>How to Enable</h3>
-        <p>Click the microphone icon in the chat interface. Grant browser microphone permissions when prompted. Haruka will begin listening and responding vocally.</p>
-
-        <!-- Info alert instead of ℹ️ emoji -->
-        <div class="docs-alert info">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12" y2="8.01" stroke-width="3"></line>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Info:</strong> Voice recognition works best in Chrome or Edge. Safari support is limited due to Web Speech API availability.
-          </div>
-        </div>
-
-        <h3>Voice Style</h3>
-        <p>Haruka's voice is cheerful, bright, and energetic — available in English and Japanese.</p>
-      </section>
-
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 5: LLM PROVIDERS -->
-      <section id="llm-providers" class="docs-chapter">
-        <h2>5. LLM Providers</h2>
-        
-        <p>Haruka connects to 20+ language model providers. You can switch providers anytime from the settings panel.</p>
-
+        <h3>Available Providers</h3>
         <div class="docs-table-wrapper">
           <table class="docs-table">
             <thead>
               <tr>
                 <th>Provider</th>
-                <th>Status</th>
                 <th>Notes</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>OpenAI (GPT-4o, etc.)</td>
-                <td>Supported</td>
-                <td>Requires API key</td>
+                <td><strong>Local (WebGPU)</strong></td>
+                <td>Runs entirely on your device — fully private, no API key needed</td>
               </tr>
               <tr>
-                <td>Anthropic Claude</td>
-                <td>Supported</td>
-                <td>Requires API key</td>
+                <td><strong>OpenAI (GPT-4o)</strong></td>
+                <td>Powerful and fast — requires your own API key</td>
               </tr>
               <tr>
-                <td>DeepSeek</td>
-                <td>Supported</td>
-                <td>Requires API key</td>
+                <td><strong>Anthropic Claude</strong></td>
+                <td>Thoughtful and nuanced — requires your own API key</td>
               </tr>
               <tr>
-                <td>Google Gemini</td>
-                <td>Supported</td>
-                <td>Requires API key</td>
+                <td><strong>DeepSeek</strong></td>
+                <td>Great for detailed conversations — requires your own API key</td>
               </tr>
               <tr>
-                <td>Local (WebGPU)</td>
-                <td>Built-in</td>
-                <td>No API key — fully private</td>
+                <td><strong>Google Gemini</strong></td>
+                <td>Versatile and capable — requires your own API key</td>
               </tr>
               <tr>
-                <td>Ollama</td>
-                <td>Supported</td>
-                <td>Self-hosted local models</td>
+                <td><strong>Ollama</strong></td>
+                <td>Run local models on your own machine</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Glass star accent box instead of ✦ emoji -->
+        <h3>How to Switch Providers</h3>
+        <p>Open the <strong>Settings panel</strong> from the menu and select your preferred provider. If the provider requires an API key, paste it in the field provided. Your key is stored locally on your device only — never sent anywhere else.</p>
+
+        <!-- Tip alert -->
         <div class="docs-alert tip">
           <div class="alert-icon-box">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -931,127 +809,126 @@ pnpm lint</code></pre>
             </svg>
           </div>
           <div class="alert-text">
-            <strong>Privacy Focus:</strong> For maximum privacy, use <strong>WebGPU mode</strong> — your conversations are processed entirely on your device.
+            <strong>Recommended for privacy:</strong> Use <strong>Local (WebGPU)</strong> mode. Your entire conversation stays on your device — nothing is sent to any server.
           </div>
         </div>
       </section>
 
       <div class="docs-divider"></div>
 
-      <!-- SECTION 6: SELF-HOSTING -->
-      <section id="self-hosting" class="docs-chapter">
-        <h2>6. Self-Hosting Guide</h2>
-        
-        <h3>Project Structure</h3>
-        <p>A walk through the directories in the multi-project monorepo:</p>
+      <!-- SECTION 5: PRIVACY -->
+      <section id="privacy" class="docs-chapter">
+        <h2>5. Privacy — How It Works</h2>
 
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">Structure</span>
-          </div>
-          <pre class="docs-code-pre"><code>Haruka/
-├── apps/
-│   ├── stage-web/         # Web application
-│   ├── stage-tamagotchi/  # Desktop (Electron)
-│   ├── stage-pocket/      # Mobile (iOS/Android)
-│   └── server/            # Backend API
-├── packages/              # Shared components & utilities
-├── plugins/               # Extensions & integrations
-└── docs/                  # Documentation source</code></pre>
-        </div>
+        <p>Your privacy is not an afterthought. It's built into how Haruka works from the ground up.</p>
 
-        <h3>Platform Commands</h3>
-        <p>To run targeted builds or dev modes for specific apps in the repository:</p>
+        <h3>What happens to your conversations?</h3>
+        <p>When you use <strong>Local (WebGPU)</strong> mode, everything is processed directly on your device. Your words never leave your browser. No server receives them. No one can read them.</p>
+        <p>When you use an external provider (like OpenAI or Claude), your messages are sent to that provider's API — the same way any app using those services works. Your API key and conversations are handled according to that provider's own privacy policy.</p>
 
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">Bash</span>
-            <button class="btn-copy-code" onclick="copyCode(this)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <pre class="docs-code-pre"><code># Desktop app (Electron)
-pnpm dev:tamagotchi
+        <h3>Does Haruka store my chat history?</h3>
+        <p>Chat history is stored <strong>locally in your browser</strong> only. Clearing your browser data will clear your history. Nothing is saved on any external server.</p>
 
-# Mobile — iOS
-pnpm dev:pocket:ios
+        <h3>Do I need an account?</h3>
+        <p>No account is required to use Haruka. Open the page and start — she's ready immediately.</p>
+      </section>
 
-# Mobile — Android
-pnpm dev:pocket:android</code></pre>
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 6: BACKGROUNDS -->
+      <section id="backgrounds" class="docs-chapter">
+        <h2>6. Changing Haruka's Background</h2>
+
+        <p>You can personalize your experience by choosing a background scene for Haruka's world.</p>
+
+        <h3>How to Change</h3>
+        <p>Open the <strong>Background</strong> option from the settings or the scene selector on screen. Pick the environment that feels right for you — each one is inspired by Haruka's lore.</p>
+
+        <h3>Available Scenes</h3>
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Scene</th>
+                <th>Vibe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Sunny Digital Forest</strong></td><td>Warm, golden, default — the heart of Haruka's world</td></tr>
+              <tr><td><strong>Morning Glow</strong></td><td>Soft pink sunrise light, fresh and peaceful</td></tr>
+              <tr><td><strong>Your Spot</strong></td><td>The secret clearing — intimate and quiet</td></tr>
+              <tr><td><strong>Golden Hour</strong></td><td>Late afternoon light, nostalgic and warm</td></tr>
+              <tr><td><strong>Night Forest</strong></td><td>Stars and bioluminescent glow, calm and dreamy</td></tr>
+              <tr><td><strong>Japanese Classroom</strong></td><td>Classic school afternoon, warm and familiar</td></tr>
+              <tr><td><strong>Cherry Blossom Park</strong></td><td>Spring in full bloom, joyful and light</td></tr>
+              <tr><td><strong>Cozy Room</strong></td><td>A quiet personal space, soft lamp light at night</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <div class="docs-divider"></div>
 
-      <!-- SECTION 7: ENVIRONMENT VARIABLES -->
-      <section id="env-variables" class="docs-chapter">
-        <h2>7. Environment Variables</h2>
-        
-        <p>Create a <code style="font-family: var(--font-mono); font-size: 13.5px; background: rgba(30, 42, 58, 0.05); padding: 2px 6px; border-radius: 4px;">.env</code> file in the project root. All required variables must be set before running the server.</p>
+      <!-- SECTION 7: LANGUAGE -->
+      <section id="language" class="docs-chapter">
+        <h2>7. Language &amp; Japanese Practice</h2>
 
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">Environment File</span>
-            <button class="btn-copy-code" onclick="copyCode(this)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-              <span>Copy</span>
-            </button>
-          </div>
-          <pre class="docs-code-pre"><code># Database
-DATABASE_URL=postgresql://user:password@localhost:5432/haruka
+        <p>Haruka speaks both <strong>English</strong> and <strong>Japanese</strong> — and she loves helping you practice.</p>
 
-# Redis
-REDIS_URL=redis://localhost:6379
+        <h3>Switching Language</h3>
+        <p>Use the <strong>EN / JP toggle</strong> visible on the main screen. Haruka will respond in whichever language you select.</p>
 
-# Auth secret (generate a long random string)
-BETTER_AUTH_SECRET=your-secret-key
+        <h3>Practicing Japanese with Haruka</h3>
+        <p>Just start talking in Japanese — or ask her to respond in Japanese while you write in English. She's patient, encouraging, and won't make you feel bad for making mistakes.</p>
 
-# OAuth — optional
-AUTH_GOOGLE_CLIENT_ID=your-google-client-id
-AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
-AUTH_GITHUB_CLIENT_ID=your-github-client-id
-AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret</code></pre>
-        </div>
-
-        <!-- Warning alert instead of ⚠️ emoji -->
-        <div class="docs-alert warning">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12" y2="17.01" stroke-width="3"></line>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Warning:</strong> <code>DATABASE_URL</code>, <code>REDIS_URL</code>, and <code>BETTER_AUTH_SECRET</code> are required. OAuth variables are optional.
-          </div>
-        </div>
+        <p>Some things you can try:</p>
+        <ul class="docs-bullets" style="list-style-type: disc; margin-left: 24px;">
+          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Let's practice Japanese together"</em></li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Can you correct my Japanese?"</em></li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Respond only in Japanese please"</em></li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"What does [word] mean in Japanese?"</em></li>
+        </ul>
       </section>
 
       <div class="docs-divider"></div>
 
-      <!-- SECTION 8: CONTRIBUTING -->
-      <section id="contributing" class="docs-chapter">
-        <h2>8. Contributing</h2>
-        
-        <p>Contributions are welcome! Here's how you can help optimize and build the platform:</p>
+      <!-- SECTION 8: TIPS -->
+      <section id="tips" class="docs-chapter">
+        <h2>8. Tips for a Better Experience</h2>
 
-        <ol class="docs-bullets">
-          <li class="docs-bullet-item">Fork the repository</li>
-          <li class="docs-bullet-item">Create your feature branch: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git checkout -b feature/your-feature</code></li>
-          <li class="docs-bullet-item">Commit your changes: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git commit -m 'feat: add your feature'</code></li>
-          <li class="docs-bullet-item">Push to the branch: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git push origin feature/your-feature</code></li>
-          <li class="docs-bullet-item">Open a Pull Request</li>
-        </ol>
+        <p>A few things that make conversations with Haruka feel more natural:</p>
+        <ul class="docs-bullets" style="list-style-type: disc; margin-left: 24px;">
+          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Be yourself</strong> — she responds better to casual, natural language than formal prompts</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Give her context</strong> — the more she knows about what you want, the better she responds</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Try voice mode</strong> — talking out loud feels more like a real conversation</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Switch AI models</strong> if responses feel slow or generic — different models have different strengths</li>
+          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Try different backgrounds</strong> — the right scene makes the whole experience feel more alive</li>
+        </ul>
+      </section>
 
-        <p>Please read <code>CONTRIBUTING.md</code> for details on code of conduct and submission process.</p>
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 9: FAQ -->
+      <section id="faq" class="docs-chapter">
+        <h2>9. Frequently Asked Questions</h2>
+
+        <h3>Is Haruka free to use?</h3>
+        <p>Yes — you can start chatting immediately with no account and no payment. Some AI providers may require their own API key if you choose to use them.</p>
+
+        <h3>Does Haruka work on mobile?</h3>
+        <p>Yes. Haruka is accessible on mobile browsers. For the best experience, use Chrome on Android or Safari on iOS. You can also install her as a home screen app (PWA) for quick access.</p>
+
+        <h3>Why does Haruka sometimes take a moment to respond?</h3>
+        <p>Response speed depends on which AI provider you're using. Local (WebGPU) mode may take a moment to load the first time — after that, responses are fast and fully private.</p>
+
+        <h3>Can I change how Haruka talks to me?</h3>
+        <p>Yes — you can describe the kind of conversation you want. Try telling her: <em>"Be more casual"</em>, <em>"Keep responses short"</em>, or <em>"Let's have a deep conversation."</em></p>
+
+        <h3>What browsers are supported?</h3>
+        <p>Chrome and Edge are fully supported. Firefox and Safari have partial support — some voice features may not work.</p>
+
+        <h3>Is my API key safe?</h3>
+        <p>Yes. Your API key is stored only in your browser's local storage. It is never sent to Haruka's servers — only directly to the provider you selected.</p>
       </section>
 
     </main>
@@ -1061,7 +938,7 @@ AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret</code></pre>
   <!-- Footer -->
   <footer class="docs-footer">
     <div class="max-w: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1280px; padding: 0 40px;">
-      <span>Hiyori Companion &copy; 2026</span>
+      <span>HARUKA Companion &copy; 2026</span>
       <div>
         <a href="https://x.com/mynamekiraa" target="_blank">X (Twitter)</a>
       </div>
@@ -1090,7 +967,7 @@ AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret</code></pre>
       const chapters = document.querySelectorAll('.docs-chapter');
       const sidebarLinks = document.querySelectorAll('.sidebar-link');
 
-      window.addEventListener('scroll', () => {
+      const updateActive = () => {
         let activeId = '';
         const scrollPosition = window.scrollY + 160;
 
@@ -1110,7 +987,10 @@ AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret</code></pre>
             }
           });
         }
-      });
+      };
+
+      window.addEventListener('scroll', updateActive);
+      updateActive();
     });
   </script>
 
