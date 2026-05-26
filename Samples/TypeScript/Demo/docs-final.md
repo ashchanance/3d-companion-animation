@@ -16,14 +16,14 @@ Simple guides to help you get the most out of your time with Haruka.
 ## 1. Getting Started
 
 ### What is Haruka?
-Haruka is your personal AI companion — a cheerful, expressive Live2D character
+Haruka is your personal AI companion, a cheerful, expressive Live2D character
 who lives right inside your browser. No downloads. No installs. No setup.
 
 Just open the page, and she's already there.
 
 She's powered by advanced language models and rendered in real-time 3D,
 with expressions that move naturally as you talk.
-Whether you want to chat, practice Japanese, or just have someone to talk to —
+Whether you want to chat, practice Japanese, or just have someone to talk to,
 Haruka is ready whenever you are.
 
 > 💡 Haruka works best on **Google Chrome** or **Microsoft Edge**.

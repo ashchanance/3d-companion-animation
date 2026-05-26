@@ -8,7 +8,6 @@ About Haruka
 ---
 
 ## Headline
-Not just a chatbot.
 A companion who actually shows up.
 
 ---

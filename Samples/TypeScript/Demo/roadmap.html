@@ -62,7 +62,7 @@
       color: var(--text-main);
       font-family: var(--font-sans);
       min-height: 100dvh;
-      overflow-x: hidden;
+      overflow-x: clip;
       display: flex;
       flex-direction: column;
     }
@@ -87,7 +87,7 @@
     }
 
     .nav-container {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       height: 100%;
       display: flex;
@@ -206,7 +206,7 @@
        LAYOUT WRAPPER & ROADMAP TIMELINE
        ======================================================= */
     .roadmap-wrapper {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 60px 40px 100px;
       box-sizing: border-box;
@@ -256,7 +256,7 @@
     /* Vertical Timeline Container */
     .timeline-container {
       position: relative;
-      max-w: 880px;
+      max-width: 880px;
       margin: 0 auto;
       padding: 20px 0;
     }
@@ -871,13 +871,7 @@
 
     </div>
 
-    <!-- Footer -->
-    <footer class="roadmap-footer">
-      <span>HARUKA Companion &copy; 2026</span>
-      <div>
-        <a href="https://x.com/mynamekiraa" target="_blank">X (Twitter)</a>
-      </div>
-    </footer>
+
 
   </div>
 

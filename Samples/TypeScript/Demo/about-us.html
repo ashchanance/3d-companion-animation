@@ -62,7 +62,7 @@
       color: var(--text-main);
       font-family: var(--font-sans);
       min-height: 100dvh;
-      overflow-x: hidden;
+      overflow-x: clip;
       display: flex;
       flex-direction: column;
     }
@@ -87,7 +87,7 @@
     }
 
     .nav-container {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       height: 100%;
       display: flex;
@@ -206,7 +206,7 @@
        LAYOUT WRAPPER & GRID
        ======================================================= */
     .about-wrapper {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 60px 40px 100px;
       box-sizing: border-box;
@@ -624,7 +624,7 @@
     <!-- Left-aligned Editorial Intro -->
     <header class="page-intro">
       <span class="page-tag">About Haruka</span>
-      <h1 class="page-title">Not just a chatbot.<br>A companion who actually shows up.</h1>
+      <h1 class="page-title">A companion who actually shows up.</h1>
     </header>
 
     <!-- Bento Grid -->
@@ -777,13 +777,7 @@
 
     </div>
 
-    <!-- Footer -->
-    <footer class="about-footer">
-      <span>HARUKA Companion &copy; 2026</span>
-      <div>
-        <a href="https://x.com/mynamekiraa" target="_blank">X (Twitter)</a>
-      </div>
-    </footer>
+
 
   </div>
 

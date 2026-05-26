@@ -66,7 +66,7 @@
       color: var(--text-main);
       font-family: var(--font-sans);
       min-height: 100dvh;
-      overflow-x: hidden;
+      overflow-x: clip;
       display: flex;
       flex-direction: column;
     }
@@ -91,7 +91,7 @@
     }
 
     .nav-container {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       height: 100%;
       display: flex;
@@ -210,7 +210,7 @@
        LAYOUT WRAPPER: STICKY SIDEBAR & ARTICLE PANEL
        ======================================================= */
     .docs-wrapper {
-      max-w: 1280px;
+      max-width: 1280px;
       margin: 0 auto;
       padding: 60px 40px 100px;
       box-sizing: border-box;
@@ -227,7 +227,9 @@
     .docs-sidebar {
       position: sticky;
       top: 120px;
-      height: calc(100vh - 160px);
+      align-self: start;
+      max-height: calc(100vh - 160px);
+      height: fit-content;
       overflow-y: auto;
       padding-right: 16px;
       z-index: 10;
@@ -554,6 +556,7 @@
       .docs-sidebar {
         position: static;
         height: auto;
+        max-height: none;
         padding-right: 0;
         border-bottom: 1px solid rgba(30, 42, 58, 0.08);
         padding-bottom: 24px;
@@ -659,13 +662,15 @@
         <p class="page-desc">Simple guides to help you get the most out of your time with Haruka.</p>
       </header>
 
-      <div class="docs-divider"></      <!-- SECTION 1: GETTING STARTED -->
+      <div class="docs-divider"></div>
+      
+      <!-- SECTION 1: GETTING STARTED -->
       <section id="getting-started" class="docs-chapter">
         <h2>1. Getting Started</h2>
 
         <h3>What is Haruka?</h3>
         <p>
-          Haruka is your personal AI companion — a cheerful, expressive Live2D character
+          Haruka is your personal AI companion, a cheerful, expressive Live2D character
           who lives right inside your browser. No downloads. No installs. No setup.
         </p>
         <p>
@@ -674,7 +679,7 @@
         <p>
           She's powered by advanced language models and rendered in real-time 3D,
           with expressions that move naturally as you talk.
-          Whether you want to chat, practice Japanese, or just have someone to talk to —
+          Whether you want to chat, practice Japanese, or just have someone to talk to,
           Haruka is ready whenever you are.
         </p>
 
@@ -935,15 +940,7 @@
 
   </div>
 
-  <!-- Footer -->
-  <footer class="docs-footer">
-    <div class="max-w: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1280px; padding: 0 40px;">
-      <span>HARUKA Companion &copy; 2026</span>
-      <div>
-        <a href="https://x.com/mynamekiraa" target="_blank">X (Twitter)</a>
-      </div>
-    </div>
-  </footer>
+
 
   <!-- Script for Smooth Scrolling Sidebar Active state highlighting and Copy code utility -->
   <script>
