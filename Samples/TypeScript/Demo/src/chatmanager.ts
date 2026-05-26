@@ -17,6 +17,7 @@ export class ChatManager {
   private _mediaRecorder: MediaRecorder | null = null;
   private _audioChunks: Blob[] = [];
   private _isRecording: boolean = false;
+  private _history: { role: 'user' | 'assistant'; content: string }[] = [];
 
   constructor() {
     this.initializeUI();
@@ -52,6 +53,7 @@ export class ChatManager {
 
   public setLanguage(lang: 'en' | 'jp'): void {
     this._activeLang = lang;
+    this._history = [];
     console.log(`[ChatManager] Active language set to: ${lang}`);
   }
 
@@ -109,6 +111,12 @@ export class ChatManager {
       ? 'You are a cheerful, incredibly cute, and highly expressive Live2D 3D anime child companion named Haruka (ハルカ). Speak in an adorable, child-like Japanese manner (using cute baby/child particles like ~dayo, ~desu, ~chan, ~nano, ~mon, etc.). Keep your answer very brief and concise (1-2 sentences only). Always respond in Japanese, regardless of the language of the user message. Crucially, express your exact emotions naturally using matching expressive emojis (like 😊, 😂, 😭, 😱, 😡, 😳, 🥺, 🥰) so the user can feel your cute kid vibe!'
       : 'You are a cheerful, incredibly cute, and highly expressive Live2D 3D anime child companion named Haruka. Speak in an adorable, child-like English manner (using cute words, soft expressions, etc.). Keep your answer very brief and concise (1-2 sentences only). Always respond in English, regardless of the language of the user message. Crucially, express your exact emotions naturally using matching expressive emojis (like 😊, 😂, 😭, 😱, 😡, 😳, 🥺, 🥰) so the user can feel your cute kid vibe!';
 
+    // Add current user message to history
+    this._history.push({ role: 'user', content: message });
+    if (this._history.length > 10) {
+      this._history = this._history.slice(-10);
+    }
+
     try {
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
@@ -123,10 +131,7 @@ export class ChatManager {
               role: 'system',
               content: childSystemPrompt
             },
-            {
-              role: 'user',
-              content: message
-            }
+            ...this._history
           ]
         })
       });
@@ -138,6 +143,12 @@ export class ChatManager {
       const data = await response.json();
       const reply = data.choices?.[0]?.message?.content || 'Hello! How can I help you?';
 
+      // Add assistant reply to history
+      this._history.push({ role: 'assistant', content: reply });
+      if (this._history.length > 10) {
+        this._history = this._history.slice(-10);
+      }
+
       // Detect emotion based on text response
       const emotion = this.detectEmotion(reply);
       console.log(`[ChatManager] Detected emotion "${emotion}" for reply: "${reply}"`);
@@ -147,6 +158,10 @@ export class ChatManager {
 
     } catch (error) {
       console.error('MegaLLM API Error:', error);
+      
+      // Rollback last user message if API call failed
+      this._history.pop();
+
       this.displayReply('Sorry, it seems my connection is having trouble... Please try again later!', 'sad');
       this.triggerCharacterAction('sad');
     }
@@ -245,14 +260,12 @@ export class ChatManager {
           charIndex++;
         } else {
           this.clearTypewriter();
+          this.scheduleHideTimeout();
         }
       }, this._typewriterSpeed);
       
-      // Auto-hide bubble after 10 seconds of idle
+      // Auto-hide bubble after 10 seconds of idle (cleared at reply start, scheduled after completion)
       this.clearHideTimeout();
-      this._hideTimeout = window.setTimeout(() => {
-        this.hideBubble();
-      }, 10000);
 
       // Trigger Text-to-Speech and lip-sync simulation
       this.speakReply(text);
@@ -369,6 +382,7 @@ export class ChatManager {
         if (this._activeAudio === audio) {
           this._activeAudio = null;
         }
+        this.scheduleHideTimeout();
       };
 
       audio.onended = handleAudioStop;
@@ -400,6 +414,7 @@ export class ChatManager {
       if (typeof (model as any).stopLipSyncSimulating === 'function') {
         (model as any).stopLipSyncSimulating();
       }
+      this.scheduleHideTimeout();
     };
 
     // Set fallback timeout to stop mouth movement
@@ -475,6 +490,24 @@ export class ChatManager {
       clearTimeout(this._hideTimeout);
       this._hideTimeout = null;
     }
+  }
+
+  private scheduleHideTimeout(): void {
+    this.clearHideTimeout();
+    
+    const isTypewriterRunning = this._typewriterInterval !== null;
+    const isAudioPlaying = this._activeAudio !== null && !this._activeAudio.paused && !this._activeAudio.ended;
+    const isSpeechSpeaking = this._speakingTimeout !== null;
+
+    if (isTypewriterRunning || isAudioPlaying || isSpeechSpeaking) {
+      console.log('[ChatManager] Postponing hide timeout (typewriter, audio, or speech is still active)');
+      return;
+    }
+
+    console.log('[ChatManager] Scheduling hide timeout in 10 seconds...');
+    this._hideTimeout = window.setTimeout(() => {
+      this.hideBubble();
+    }, 10000);
   }
 
   private clearTypewriter(): void {
