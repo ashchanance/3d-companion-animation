@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build:prod",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/about-us", "destination": "/about-us.html" },
+    { "source": "/roadmap",  "destination": "/roadmap.html"  },
+    { "source": "/docs",     "destination": "/docs.html"     },
+    { "source": "/features", "destination": "/features.html" },
+    { "source": "/lore",     "destination": "/lore.html"     }
+  ]
+}

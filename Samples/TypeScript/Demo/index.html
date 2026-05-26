@@ -91,13 +91,213 @@
     }
 
     body.mode-chat {
-      background: radial-gradient(circle at 50% 50%, rgba(245, 235, 230, 0.98) 0%, rgba(30, 42, 58, 0.98) 100%);
+      background-color: var(--bg-landing);
       overflow: hidden !important;
       width: 100vw;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+
+    /* Dual-layer dynamic background for chat mode */
+    #chat-bg-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0; /* Behind WebGL canvas (z-index: 1) */
+      display: none;
+    }
+    
+    body.mode-chat #chat-bg-container {
+      display: block;
+    }
+    
+    .chat-bg-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .chat-bg-layer.active {
+      opacity: 1;
+      z-index: 1;
+    }
+    
+    .chat-bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 50%, rgba(250, 246, 240, 0.1) 0%, rgba(30, 42, 58, 0.6) 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Floating Background Selector on Top Right */
+    #bg-selector-container {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: auto;
+      z-index: 20;
+    }
+
+    #bg-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: rgba(250, 246, 240, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(30, 42, 58, 0.1);
+      border-radius: 30px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    #bg-btn:hover {
+      background: rgba(250, 246, 240, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(30, 42, 58, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border-color: rgba(30, 42, 58, 0.2);
+    }
+
+    #bg-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    #bg-panel {
+      position: absolute;
+      top: 56px;
+      right: 0;
+      width: 290px;
+      background: rgba(250, 246, 240, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(30, 42, 58, 0.1);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(30, 42, 58, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      opacity: 0;
+      transform: translateY(10px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 25;
+    }
+
+    #bg-panel.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .bg-panel-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-600);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .bg-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .bg-options-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .bg-options-list::-webkit-scrollbar-track {
+      background: rgba(30, 42, 58, 0.02);
+    }
+    .bg-options-list::-webkit-scrollbar-thumb {
+      background: rgba(30, 42, 58, 0.15);
+      border-radius: 4px;
+    }
+
+    .bg-option-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .bg-option-item:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(30, 42, 58, 0.08);
+      transform: translateX(-2px);
+    }
+
+    .bg-option-item.active {
+      background: #ffffff;
+      border-color: var(--primary-400);
+      box-shadow: 0 4px 12px rgba(127, 85, 57, 0.08);
+    }
+
+    .bg-option-thumb {
+      width: 48px;
+      height: 32px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid rgba(30, 42, 58, 0.08);
+    }
+
+    .bg-option-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex-grow: 1;
+    }
+
+    .bg-option-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 170px;
+    }
+
+    .bg-option-desc {
+      font-size: 10px;
+      color: var(--slate-500);
     }
     body.mode-chat #landing-page {
       display: none !important;
@@ -1208,6 +1408,13 @@
 </head>
 <body class="mode-landing">
 
+  <!-- Dual-layer dynamic background for chat mode -->
+  <div id="chat-bg-container">
+    <div class="chat-bg-layer layer-a active"></div>
+    <div class="chat-bg-layer layer-b"></div>
+    <div class="chat-bg-overlay"></div>
+  </div>
+
   <!-- =======================================================
        LANDING PAGE
        ======================================================= -->
@@ -1392,6 +1599,24 @@
       <span>Home</span>
     </button>
 
+    <!-- Premium Floating Background Selector -->
+    <div id="bg-selector-container">
+      <button id="bg-btn" aria-label="Ganti Background">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>Background</span>
+      </button>
+      <div id="bg-panel">
+        <div class="bg-panel-title">Pilih Background</div>
+        <div class="bg-options-list" id="bg-options-list">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+    </div>
+
     <!-- Cloud speech bubble -->
     <div id="chat-bubble" class="cloud-bubble hidden">
       <div class="bubble-content">
@@ -1488,7 +1713,106 @@
       if (langEnBtn) langEnBtn.addEventListener('click', () => setLanguage('en'));
       if (langJpBtn) langJpBtn.addEventListener('click', () => setLanguage('jp'));
 
+      // Dynamic Interactive Chat Background Selector Feature (Using public/background assets)
+      const backgrounds = [
+        { name: "Sunny Forest (Main)", file: "Sunny Digital Forest (UTAMA).png", desc: "Sunny Glow" },
+        { name: "Classroom (Afternoon)", file: "Japanese Classroom (Afternoon) .png", desc: "Afternoon Class" },
+        { name: "School Rooftop", file: "School Rooftop Blue Sky .png", desc: "Blue Sky" },
+        { name: "Morning Glow", file: "Digital Forest (Morning Glow).png", desc: "Early Morning" },
+        { name: "Sunset Glow", file: "Digital Forest (Sunset).png", desc: "Sunset" },
+        { name: "Midnight Forest", file: "Digital Forest (Night) .png", desc: "Deep Night" },
+        { name: "Secret Clearing", file: "Digital Forest (The Secret Clearing).png", desc: "Clear Sky" }
+      ];
 
+      let currentBgFile = '';
+
+      function setChatBackground(file, save = true) {
+        if (currentBgFile === file) return;
+        currentBgFile = file;
+
+        const layerA = document.querySelector('.chat-bg-layer.layer-a');
+        const layerB = document.querySelector('.chat-bg-layer.layer-b');
+        if (!layerA || !layerB) return;
+
+        // Use encodeURIComponent to handle space characters in filenames cleanly
+        const bgPath = `background/${encodeURIComponent(file)}`;
+
+        // Cross-fade algorithm using two layers
+        if (layerA.classList.contains('active')) {
+          layerB.style.backgroundImage = `url('${bgPath}')`;
+          layerB.classList.add('active');
+          layerA.classList.remove('active');
+        } else {
+          layerA.style.backgroundImage = `url('${bgPath}')`;
+          layerA.classList.add('active');
+          layerB.classList.remove('active');
+        }
+
+        // Highlight active item in selection menu
+        document.querySelectorAll('.bg-option-item').forEach(item => {
+          if (item.dataset.file === file) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+
+        if (save) {
+          localStorage.setItem('hiyori-chat-bg', file);
+        }
+      }
+
+      // Populate background list dynamically
+      const bgList = document.getElementById('bg-options-list');
+      if (bgList) {
+        backgrounds.forEach(bg => {
+          const item = document.createElement('div');
+          item.className = 'bg-option-item';
+          item.dataset.file = bg.file;
+          item.innerHTML = `
+            <img class="bg-option-thumb" src="background/${encodeURIComponent(bg.file)}" alt="${bg.name}">
+            <div class="bg-option-info">
+              <div class="bg-option-name">${bg.name}</div>
+              <div class="bg-option-desc">${bg.desc}</div>
+            </div>
+          `;
+          item.addEventListener('click', () => {
+            setChatBackground(bg.file);
+          });
+          bgList.appendChild(item);
+        });
+      }
+
+      // Floating menu click controls
+      const bgBtn = document.getElementById('bg-btn');
+      const bgPanel = document.getElementById('bg-panel');
+      if (bgBtn && bgPanel) {
+        bgBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          bgPanel.classList.toggle('active');
+        });
+        document.addEventListener('click', () => {
+          bgPanel.classList.remove('active');
+        });
+        bgPanel.addEventListener('click', (e) => {
+          e.stopPropagation();
+        });
+      }
+
+      // Initialize default background
+      const savedBg = localStorage.getItem('hiyori-chat-bg') || backgrounds[0].file;
+      const initialLayer = document.querySelector('.chat-bg-layer.layer-a');
+      if (initialLayer) {
+        initialLayer.style.backgroundImage = `url('background/${encodeURIComponent(savedBg)}')`;
+        currentBgFile = savedBg;
+      }
+      setTimeout(() => {
+        document.querySelectorAll('.bg-option-item').forEach(item => {
+          if (item.dataset.file === savedBg) {
+            item.classList.add('active');
+          }
+        });
+      }, 100);
     });
   </script>
 

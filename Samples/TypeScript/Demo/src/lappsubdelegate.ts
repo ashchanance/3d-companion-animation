@@ -135,8 +135,8 @@ export class LAppSubdelegate {
 
     const gl = this._glManager.getGl();
 
-    // 画面の初期化
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // 画面の初期化 (Alpha set to 0.0 for transparent Live2D canvas background)
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
     // 深度テストを有効化
     gl.enable(gl.DEPTH_TEST);

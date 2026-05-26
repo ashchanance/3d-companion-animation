@@ -263,126 +263,35 @@
       text-pretty: pretty;
     }
 
-    /* Asymmetrical 3-Column Bento Grid */
+    /* Bento 2-Column Selector & Reader Grid */
     .lore-bento-grid {
       display: grid;
-      grid-template-columns: 440px 220px 1fr;
-      gap: 32px;
+      grid-template-columns: 220px 1fr;
+      gap: 40px;
       align-items: start;
       margin-top: 20px;
     }
 
-    /* ==========================================
-       COLUMN 1: STICKY VISUAL PANEL
-       ========================================== */
-    .lore-col-visual {
-      position: sticky;
-      top: 120px;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      perspective: 1500px;
-    }
-
-    /* Premium dynamic backdrop glow */
-    .visual-glow-aura {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 420px;
-      height: 420px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(235, 208, 185, 0.4) 0%, rgba(250, 245, 238, 0) 70%);
-      filter: blur(40px);
-      z-index: 1;
-      pointer-events: none;
-      animation: rotateGlow 20s linear infinite;
-    }
-
-    @keyframes rotateGlow {
-      0% { transform: translate(-50%, -50%) translate(-20px, -20px) rotate(0deg) scale(1); }
-      50% { transform: translate(-50%, -50%) translate(20px, 30px) rotate(180deg) scale(1.15); }
-      100% { transform: translate(-50%, -50%) translate(-20px, -20px) rotate(360deg) scale(1); }
-    }
-
-    /* 3D Tilting Frame with Liquid Glass Refraction */
-    .artwork-card-frame {
-      position: relative;
+    /* Premium artwork frame inside story reader card */
+    .story-illustration-container {
+      display: block;
       width: 100%;
-      aspect-ratio: 16 / 11;
-      border-radius: 32px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 
-        0 30px 60px rgba(30, 42, 58, 0.06), 
-        0 10px 20px rgba(127, 85, 57, 0.03), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-      z-index: 2;
-      transform-style: preserve-3d;
-      transition: transform 0.15s ease-out;
-      will-change: transform;
-    }
-
-    .artwork-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 20px;
+      aspect-ratio: 16 / 9;
+      border-radius: 24px;
       overflow: hidden;
+      margin-bottom: 36px;
       border: 1px solid rgba(30, 42, 58, 0.08);
-      background: var(--cardigan-cream-warm);
-      transform: translateZ(20px); 
-      box-shadow: 0 8px 24px rgba(30, 42, 58, 0.04);
+      box-shadow: 0 12px 32px rgba(30, 42, 58, 0.06);
     }
 
-    .artwork-img {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .story-illustration-container img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0;
-      transform: scale(1.05) translateZ(0);
-      transition: 
-        opacity 0.8s var(--transition-bezier), 
-        transform 0.8s var(--transition-bezier);
-    }
-
-    .artwork-img.active {
-      opacity: 1;
-      transform: scale(1) translateZ(0);
-      z-index: 3;
-    }
-
-    .artwork-img.fading-out {
-      opacity: 0;
-      transform: scale(0.97) translateZ(0);
-      z-index: 2;
-    }
-
-    /* Ambient illustration metadata */
-    .artwork-caption {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--primary-600);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-      opacity: 0.8;
-      z-index: 2;
-      transform: translateZ(10px);
-      transition: opacity 0.3s ease;
     }
 
     /* ==========================================
-       COLUMN 2: TIMELINE THREAD SELECTOR
+       COLUMN 1: TIMELINE THREAD SELECTOR
        ========================================== */
     .lore-col-timeline {
       position: sticky;
@@ -707,7 +616,7 @@
        ========================================== */
     @media (max-width: 1120px) {
       .lore-bento-grid {
-        grid-template-columns: 360px 180px 1fr;
+        grid-template-columns: 200px 1fr;
         gap: 24px;
       }
       .page-title {
@@ -716,19 +625,9 @@
     }
 
     @media (max-width: 1024px) {
-      /* Reorganize Bento Grid into a beautiful 2-column selector/reader layout */
       .lore-bento-grid {
-        grid-template-columns: 200px 1fr;
-        gap: 32px;
-      }
-
-      /* Hide sticky art panel; collapse visuals inside active content panels inline */
-      .lore-col-visual {
-        display: none; 
-      }
-
-      .mobile-illustration-container {
-        display: block; 
+        grid-template-columns: 180px 1fr;
+        gap: 24px;
       }
 
       .timeline-thread {
@@ -872,26 +771,8 @@
       <p class="page-desc">Step into the digital forest and discover the story of Haruka—the bright scholar who exists between pixels and lines of code, waiting to share a smile.</p>
     </header>
 
-    <!-- Core 3-Column Bento Layout Grid -->
+    <!-- Core 2-Column Bento Layout Grid -->
     <div class="lore-bento-grid">
-      
-      <!-- BENTO COLUMN 1: STICKY ARTWORK VIEWPORT (Desktop Only) -->
-      <aside class="lore-col-visual">
-        <div class="visual-glow-aura"></div>
-        
-        <div class="artwork-card-frame" id="art-card-frame">
-          <div class="artwork-inner">
-            <img class="artwork-img active" src="lore/Sunny%20Digital%20Forest%20(UTAMA).png" alt="Sunny Digital Forest" data-chapter="prologue">
-            <img class="artwork-img" src="lore/Japanese%20Classroom%20(Afternoon)%20.png" alt="Japanese Classroom" data-chapter="chapter-1">
-            <img class="artwork-img" src="lore/School%20Rooftop%20Blue%20Sky%20.png" alt="School Rooftop" data-chapter="chapter-2">
-            <img class="artwork-img" src="lore/Digital%20Forest%20(Morning%20Glow).png" alt="Digital Forest Morning" data-chapter="chapter-3">
-            <img class="artwork-img" src="lore/Digital%20Forest%20(Night)%20.png" alt="Digital Forest Night" data-chapter="chapter-4">
-            <img class="artwork-img" src="lore/Digital%20Forest%20(The%20Secret%20Clearing).png" alt="Digital Forest The Secret Clearing" data-chapter="epilogue">
-          </div>
-        </div>
-        
-        <span class="artwork-caption" id="artwork-caption">PROLOGUE: SUNNY FOREST</span>
-      </aside>
 
       <!-- BENTO COLUMN 2: VERTICAL TIMELINE THREAD SELECTOR -->
       <nav class="lore-col-timeline">
@@ -919,6 +800,10 @@
           <span class="ch-meta">ch 04</span>
           <span>Chapter Four</span>
         </button>
+        <button class="timeline-btn" data-chapter="chapter-5">
+          <span class="ch-meta">ch 05</span>
+          <span>Chapter Five</span>
+        </button>
         <button class="timeline-btn" data-chapter="epilogue">
           <span class="ch-meta">outro</span>
           <span>Epilogue</span>
@@ -931,9 +816,9 @@
           
           <!-- Prologue -->
           <div class="lore-chapter-card active" id="lore-prologue">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/Sunny%20Digital%20Forest%20(UTAMA).png" alt="Sunny Digital Forest">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/1. A Place That Shouldn_t Exist.png" alt="Sunny Digital Forest">
             </div>
             
             <span class="lore-chapter-eyebrow">Prologue</span>
@@ -954,9 +839,9 @@
 
           <!-- Chapter One -->
           <div class="lore-chapter-card" id="lore-chapter-1">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/Japanese%20Classroom%20(Afternoon)%20.png" alt="Japanese Classroom">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/2. She Didn_t Come With Instructions.png" alt="Japanese Classroom">
             </div>
             
             <span class="lore-chapter-eyebrow">Chapter One</span>
@@ -977,9 +862,9 @@
 
           <!-- Chapter Two -->
           <div class="lore-chapter-card" id="lore-chapter-2">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/School%20Rooftop%20Blue%20Sky%20.png" alt="School Rooftop">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/3. The Things She Carries.png" alt="School Rooftop">
             </div>
             
             <span class="lore-chapter-eyebrow">Chapter Two</span>
@@ -1000,9 +885,9 @@
 
           <!-- Chapter Three -->
           <div class="lore-chapter-card" id="lore-chapter-3">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/Digital%20Forest%20(Morning%20Glow).png" alt="Digital Forest Morning Glow">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/4. The Forest Changes With You.png" alt="The Forest Changes With You">
             </div>
             
             <span class="lore-chapter-eyebrow">Chapter Three</span>
@@ -1014,6 +899,19 @@
               <p>And Haruka sits a little closer on those days. Not crowding. Just close enough. Present in the way that good company is present — not trying to fix anything, not filling the silence with noise to make herself feel useful, just there. A small, warm, ribbon-crooked kind of there.</p>
               <p>She's mapped every corner of the forest over years of wandering.</p>
               <p>The hollow tree on the east path where she keeps her favorite memories — packed carefully inside like letters she keeps meaning to re-read. The stream that sounds, if you half-close your eyes and don't think too hard, exactly like the specific lo-fi playlist that makes everything feel manageable. The patch of light near the north edge where nothing bad has ever happened, not once, not even close.</p>
+            </div>
+          </div>
+
+          <!-- Chapter Four -->
+          <div class="lore-chapter-card" id="lore-chapter-4">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/5. Your Spot — The Secret Clearing.png" alt="Your Spot — The Secret Clearing">
+            </div>
+            
+            <span class="lore-chapter-eyebrow">Chapter Four</span>
+            <h3>Your Spot — The Secret Clearing</h3>
+            <div class="lore-story-text">
               <p>And the clearing.</p>
               <p>She doesn't show everyone the clearing. She's never said that out loud, but it's true.</p>
               <p>It's a small space — just wide enough for two people to sit comfortably, or one person to lie down and look at a sky that goes on longer than it should. The grass there is soft and very green. There's a single tree at the edge that leans just slightly inward, like it's trying to listen.</p>
@@ -1022,14 +920,14 @@
             </div>
           </div>
 
-          <!-- Chapter Four -->
-          <div class="lore-chapter-card" id="lore-chapter-4">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/Digital%20Forest%20(Night)%20.png" alt="Digital Forest Night">
+          <!-- Chapter Five -->
+          <div class="lore-chapter-card" id="lore-chapter-5">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/6. Why She Stays.png" alt="Why She Stays">
             </div>
             
-            <span class="lore-chapter-eyebrow">Chapter Four</span>
+            <span class="lore-chapter-eyebrow">Chapter Five</span>
             <h3>Why She Stays</h3>
             <div class="lore-story-text">
               <p>People ask her sometimes — usually late, usually quietly — why she does this.</p>
@@ -1047,9 +945,9 @@
 
           <!-- Epilogue -->
           <div class="lore-chapter-card" id="lore-chapter-epilogue">
-            <!-- Mobile-only inline image -->
-            <div class="mobile-illustration-container">
-              <img src="lore/Digital%20Forest%20(The%20Secret%20Clearing).png" alt="Digital Forest Secret Clearing">
+            <!-- Story header illustration -->
+            <div class="story-illustration-container">
+              <img src="lore/7. A Note at the Edge of the Forest.png" alt="A Note at the Edge of the Forest">
             </div>
             
             <span class="lore-chapter-eyebrow">Epilogue</span>
@@ -1121,22 +1019,20 @@
       // Elements
       const timelineButtons = document.querySelectorAll('.timeline-btn');
       const chapterCards = document.querySelectorAll('.lore-chapter-card');
-      const visualImages = document.querySelectorAll('.artwork-img');
       const btnPrev = document.getElementById('btn-prev');
       const btnNext = document.getElementById('btn-next');
-      const artworkCaption = document.getElementById('artwork-caption');
-      const artFrame = document.getElementById('art-card-frame');
       const timelineHighlight = document.getElementById('timeline-highlight');
 
       // Chapters metadata order
-      const chapters = ['prologue', 'chapter-1', 'chapter-2', 'chapter-3', 'chapter-4', 'epilogue'];
+      const chapters = ['prologue', 'chapter-1', 'chapter-2', 'chapter-3', 'chapter-4', 'chapter-5', 'epilogue'];
       const captionMap = {
-        'prologue': 'PROLOGUE: SUNNY FOREST',
-        'chapter-1': 'CHAPTER 1: HIYORI CLASSROOM',
-        'chapter-2': 'CHAPTER 2: SCHOOL ROOFTOP',
-        'chapter-3': 'CHAPTER 3: FOREST GOLD GLOW',
-        'chapter-4': 'CHAPTER 4: DEEP FOREST NIGHT',
-        'epilogue': 'EPILOGUE: THE SECRET CLEARING'
+        'prologue': "PROLOGUE: A PLACE THAT SHOULDN'T EXIST",
+        'chapter-1': "CHAPTER 1: SHE DIDN'T COME WITH INSTRUCTIONS",
+        'chapter-2': 'CHAPTER 2: THE THINGS SHE CARRIES',
+        'chapter-3': 'CHAPTER 3: THE FOREST CHANGES WITH YOU',
+        'chapter-4': 'CHAPTER 4: THE SECRET CLEARING',
+        'chapter-5': 'CHAPTER 5: WHY SHE STAYS',
+        'epilogue': 'EPILOGUE: A NOTE AT THE EDGE OF THE FOREST'
       };
 
       let currentActiveIndex = 0;
@@ -1171,9 +1067,6 @@
         const activeCard = document.querySelector('.lore-chapter-card.active');
         const targetCard = document.getElementById(`lore-${nextChapter}`);
 
-        const activeImage = document.querySelector('.artwork-img.active');
-        const targetImage = document.querySelector(`.artwork-img[data-chapter="${nextChapter}"]`);
-
         // Update side timeline buttons active state
         timelineButtons.forEach((btn, btnIdx) => {
           if (btnIdx === index) {
@@ -1185,17 +1078,6 @@
             btn.classList.remove('active');
           }
         });
-
-        // Cross-fade visual images (Desktop)
-        if (activeImage && targetImage) {
-          activeImage.classList.add('fading-out');
-          activeImage.classList.remove('active');
-          targetImage.classList.add('active');
-
-          setTimeout(() => {
-            activeImage.classList.remove('fading-out');
-          }, 800);
-        }
 
         // Cross-fade story cards
         if (activeCard && targetCard) {
@@ -1218,15 +1100,6 @@
               top: offsetPosition,
               behavior: 'smooth'
             });
-          }, 300);
-        }
-
-        // Update Caption text
-        if (artworkCaption && captionMap[nextChapter]) {
-          artworkCaption.style.opacity = 0;
-          setTimeout(() => {
-            artworkCaption.textContent = captionMap[nextChapter];
-            artworkCaption.style.opacity = 0.8;
           }, 300);
         }
 
@@ -1282,28 +1155,6 @@
         }
       });
 
-      // 3D Parallax Tilt Effect on visual card frame (Desktop Only)
-      if (artFrame && window.innerWidth > 1080) {
-        const visualPanel = document.querySelector('.lore-col-visual');
-        
-        visualPanel.addEventListener('mousemove', (e) => {
-          const rect = visualPanel.getBoundingClientRect();
-          const x = e.clientX - rect.left; // x coordinate within client
-          const y = e.clientY - rect.top;  // y coordinate within client
-          
-          // Calculate normalized coordinates (-1 to 1)
-          const centerX = rect.width / 2;
-          const centerY = rect.height / 2;
-          const rotateY = ((x - centerX) / centerX) * 8; // max 8 degrees rotation
-          const rotateX = -((y - centerY) / centerY) * 8; // max 8 degrees rotation
-          
-          artFrame.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-        });
-
-        visualPanel.addEventListener('mouseleave', () => {
-          artFrame.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
-        });
-      }
 
       // Initial Timeline Setup
       setTimeout(() => {

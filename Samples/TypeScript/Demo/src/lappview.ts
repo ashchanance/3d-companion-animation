@@ -101,9 +101,12 @@ export class LAppView {
   public render(): void {
     this._subdelegate.getGlManager().getGl().useProgram(this._programId);
 
+    /* Disable WebGL background sprite to allow CSS background rendering */
+    /*
     if (this._back) {
       this._back.render(this._programId);
     }
+    */
     // Gear is disabled
     /*
     if (this._gear) {

@@ -24,6 +24,10 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
         input: {
           main: path.resolve(__dirname, 'index.html'),
           lore: path.resolve(__dirname, 'lore.html'),
+          'about-us': path.resolve(__dirname, 'about-us.html'),
+          roadmap: path.resolve(__dirname, 'roadmap.html'),
+          docs: path.resolve(__dirname, 'docs.html'),
+          features: path.resolve(__dirname, 'features.html'),
         },
       },
     },

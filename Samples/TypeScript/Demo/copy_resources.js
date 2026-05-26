@@ -10,6 +10,9 @@ const fs = require('fs');
 const publicResources = [
   {src: '../../../Core', dst: './public/Core'},
   {src: '../../Resources', dst: './public/Resources'},
+  // Primary shaders path (accessible, no permission issues)
+  {src: '../../../Framework/Shaders/WebGL', dst: './public/shaders/WebGL'},
+  // Legacy path attempt (may fail if locked - that's OK, primary path is used)
   {src: '../../../Framework/Shaders', dst: './public/Framework/Shaders'},
 ];
 
