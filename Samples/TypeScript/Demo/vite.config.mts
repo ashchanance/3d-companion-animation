@@ -20,6 +20,12 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
       assetsDir: 'assets',
       outDir: './dist',
       sourcemap: env.mode == 'development' ? true : false,
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          lore: path.resolve(__dirname, 'lore.html'),
+        },
+      },
     },
   };
   return common;

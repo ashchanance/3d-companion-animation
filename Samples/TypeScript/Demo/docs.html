@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hiyori - Interactive AI 3D Companion | Documentation</title>
+  
+  <meta name="description" content="Official documentation for Haruka: Overview, Quick Start, Configuration, LLM Providers, and Self-Hosting Guide.">
+  
+  <!-- Modern Google Fonts for Premium Aesthetics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-serif: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      /* Hiyori Uniform Color Theme */
+      --bg-landing: #FAF5EE;            /* Warm cream background matching cardigan */
+      --cardigan-cream: #FAF6F0;       /* Extra light cream surface */
+      --cardigan-cream-warm: #F5EBE6;  /* Authentic cardigan cream */
+      --text-main: #1E2638;            /* Rich slate navy matching skirt */
+      --text-muted: #605C58;
+      
+      /* Cardigan Button Brown Accents */
+      --primary-50: #FAF6F0;
+      --primary-100: #FAF2EC;
+      --primary-200: #EBD0B9;
+      --primary-300: #DBB89A;
+      --primary-400: #BD8E68;
+      --primary-500: #9C6644;            
+      --primary-600: #7F5539;            /* Rich cardigan button dark brown */
+      --primary-700: #6B462E;
+      --primary-800: #573824;
+      --primary-900: #42291A;
+      
+      --slate-50: #faf9f6;
+      --slate-100: #f4f2eb;
+      --slate-200: #eae6dc;
+      --slate-300: #dcd6ca;
+      --slate-400: #beb5a3;
+      --slate-500: #9c9280;
+      --slate-600: #7c7261;
+      --slate-700: #5f574a;
+      --slate-800: #413c32;
+      --slate-900: #22201b;
+
+      --transition-bezier: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-landing);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =======================================================
+       STICKY GLOBAL NAVBAR
+       ======================================================= */
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: rgba(250, 246, 240, 0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(30, 42, 58, 0.08);
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 42, 58, 0.02), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+      box-sizing: border-box;
+      padding: 0 40px;
+    }
+
+    .nav-container {
+      max-w: 1280px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-700);
+      background: var(--primary-100);
+      padding: 3px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+    }
+
+    .nav-links a {
+      color: var(--slate-600);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: color 0.25s var(--transition-bezier);
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-600);
+    }
+
+    .nav-links a.active {
+      color: var(--primary-600);
+      font-weight: 700;
+      position: relative;
+    }
+
+    .nav-links a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 100%;
+      height: 2.5px;
+      background: var(--primary-600);
+      border-radius: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .icon-link {
+      display: inline-flex;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid var(--slate-200);
+      background: #ffffff;
+      color: var(--slate-700);
+      box-shadow: 0 2px 8px rgba(30, 42, 58, 0.04);
+      transition: all 0.25s var(--transition-bezier);
+      text-decoration: none;
+    }
+
+    .icon-link:hover {
+      border-color: var(--slate-300);
+      transform: translateY(-2px);
+      background: var(--slate-50);
+      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.08);
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: #ffffff;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(53, 92, 145, 0.2);
+      transition: all 0.25s var(--transition-bezier);
+      text-decoration: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-500);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(53, 92, 145, 0.3);
+    }
+
+    /* =======================================================
+       LAYOUT WRAPPER: STICKY SIDEBAR & ARTICLE PANEL
+       ======================================================= */
+    .docs-wrapper {
+      max-w: 1280px;
+      margin: 0 auto;
+      padding: 60px 40px 100px;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 56px;
+      flex-grow: 1;
+      width: 100%;
+    }
+
+    /* ==========================================
+       SIDEBAR CHAPTER LINKS
+       ========================================== */
+    .docs-sidebar {
+      position: sticky;
+      top: 120px;
+      height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding-right: 16px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .sidebar-section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-600);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      list-style: none;
+    }
+
+    .sidebar-link a {
+      display: block;
+      color: var(--slate-600);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 12px;
+      transition: all 0.25s var(--transition-bezier);
+      border-left: 2px solid transparent;
+    }
+
+    .sidebar-link a:hover {
+      color: var(--text-main);
+      background: rgba(30, 42, 58, 0.04);
+    }
+
+    .sidebar-link.active a {
+      color: var(--primary-700);
+      background: var(--primary-100);
+      font-weight: 700;
+      border-left-color: var(--primary-600);
+    }
+
+    /* ==========================================
+       RIGHT ARTICLE PANEL (TYPOGRAPHY & CONTENT)
+       ========================================== */
+    .docs-content-panel {
+      min-width: 0; /* Prevents flexbox/grid layout expanding from code-blocks */
+    }
+
+    .page-intro {
+      margin-bottom: 48px;
+    }
+
+    .page-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 16px;
+      background: var(--primary-100);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .page-title {
+      font-family: var(--font-serif);
+      font-size: 46px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1.5px;
+      margin-bottom: 18px;
+      line-height: 1.15;
+    }
+
+    .page-desc {
+      font-size: 16px;
+      color: var(--slate-600);
+      line-height: 1.65;
+    }
+
+    .docs-divider {
+      height: 1px;
+      background: rgba(30, 42, 58, 0.08);
+      margin: 48px 0;
+    }
+
+    /* Styled Chapter Sections */
+    .docs-chapter {
+      scroll-margin-top: 120px;
+    }
+
+    .docs-chapter h2 {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 24px;
+      letter-spacing: -0.5px;
+    }
+
+    .docs-chapter h3 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 32px 0 16px 0;
+    }
+
+    .docs-chapter p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--slate-700);
+      margin-bottom: 20px;
+      max-width: 72ch;
+    }
+
+    /* Premium Table Styling */
+    .docs-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid rgba(30, 42, 58, 0.08);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(8px);
+      margin: 24px 0 32px 0;
+      box-shadow: 0 4px 16px rgba(30, 42, 58, 0.01);
+    }
+
+    .docs-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14.5px;
+    }
+
+    .docs-table th {
+      background: rgba(250, 246, 240, 0.8);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate-600);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 16px 24px;
+      border-bottom: 1.5px solid rgba(30, 42, 58, 0.08);
+    }
+
+    .docs-table td {
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(30, 42, 58, 0.05);
+      color: var(--slate-700);
+      line-height: 1.5;
+    }
+
+    .docs-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Custom CSS Alert Cards (Replaces raw emojis) */
+    .docs-alert {
+      display: flex;
+      gap: 16px;
+      padding: 24px 28px;
+      border-radius: 24px;
+      margin: 28px 0;
+      border: 1px solid transparent;
+      max-width: 72ch;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .docs-alert.info {
+      background: #E6ECF4;
+      border-color: rgba(53, 92, 145, 0.15);
+      color: #2b4870;
+    }
+
+    .docs-alert.warning {
+      background: #FAF2EC;
+      border-color: rgba(127, 85, 57, 0.15);
+      color: #633f25;
+    }
+
+    .docs-alert.tip {
+      background: #E8F0E8;
+      border-color: rgba(62, 96, 62, 0.15);
+      color: #2b442b;
+    }
+
+    .alert-icon-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .alert-text {
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+
+    /* Premium Dark Code Block Frame */
+    .docs-code-container {
+      position: relative;
+      background: #151922; /* Sleek Deep Off-Black Navy */
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      margin: 24px 0 32px 0;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      max-width: 72ch;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .code-lang-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-copy-code {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s var(--transition-bezier);
+    }
+
+    .btn-copy-code:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .docs-code-pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      color: #E2E8F0;
+    }
+
+    /* Contributing Bullet List */
+    .docs-bullets {
+      margin: 20px 0 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 72ch;
+    }
+
+    .docs-bullet-item {
+      display: list-item;
+      list-style-type: decimal;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--slate-700);
+      padding-left: 6px;
+    }
+
+    /* =======================================================
+       GLOBAL FOOTER
+       ======================================================= */
+    .docs-footer {
+      margin-top: 100px;
+      padding: 40px 0 0;
+      border-top: 1px solid rgba(30, 42, 58, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--slate-500);
+      font-family: var(--font-mono);
+    }
+
+    .docs-footer a {
+      color: var(--slate-600);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .docs-footer a:hover {
+      color: var(--primary-600);
+    }
+
+    /* =======================================================
+       RESPONSIVE DESIGN (Tablets & Mobile)
+       ======================================================= */
+    @media (max-width: 900px) {
+      .docs-wrapper {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        padding: 40px 20px 60px;
+      }
+      .docs-sidebar {
+        position: static;
+        height: auto;
+        padding-right: 0;
+        border-bottom: 1px solid rgba(30, 42, 58, 0.08);
+        padding-bottom: 24px;
+      }
+      .sidebar-menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .sidebar-link a {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 8px;
+      }
+      .sidebar-link.active a {
+        border-left-color: transparent;
+        border-bottom-color: var(--primary-600);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .landing-nav {
+        padding: 0 20px;
+      }
+      .nav-links {
+        display: none;
+      }
+      .page-title {
+        font-size: 32px;
+      }
+      .docs-chapter h2 {
+        font-size: 26px;
+      }
+      .docs-footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =======================================================
+       GLOBAL PREMIUM NAVBAR
+       ======================================================= -->
+  <nav class="landing-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-title">Hiyori</span>
+        <span class="brand-badge">ひ处理</span>
+      </a>
+      <div class="nav-links">
+        <a href="about-us.html">About Us</a>
+        <a href="features.html">Features</a>
+        <a href="lore.html">Lore</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="docs.html" class="active">Docs</a>
+      </div>
+      <div class="nav-actions">
+        <a href="https://x.com/mynamekiraa" target="_blank" class="icon-link" aria-label="X (Twitter)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
+          </svg>
+        </a>
+        <a href="index.html" class="btn-primary">Start Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- =======================================================
+       BENTO CONTENT CONTAINER
+       ======================================================= -->
+  <div class="docs-wrapper">
+    
+    <!-- LEFT SIDEBAR CHAPTER LINKS -->
+    <aside class="docs-sidebar">
+      <div>
+        <h3 class="sidebar-section-title">Chapters</h3>
+        <ul class="sidebar-menu">
+          <li class="sidebar-link active" id="side-overview"><a href="#overview">1. Overview</a></li>
+          <li class="sidebar-link" id="side-quick-start"><a href="#quick-start">2. Quick Start</a></li>
+          <li class="sidebar-link" id="side-configuration"><a href="#configuration">3. Configuration</a></li>
+          <li class="sidebar-link" id="side-voice-interaction"><a href="#voice-interaction">4. Voice Interaction</a></li>
+          <li class="sidebar-link" id="side-llm-providers"><a href="#llm-providers">5. LLM Providers</a></li>
+          <li class="sidebar-link" id="side-self-hosting"><a href="#self-hosting">6. Self-Hosting Guide</a></li>
+          <li class="sidebar-link" id="side-env-variables"><a href="#env-variables">7. Environment Variables</a></li>
+          <li class="sidebar-link" id="side-contributing"><a href="#contributing">8. Contributing</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- RIGHT ARTICLE PANEL -->
+    <main class="docs-content-panel">
+      
+      <!-- Top Header -->
+      <header class="page-intro">
+        <span class="page-tag">Documentation</span>
+        <h1 class="page-title">Get up and running.</h1>
+        <p class="page-desc">Everything you need to use, configure, and self-host Haruka.</p>
+      </header>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 1: OVERVIEW -->
+      <section id="overview" class="docs-chapter">
+        <h2>1. Overview</h2>
+        
+        <h3>What is Haruka?</h3>
+        <p>
+          Haruka is an open-source, self-hosted AI companion platform featuring an animated 3D character powered by large language models. It runs directly in your browser using WebGPU for private, high-speed AI inference.
+        </p>
+        <p>
+          Unlike cloud-based chatbots, Haruka processes conversations locally — your data never leaves your device unless you explicitly connect to an external LLM provider.
+        </p>
+
+        <!-- Tip alert card instead of 💡 emoji -->
+        <div class="docs-alert tip">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"></path>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="8.01" stroke-width="3"></line>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Tip:</strong> Haruka works best on Chrome or Edge with WebGPU enabled. No installation required for the web version.
+          </div>
+        </div>
+
+        <h3>Core Concepts</h3>
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Character</strong></td>
+                <td>Your animated VRM 3D companion — Haruka</td>
+              </tr>
+              <tr>
+                <td><strong>LLM Provider</strong></td>
+                <td>The language model powering Haruka's intelligence</td>
+              </tr>
+              <tr>
+                <td><strong>WebGPU Mode</strong></td>
+                <td>Runs AI inference entirely on your GPU — fully local & private</td>
+              </tr>
+              <tr>
+                <td><strong>Voice Mode</strong></td>
+                <td>Real-time speech recognition + text-to-speech for voice chat</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 2: QUICK START -->
+      <section id="quick-start" class="docs-chapter">
+        <h2>2. Quick Start</h2>
+        
+        <h3>Option A — Use the Web App</h3>
+        <p>Simply visit the Haruka web app and click <strong>Start Chat</strong>. No setup needed.</p>
+        
+        <h3>Option B — Self-Host Locally</h3>
+        <p>Follow these steps to spin up the companion on your local system:</p>
+
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">Bash</span>
+            <button class="btn-copy-code" onclick="copyCode(this)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <pre class="docs-code-pre"><code># 1. Clone the repository
+git clone https://github.com/faxxxan/KIRA-AI-Companion
+cd KIRA-AI-Companion
+
+# 2. Install dependencies (requires pnpm)
+pnpm install
+
+# 3. Copy and configure environment
+cp .env.example .env
+
+# 4. Start development server
+pnpm dev</code></pre>
+        </div>
+
+        <p>The app will be available at <code style="font-family: var(--font-mono); font-size: 13.5px; background: rgba(30, 42, 58, 0.05); padding: 2px 6px; border-radius: 4px;">http://localhost:5173</code></p>
+
+        <!-- Warning alert instead of ⚠️ emoji -->
+        <div class="docs-alert warning">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12" y2="17.01" stroke-width="3"></line>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Warning:</strong> Requires Node.js &ge; 20 and pnpm &ge; 9. Do not use npm or yarn — this project uses pnpm workspaces.
+          </div>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 3: CONFIGURATION -->
+      <section id="configuration" class="docs-chapter">
+        <h2>3. Configuration</h2>
+        
+        <h3>Required Dependencies</h3>
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Version</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Node.js</strong></td>
+                <td>&ge; 20</td>
+                <td>Runtime environment</td>
+              </tr>
+              <tr>
+                <td><strong>pnpm</strong></td>
+                <td>&ge; 9</td>
+                <td>Package manager</td>
+              </tr>
+              <tr>
+                <td><strong>PostgreSQL</strong></td>
+                <td>&ge; 15</td>
+                <td>User data & chat history</td>
+              </tr>
+              <tr>
+                <td><strong>Redis</strong></td>
+                <td>&ge; 7</td>
+                <td>Session & caching</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Build Commands</h3>
+        <p>Use the following commands inside the root workspace to compile the codebases:</p>
+
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">Bash</span>
+            <button class="btn-copy-code" onclick="copyCode(this)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <pre class="docs-code-pre"><code># Build all apps
+pnpm build
+
+# Build web app only
+pnpm -F @proj-airi/stage-web build
+
+# Run tests
+pnpm test
+
+# Lint codebase
+pnpm lint</code></pre>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 4: VOICE INTERACTION -->
+      <section id="voice-interaction" class="docs-chapter">
+        <h2>4. Voice Interaction</h2>
+        
+        <p>
+          Haruka supports real-time, bidirectional voice interaction using the Web Speech API for recognition and a TTS engine for character responses.
+        </p>
+
+        <h3>How to Enable</h3>
+        <p>Click the microphone icon in the chat interface. Grant browser microphone permissions when prompted. Haruka will begin listening and responding vocally.</p>
+
+        <!-- Info alert instead of ℹ️ emoji -->
+        <div class="docs-alert info">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12" y2="8.01" stroke-width="3"></line>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Info:</strong> Voice recognition works best in Chrome or Edge. Safari support is limited due to Web Speech API availability.
+          </div>
+        </div>
+
+        <h3>Voice Style</h3>
+        <p>Haruka's voice is cheerful, bright, and energetic — available in English and Japanese.</p>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 5: LLM PROVIDERS -->
+      <section id="llm-providers" class="docs-chapter">
+        <h2>5. LLM Providers</h2>
+        
+        <p>Haruka connects to 20+ language model providers. You can switch providers anytime from the settings panel.</p>
+
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>OpenAI (GPT-4o, etc.)</td>
+                <td>Supported</td>
+                <td>Requires API key</td>
+              </tr>
+              <tr>
+                <td>Anthropic Claude</td>
+                <td>Supported</td>
+                <td>Requires API key</td>
+              </tr>
+              <tr>
+                <td>DeepSeek</td>
+                <td>Supported</td>
+                <td>Requires API key</td>
+              </tr>
+              <tr>
+                <td>Google Gemini</td>
+                <td>Supported</td>
+                <td>Requires API key</td>
+              </tr>
+              <tr>
+                <td>Local (WebGPU)</td>
+                <td>Built-in</td>
+                <td>No API key — fully private</td>
+              </tr>
+              <tr>
+                <td>Ollama</td>
+                <td>Supported</td>
+                <td>Self-hosted local models</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Glass star accent box instead of ✦ emoji -->
+        <div class="docs-alert tip">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Privacy Focus:</strong> For maximum privacy, use <strong>WebGPU mode</strong> — your conversations are processed entirely on your device.
+          </div>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 6: SELF-HOSTING -->
+      <section id="self-hosting" class="docs-chapter">
+        <h2>6. Self-Hosting Guide</h2>
+        
+        <h3>Project Structure</h3>
+        <p>A walk through the directories in the multi-project monorepo:</p>
+
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">Structure</span>
+          </div>
+          <pre class="docs-code-pre"><code>Haruka/
+├── apps/
+│   ├── stage-web/         # Web application
+│   ├── stage-tamagotchi/  # Desktop (Electron)
+│   ├── stage-pocket/      # Mobile (iOS/Android)
+│   └── server/            # Backend API
+├── packages/              # Shared components & utilities
+├── plugins/               # Extensions & integrations
+└── docs/                  # Documentation source</code></pre>
+        </div>
+
+        <h3>Platform Commands</h3>
+        <p>To run targeted builds or dev modes for specific apps in the repository:</p>
+
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">Bash</span>
+            <button class="btn-copy-code" onclick="copyCode(this)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <pre class="docs-code-pre"><code># Desktop app (Electron)
+pnpm dev:tamagotchi
+
+# Mobile — iOS
+pnpm dev:pocket:ios
+
+# Mobile — Android
+pnpm dev:pocket:android</code></pre>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 7: ENVIRONMENT VARIABLES -->
+      <section id="env-variables" class="docs-chapter">
+        <h2>7. Environment Variables</h2>
+        
+        <p>Create a <code style="font-family: var(--font-mono); font-size: 13.5px; background: rgba(30, 42, 58, 0.05); padding: 2px 6px; border-radius: 4px;">.env</code> file in the project root. All required variables must be set before running the server.</p>
+
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">Environment File</span>
+            <button class="btn-copy-code" onclick="copyCode(this)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy</span>
+            </button>
+          </div>
+          <pre class="docs-code-pre"><code># Database
+DATABASE_URL=postgresql://user:password@localhost:5432/haruka
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Auth secret (generate a long random string)
+BETTER_AUTH_SECRET=your-secret-key
+
+# OAuth — optional
+AUTH_GOOGLE_CLIENT_ID=your-google-client-id
+AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
+AUTH_GITHUB_CLIENT_ID=your-github-client-id
+AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret</code></pre>
+        </div>
+
+        <!-- Warning alert instead of ⚠️ emoji -->
+        <div class="docs-alert warning">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12" y2="17.01" stroke-width="3"></line>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Warning:</strong> <code>DATABASE_URL</code>, <code>REDIS_URL</code>, and <code>BETTER_AUTH_SECRET</code> are required. OAuth variables are optional.
+          </div>
+        </div>
+      </section>
+
+      <div class="docs-divider"></div>
+
+      <!-- SECTION 8: CONTRIBUTING -->
+      <section id="contributing" class="docs-chapter">
+        <h2>8. Contributing</h2>
+        
+        <p>Contributions are welcome! Here's how you can help optimize and build the platform:</p>
+
+        <ol class="docs-bullets">
+          <li class="docs-bullet-item">Fork the repository</li>
+          <li class="docs-bullet-item">Create your feature branch: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git checkout -b feature/your-feature</code></li>
+          <li class="docs-bullet-item">Commit your changes: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git commit -m 'feat: add your feature'</code></li>
+          <li class="docs-bullet-item">Push to the branch: <code style="font-family: var(--font-mono); font-size: 13px; background: rgba(30, 42, 58, 0.05); padding: 2px 4px; border-radius: 4px;">git push origin feature/your-feature</code></li>
+          <li class="docs-bullet-item">Open a Pull Request</li>
+        </ol>
+
+        <p>Please read <code>CONTRIBUTING.md</code> for details on code of conduct and submission process.</p>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="docs-footer">
+    <div class="max-w: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1280px; padding: 0 40px;">
+      <span>Hiyori Companion &copy; 2026</span>
+      <div>
+        <a href="https://x.com/mynamekiraa" target="_blank">X (Twitter)</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script for Smooth Scrolling Sidebar Active state highlighting and Copy code utility -->
+  <script>
+    // Copy Code Utility
+    function copyCode(btn) {
+      const container = btn.closest('.docs-code-container');
+      const code = container.querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const textSpan = btn.querySelector('span');
+        textSpan.innerText = 'Copied!';
+        btn.style.color = '#10b981';
+        setTimeout(() => {
+          textSpan.innerText = 'Copy';
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+
+    // ScrollSpy active link highlighting
+    document.addEventListener('DOMContentLoaded', () => {
+      const chapters = document.querySelectorAll('.docs-chapter');
+      const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+      window.addEventListener('scroll', () => {
+        let activeId = '';
+        const scrollPosition = window.scrollY + 160;
+
+        chapters.forEach(chapter => {
+          const top = chapter.offsetTop;
+          const height = chapter.offsetHeight;
+          if (scrollPosition >= top && scrollPosition < top + height) {
+            activeId = chapter.getAttribute('id');
+          }
+        });
+
+        if (activeId) {
+          sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('id') === `side-${activeId}`) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
