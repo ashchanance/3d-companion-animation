@@ -829,6 +829,86 @@
       transform: translateY(0) scale(0.98);
     }
 
+    /* CA Badge Styling */
+    .hero-ca-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(250, 246, 240, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(53, 92, 145, 0.15);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--slate-700);
+      cursor: pointer;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.03);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+      z-index: 10;
+    }
+
+    .hero-ca-badge:hover {
+      background: rgba(250, 246, 240, 0.85);
+      border-color: var(--primary-400);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(53, 92, 145, 0.08);
+      color: var(--primary-700);
+    }
+
+    .hero-ca-badge:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .hero-ca-badge .ca-label {
+      color: var(--slate-400);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero-ca-badge:hover .ca-label {
+      color: var(--primary-500);
+    }
+
+    .hero-ca-badge .ca-value {
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--text-main);
+      background: rgba(30, 42, 58, 0.04);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px dashed rgba(30, 42, 58, 0.1);
+      transition: all 0.25s ease;
+    }
+
+    .hero-ca-badge:hover .ca-value {
+      background: rgba(53, 92, 145, 0.06);
+      border-color: rgba(53, 92, 145, 0.3);
+      color: var(--primary-700);
+    }
+
+    .hero-ca-badge .ca-copy-indicator {
+      font-size: 10px;
+      color: var(--primary-600);
+      background: rgba(53, 92, 145, 0.08);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+
+    .hero-ca-badge.copied .ca-copy-indicator {
+      background: #10b981;
+      color: #ffffff;
+    }
+
     /* Hero Section */
     .hero-section {
       position: relative;
@@ -871,7 +951,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(to bottom, rgba(245, 235, 230, 0.25), rgba(250, 246, 240, 0.65));
+      background: transparent;
       z-index: 2;
     }
 
@@ -2294,6 +2374,12 @@
       </div>
       <div class="hero-container">
         <div class="hero-content">
+          <div class="hero-ca-badge" onclick="copyCAAddress()" title="Click to copy Contract Address">
+            <span class="ca-tag-icon">🔑</span>
+            <span class="ca-label">CA:</span>
+            <span class="ca-value">xxxxxx</span>
+            <span class="ca-copy-indicator" id="ca-copy-status">Copy</span>
+          </div>
           <h1 class="hero-title">
             HARUKA
             <span class="hero-subtitle">The Sparkling Soul of the Digital Forest</span>
@@ -2520,6 +2606,22 @@
 
   <!-- Dynamic Navigation & Mode Controller Scripts -->
   <script>
+    function copyCAAddress() {
+      const caVal = document.querySelector('.hero-ca-badge .ca-value').innerText;
+      navigator.clipboard.writeText(caVal).then(() => {
+        const badge = document.querySelector('.hero-ca-badge');
+        const indicator = document.getElementById('ca-copy-status');
+        badge.classList.add('copied');
+        indicator.innerText = 'Copied!';
+        setTimeout(() => {
+          badge.classList.remove('copied');
+          indicator.innerText = 'Copy';
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy CA: ', err);
+      });
+    }
+
     function enterChatMode(characterIndex) {
       document.body.classList.remove('mode-landing');
       document.body.classList.add('mode-chat');
