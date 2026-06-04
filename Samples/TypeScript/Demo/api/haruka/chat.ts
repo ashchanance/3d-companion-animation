@@ -1,7 +1,6 @@
 import type { HarukaChatRequest } from '../../src/harukaChatContract';
-import { runHarukaChat } from '../../src/server/harukaChatService';
 
-const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v3';
+const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v4';
 
 interface VercelLikeRequest {
   method?: string;
@@ -46,6 +45,7 @@ export default async function handler(request: VercelLikeRequest, response: Verc
 
   try {
     const payload = normalizeBody(request.body);
+    const { runHarukaChat } = await import('../../src/server/harukaChatService');
     const result = await runHarukaChat(payload);
 
     response.status(result.ok ? 200 : 502).json({
@@ -64,6 +64,7 @@ export default async function handler(request: VercelLikeRequest, response: Verc
       error: error instanceof Error ? error.message : String(error),
       debug: {
         routeVersion: ROUTE_VERSION,
+        importPhase: 'handler',
         deploymentEnv: process.env.VERCEL_ENV || 'local',
         vercelRegion: process.env.VERCEL_REGION || 'unknown',
         hasMegallmApiKey: Boolean(process.env.VITE_MEGALLM_API_KEY),

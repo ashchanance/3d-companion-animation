@@ -38,13 +38,14 @@ def main() -> None:
 
     response = client.chat.completions.create(
         model=read_env("CHATBOT_FALLBACK_MODEL_1", "CHATBOT_LLM_FALLBACK_MODEL_1", "VITE_MEGALLM_MODEL"),
-        max_tokens=40,
         messages=[
             {"role": "user", "content": "Halo, cek singkat apakah fallback chatbot aktif."},
         ],
     )
 
-    print(response)
+    print("Content:", response.choices[0].message.content.encode('utf-8') if response.choices[0].message.content else None)
+    print("Reasoning Content:", response.choices[0].message.reasoning_content.encode('utf-8') if hasattr(response.choices[0].message, 'reasoning_content') and response.choices[0].message.reasoning_content else None)
+
 
 
 if __name__ == "__main__":
