@@ -67,10 +67,10 @@ export default async function handler(request: VercelLikeRequest, response: Verc
         importPhase: 'handler',
         deploymentEnv: process.env.VERCEL_ENV || 'local',
         vercelRegion: process.env.VERCEL_REGION || 'unknown',
-        hasMegallmApiKey: Boolean(process.env.VITE_MEGALLM_API_KEY),
-        megallmApiKeyLength: (process.env.VITE_MEGALLM_API_KEY || '').length,
-        megallmBaseUrl: process.env.VITE_MEGALLM_BASE_URL || '',
-        megallmModel: process.env.VITE_MEGALLM_MODEL || ''
+        hasMegallmApiKey: Boolean(process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY),
+        megallmApiKeyLength: (process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '').length,
+        megallmBaseUrl: process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '',
+        megallmModel: process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || ''
       }
     });
   }
