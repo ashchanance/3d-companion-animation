@@ -2,11 +2,6 @@
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist",
   "framework": null,
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@5"
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/about-us", "destination": "/about-us.html" },
@@ -16,4 +11,5 @@
     { "source": "/lore",     "destination": "/lore.html"     }
   ]
 }
+
 
