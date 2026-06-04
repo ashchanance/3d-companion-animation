@@ -254,6 +254,7 @@ export class ChatManager {
       const reply = typeof data.reply === 'string' ? data.reply : 'Hello! How can I help you?';
 
       if (!response.ok || !data.ok) {
+        console.error('Haruka chat server payload:', data);
         throw new Error(typeof data.error === 'string' ? data.error : `HTTP error! status: ${response.status}`);
       }
 

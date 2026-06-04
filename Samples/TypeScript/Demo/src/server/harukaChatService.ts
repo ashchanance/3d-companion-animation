@@ -17,6 +17,26 @@ function jsonResponse(result: HarukaChatResponse): HarukaChatResponse {
   return result;
 }
 
+function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown> {
+  const apiKey = request.providerConfig?.apiKey?.trim() || process.env.VITE_MEGALLM_API_KEY || '';
+  const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
+  const model = request.providerConfig?.model?.trim() || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
+
+  return {
+    routeVersion: 'haruka-chat-2026-06-05-v3',
+    deploymentEnv: process.env.VERCEL_ENV || 'local',
+    engineMode: request.engineMode,
+    profileId: request.profileId,
+    providerId: request.providerId,
+    providerBaseUrl: baseUrl,
+    providerModel: model,
+    hasProviderApiKey: Boolean(apiKey),
+    providerApiKeyLength: apiKey.length,
+    openSoulsBaseUrl: request.openSouls?.baseUrl || '',
+    source: request.source || 'chat-ui'
+  };
+}
+
 function readAssistantContent(payload: OpenAiCompatibleResponse): string {
   const content = payload.choices?.[0]?.message?.content;
   if (typeof content === 'string') {
@@ -67,7 +87,8 @@ async function runDirectProvider(request: HarukaChatRequest): Promise<HarukaChat
       reply: 'Sorry, it seems my connection is having trouble... Please try again later!',
       engineMode: request.engineMode,
       profileId: request.profileId,
-      error
+      error,
+      debug: buildProviderDebug(request)
     });
   }
 
@@ -119,7 +140,12 @@ async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaCha
         reply: 'OpenSouls bridge is unavailable right now. Check the bridge URL or provider key and try again.',
         engineMode: request.engineMode,
         profileId: request.profileId,
-        error: typeof payload.error === 'string' ? payload.error : `OpenSouls bridge request failed with status ${response.status}.`
+        error: typeof payload.error === 'string' ? payload.error : `OpenSouls bridge request failed with status ${response.status}.`,
+        debug: {
+          ...buildProviderDebug(request),
+          externalBridgeUrl: baseUrl,
+          externalBridgeStatus: response.status
+        }
       });
     }
 
@@ -135,7 +161,11 @@ async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaCha
       reply: 'OpenSouls bridge is unavailable right now. Check the bridge URL or provider key and try again.',
       engineMode: request.engineMode,
       profileId: request.profileId,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
+      debug: {
+        ...buildProviderDebug(request),
+        externalBridgeUrl: baseUrl
+      }
     });
   }
 }

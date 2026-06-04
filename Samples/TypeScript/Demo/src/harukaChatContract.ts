@@ -40,4 +40,5 @@ export interface HarukaChatResponse {
   engineMode: HarukaEngineMode;
   profileId: HarukaSoulProfileId;
   error?: string;
+  debug?: Record<string, unknown>;
 }

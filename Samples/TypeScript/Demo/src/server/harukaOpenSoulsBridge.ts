@@ -128,7 +128,17 @@ export async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest
         reply: 'OpenSouls bridge could not reach the chat provider. Check your provider key and try again.',
         engineMode: request.engineMode,
         profileId: request.profileId,
-        error: result.error
+        error: result.error,
+        debug: {
+          routeVersion: 'haruka-opensouls-bridge-2026-06-05-v3',
+          deploymentEnv: process.env.VERCEL_ENV || 'local',
+          providerBaseUrl: providerConfig.baseUrl,
+          providerModel: providerConfig.model,
+          hasProviderApiKey: Boolean(providerConfig.apiKey),
+          providerApiKeyLength: providerConfig.apiKey.length,
+          profileId: request.profileId,
+          source: request.source || 'chat-ui'
+        }
       };
     }
 
@@ -144,8 +154,17 @@ export async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest
       reply: 'OpenSouls bridge could not reach the chat provider. Check your provider key and try again.',
       engineMode: request.engineMode,
       profileId: request.profileId,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
+      debug: {
+        routeVersion: 'haruka-opensouls-bridge-2026-06-05-v3',
+        deploymentEnv: process.env.VERCEL_ENV || 'local',
+        providerBaseUrl: providerConfig.baseUrl,
+        providerModel: providerConfig.model,
+        hasProviderApiKey: Boolean(providerConfig.apiKey),
+        providerApiKeyLength: providerConfig.apiKey.length,
+        profileId: request.profileId,
+        source: request.source || 'chat-ui'
+      }
     };
   }
 }
-
