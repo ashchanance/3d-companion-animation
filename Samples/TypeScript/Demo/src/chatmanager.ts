@@ -244,7 +244,13 @@ export class ChatManager {
         })
       });
 
-      const data = await response.json();
+      const rawBody = await response.text();
+      let data: any;
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {};
+      } catch {
+        throw new Error(rawBody || `Server returned a non-JSON response with status ${response.status}.`);
+      }
       const reply = typeof data.reply === 'string' ? data.reply : 'Hello! How can I help you?';
 
       if (!response.ok || !data.ok) {

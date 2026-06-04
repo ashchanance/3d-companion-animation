@@ -1,11 +1,24 @@
 import { PumpChatClient } from 'pump-chat-client';
 
+export const runtime = 'nodejs';
+
 function encodeSse(event: string, payload: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;
 }
 
-export default {
-  async fetch(request: Request): Promise<Response> {
+export function OPTIONS(): Response {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
+}
+
+export async function GET(request: Request): Promise<Response> {
+  try {
     const requestUrl = new URL(request.url);
     const tokenAddress = requestUrl.searchParams.get('tokenAddress')?.trim() || '';
     const username = requestUrl.searchParams.get('username')?.trim() || 'HarukaRelay';
@@ -155,5 +168,19 @@ export default {
         'Access-Control-Allow-Origin': '*'
       }
     });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error)
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        }
+      }
+    );
   }
-};
+}
