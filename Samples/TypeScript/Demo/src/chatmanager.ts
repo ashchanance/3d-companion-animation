@@ -1,13 +1,24 @@
 import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
+import type { HarukaChatSource, HarukaEngineMode, HarukaSoulProfileId } from './harukaChatContract';
 
 interface RuntimeSettings {
   speechSynthesis?: boolean;
+  chatProvider?: string;
+  chatEngineMode?: HarukaEngineMode;
+  presetCard?: HarukaSoulProfileId;
+  openSoulsBaseUrl?: string;
 }
 
 interface PromptResult {
   ok: boolean;
   reply: string;
+}
+
+interface PromptRequestMeta {
+  historyContent?: string;
+  source?: HarukaChatSource;
+  username?: string;
 }
 
 export class ChatManager {
@@ -29,6 +40,10 @@ export class ChatManager {
   private _history: { role: 'user' | 'assistant'; content: string }[] = [];
   private _speechEnabled: boolean = true;
   private _isProcessingReply: boolean = false;
+  private _chatProvider: string = 'openai-compatible';
+  private _chatEngineMode: HarukaEngineMode = 'direct';
+  private _presetCard: HarukaSoulProfileId = 'classic';
+  private _openSoulsBaseUrl: string = 'http://127.0.0.1:4100';
 
   constructor() {
     this.initializeUI();
@@ -71,6 +86,18 @@ export class ChatManager {
   public applyRuntimeSettings(settings: RuntimeSettings): void {
     if (typeof settings.speechSynthesis === 'boolean') {
       this._speechEnabled = settings.speechSynthesis;
+    }
+    if (typeof settings.chatProvider === 'string' && settings.chatProvider.trim()) {
+      this._chatProvider = settings.chatProvider;
+    }
+    if (typeof settings.chatEngineMode === 'string') {
+      this._chatEngineMode = settings.chatEngineMode;
+    }
+    if (typeof settings.presetCard === 'string') {
+      this._presetCard = settings.presetCard;
+    }
+    if (typeof settings.openSoulsBaseUrl === 'string' && settings.openSoulsBaseUrl.trim()) {
+      this._openSoulsBaseUrl = settings.openSoulsBaseUrl.trim();
     }
   }
 
@@ -129,10 +156,12 @@ export class ChatManager {
       return { ok: false, reply: '' };
     }
 
-    const prompt =
-      promptOverride?.trim() ||
-      `A Pump.fun viewer named ${username} says: "${message}". Reply directly to them in character.`;
-    return this.submitPrompt(prompt);
+    const prompt = promptOverride?.trim() || message;
+    return this.submitPrompt(prompt, {
+      historyContent: `A Pump.fun viewer named ${username} says: "${message}".`,
+      source: 'pumpfun-relay',
+      username
+    });
   }
 
   private handleFormSubmit(e: Event): void {
@@ -145,7 +174,7 @@ export class ChatManager {
     void this.submitPrompt(userMessage);
   }
 
-  private async submitPrompt(userMessage: string): Promise<PromptResult> {
+  private async submitPrompt(userMessage: string, meta?: PromptRequestMeta): Promise<PromptResult> {
     this._isProcessingReply = true;
 
     // Cancel active speech and simulation
@@ -169,8 +198,7 @@ export class ChatManager {
     // Trigger character reaction - thinking/reacting motion and random expression
     this.triggerCharacterAction('thinking');
 
-    // Call MegaLLM API
-    return this.callMegaLLM(userMessage);
+    return this.callMegaLLM(userMessage, meta);
   }
 
   private showTypingState(): void {
@@ -186,67 +214,61 @@ export class ChatManager {
     }
   }
 
-  private async callMegaLLM(message: string): Promise<PromptResult> {
-    const apiKey = (import.meta as any).env.VITE_MEGALLM_API_KEY || '';
-    const baseUrl = (import.meta as any).env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
-    const modelName = (import.meta as any).env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
-
-    const childSystemPrompt = this._activeLang === 'jp'
-      ? 'You are a cheerful, incredibly cute, and highly expressive Live2D 3D anime child companion named Haruka (ハルカ). Speak in an adorable, child-like Japanese manner (using cute baby/child particles like ~dayo, ~desu, ~chan, ~nano, ~mon, etc.). Keep your answer very brief and concise (1-2 sentences only). Always respond in Japanese, regardless of the language of the user message. Crucially, express your exact emotions naturally using matching expressive emojis (like 😊, 😂, 😭, 😱, 😡, 😳, 🥺, 🥰) so the user can feel your cute kid vibe!'
-      : 'You are a cheerful, incredibly cute, and highly expressive Live2D 3D anime child companion named Haruka. Speak in an adorable, child-like English manner (using cute words, soft expressions, etc.). Keep your answer very brief and concise (1-2 sentences only). Always respond in English, regardless of the language of the user message. Crucially, express your exact emotions naturally using matching expressive emojis (like 😊, 😂, 😭, 😱, 😡, 😳, 🥺, 🥰) so the user can feel your cute kid vibe!';
-
-    // Add current user message to history
-    this._history.push({ role: 'user', content: message });
-    if (this._history.length > 10) {
-      this._history = this._history.slice(-10);
-    }
+  private async callMegaLLM(message: string, meta?: PromptRequestMeta): Promise<PromptResult> {
+    const priorHistory = [...this._history];
+    const historyContent = meta?.historyContent?.trim() || message;
 
     try {
-      const response = await fetch(`${baseUrl}/chat/completions`, {
+      const response = await fetch('/api/haruka/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: modelName,
-          messages: [
-            {
-              role: 'system',
-              content: childSystemPrompt
-            },
-            ...this._history
-          ]
+          message,
+          history: priorHistory,
+          language: this._activeLang,
+          profileId: this._presetCard,
+          engineMode: this._chatEngineMode,
+          providerId: this._chatProvider,
+          providerConfig: {
+            apiKey: (import.meta as any).env.VITE_MEGALLM_API_KEY || '',
+            baseUrl: (import.meta as any).env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
+            model: (import.meta as any).env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
+          },
+          openSouls: {
+            baseUrl: this._openSoulsBaseUrl
+          },
+          source: meta?.source || 'chat-ui',
+          username: meta?.username || null
         })
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      const reply = typeof data.reply === 'string' ? data.reply : 'Hello! How can I help you?';
+
+      if (!response.ok || !data.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      const reply = data.choices?.[0]?.message?.content || 'Hello! How can I help you?';
+      this._history.push({ role: 'user', content: historyContent });
+      if (this._history.length > 10) {
+        this._history = this._history.slice(-10);
+      }
 
-      // Add assistant reply to history
       this._history.push({ role: 'assistant', content: reply });
       if (this._history.length > 10) {
         this._history = this._history.slice(-10);
       }
 
-      // Detect emotion based on text response
       const emotion = this.detectEmotion(reply);
       console.log(`[ChatManager] Detected emotion "${emotion}" for reply: "${reply}"`);
 
       this.displayReply(reply, emotion);
       this.triggerCharacterAction(emotion);
       return { ok: true, reply };
-
     } catch (error) {
-      console.error('MegaLLM API Error:', error);
-      
-      // Rollback last user message if API call failed
-      this._history.pop();
-
+      console.error('Haruka chat adapter error:', error);
       this.displayReply('Sorry, it seems my connection is having trouble... Please try again later!', 'sad');
       this.triggerCharacterAction('sad');
       return {

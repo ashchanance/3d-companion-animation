@@ -2,6 +2,8 @@ import path from 'path';
 import { createRequire } from 'module';
 import type { IncomingMessage, ServerResponse } from 'http';
 import { defineConfig, type ConfigEnv, type Plugin, type UserConfig } from 'vite';
+import type { HarukaChatRequest } from './src/harukaChatContract';
+import { runHarukaChat } from './src/server/harukaChatService';
 
 const require = createRequire(import.meta.url);
 const { PumpChatClient } = require('pump-chat-client') as typeof import('pump-chat-client');
@@ -42,6 +44,91 @@ function createPumpfunStreamPlugin(): Plugin {
       });
     }
   };
+}
+
+function createHarukaChatPlugin(): Plugin {
+  const handleNodeRequest = (req: IncomingMessage, res: ServerResponse): void => {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      });
+      res.end();
+      return;
+    }
+
+    if (req.method !== 'POST') {
+      res.writeHead(405, {
+        'Content-Type': 'application/json',
+        Allow: 'POST'
+      });
+      res.end(JSON.stringify({ ok: false, error: 'Method not allowed.' }));
+      return;
+    }
+
+    void readJsonBody<HarukaChatRequest>(req)
+      .then((payload) => runHarukaChat(payload))
+      .then((result) => {
+        res.writeHead(result.ok ? 200 : 502, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(JSON.stringify(result));
+      })
+      .catch((error: unknown) => {
+        res.writeHead(500, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(
+          JSON.stringify({
+            ok: false,
+            error: error instanceof Error ? error.message : String(error)
+          })
+        );
+      });
+  };
+
+  const attach = (server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) => {
+    server.middlewares.use((req, res, next) => {
+      const requestUrl = req.url ? new URL(req.url, 'http://127.0.0.1') : null;
+      if (requestUrl?.pathname !== '/api/haruka/chat') {
+        next();
+        return;
+      }
+
+      handleNodeRequest(req, res);
+    });
+  };
+
+  return {
+    name: 'haruka-chat-adapter',
+    configureServer(server) {
+      attach(server);
+    },
+    configurePreviewServer(server) {
+      attach(server);
+    }
+  };
+}
+
+function readJsonBody<T>(req: IncomingMessage): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer | string) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+    req.on('end', () => {
+      try {
+        const raw = Buffer.concat(chunks).toString('utf8');
+        resolve(JSON.parse(raw) as T);
+      } catch (error) {
+        reject(error);
+      }
+    });
+    req.on('error', reject);
+  });
 }
 
 function writeSse(res: ServerResponse, event: string, payload: unknown): void {
@@ -198,7 +285,7 @@ async function handlePumpfunStreamRequest(
 
 export default defineConfig((env: ConfigEnv): UserConfig => {
   return {
-    plugins: [createPumpfunStreamPlugin()],
+    plugins: [createPumpfunStreamPlugin(), createHarukaChatPlugin()],
     server: {
       port: 5000
     },

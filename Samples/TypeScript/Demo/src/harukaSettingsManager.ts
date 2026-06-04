@@ -1,4 +1,6 @@
+import type { HarukaEngineMode } from './harukaChatContract';
 import { defaultHarukaSettings, type FactItem, type HarukaSettings } from './harukaSettingsSchema';
+import { HARUKA_SOUL_PROFILES, getHarukaSoulProfile } from './harukaSoulProfiles';
 
 export interface RelayActivity {
   id: string;
@@ -48,6 +50,7 @@ export class HarukaSettingsManager {
   constructor() {
     this.settings = this.readStoredSettings();
     this.injectRelayUI();
+    this.injectProviderEngineUi();
     this.bindModalControls();
     this.bindSettingsControls();
     this.applySettingsToDom();
@@ -166,6 +169,7 @@ export class HarukaSettingsManager {
 
   private bindSettingsControls(): void {
     const textBindings: Array<[string, keyof HarukaSettings]> = [
+      ['opensouls-base-url', 'openSoulsBaseUrl'],
       ['conn-endpoint', 'pumpWsUrl'],
       ['relay-token-address', 'pumpTokenAddress'],
       ['relay-room-username', 'pumpRoomUsername']
@@ -198,6 +202,7 @@ export class HarukaSettingsManager {
 
     const selectBindings: Array<[string, keyof HarukaSettings]> = [
       ['card-preset-select', 'presetCard'],
+      ['chat-engine-mode', 'chatEngineMode'],
       ['scene-lighting', 'lightingSystem'],
       ['model-framework', 'rigArchitecture'],
       ['model-physics', 'rigPhysics'],
@@ -235,7 +240,20 @@ export class HarukaSettingsManager {
     selectBindings.forEach(([id, key]) => {
       document.getElementById(id)?.addEventListener('change', (event) => {
         this.settings[key] = (event.target as HTMLSelectElement).value as never;
+        if (key === 'presetCard') {
+          this.updateOpenSoulsProfileHint();
+        }
+        if (key === 'chatEngineMode') {
+          this.updateProviderEngineUi();
+        }
+        if (key === 'chatProvider') {
+          this.settings.chatEngineMode = this.settings.chatProvider === 'opensouls-local' ? 'opensouls-bridge' : 'direct';
+          this.setInputValue('chat-engine-mode', this.settings.chatEngineMode);
+          this.updateProviderEngineUi();
+        }
         this.persistSettings();
+        this.applyRuntimeSettings();
+        this.updatePreviewCard();
       });
     });
 
@@ -347,9 +365,11 @@ export class HarukaSettingsManager {
     this.setInputValue('model-eye', String(this.settings.eyeTracking));
     this.setCheckboxValue('memory-db', this.settings.vectorMemory);
     this.setInputValue('memory-buffer', String(this.settings.bufferAllocation));
+    this.setInputValue('chat-engine-mode', this.settings.chatEngineMode);
     this.setInputValue('provider-llm', this.settings.chatProvider);
     this.setInputValue('provider-tts', this.settings.speechProvider);
     this.setInputValue('provider-stt', this.settings.sttProvider);
+    this.setInputValue('opensouls-base-url', this.settings.openSoulsBaseUrl);
     this.setInputValue('conn-endpoint', this.settings.pumpWsUrl);
     this.setCheckboxValue('conn-autoreconnect', this.settings.autoReconnect);
     this.setInputValue('system-scale', String(this.settings.layoutScale));
@@ -372,6 +392,8 @@ export class HarukaSettingsManager {
 
     this.applyThemeSelection();
     this.updatePreviewCard();
+    this.updateProviderEngineUi();
+    this.updateOpenSoulsProfileHint();
     this.applyRuntimeSettings();
     this.renderRelayConsole();
     this.renderRelayPanel();
@@ -382,48 +404,17 @@ export class HarukaSettingsManager {
     const chatManager = (window as any).chatManager;
     if (chatManager && typeof chatManager.applyRuntimeSettings === 'function') {
       chatManager.applyRuntimeSettings({
-        speechSynthesis: this.settings.speechSynthesis
+        speechSynthesis: this.settings.speechSynthesis,
+        chatProvider: this.settings.chatProvider,
+        chatEngineMode: this.settings.chatEngineMode,
+        presetCard: this.settings.presetCard,
+        openSoulsBaseUrl: this.settings.openSoulsBaseUrl
       });
     }
   }
 
   private updatePreviewCard(): void {
-    const presetData: Record<string, { name: string; tag: string; bio: string; visual: number; memory: number; logic: number }> = {
-      classic: {
-        name: 'Haruka Classic',
-        tag: 'Forest Soul',
-        bio: 'Cheerful, vibrant digital companion who loves deep forests and engaging conversations.',
-        visual: 85,
-        memory: 70,
-        logic: 75
-      },
-      scholar: {
-        name: 'Scholar Haruka',
-        tag: 'Intelligent Advisor',
-        bio: 'Calculated, precise, and highly analytical advisor with expanded logical context.',
-        visual: 70,
-        memory: 95,
-        logic: 90
-      },
-      sunset: {
-        name: 'Sunset Haruka',
-        tag: 'Empathetic Soul',
-        bio: 'Warm, soft-spoken, and deeply empathetic companion tuned for emotional healing.',
-        visual: 90,
-        memory: 80,
-        logic: 65
-      },
-      cyberpunk: {
-        name: 'Cyberpunk Haruka',
-        tag: 'Glitch Hologram',
-        bio: 'Neon-accented, holographic AI interface utilizing experimental visual engines.',
-        visual: 95,
-        memory: 60,
-        logic: 85
-      }
-    };
-
-    const preset = presetData[this.settings.presetCard] || presetData.classic;
+    const preset = HARUKA_SOUL_PROFILES[this.settings.presetCard] || HARUKA_SOUL_PROFILES.classic;
     this.setTextContent('preview-name', preset.name);
     this.setTextContent('preview-tag', preset.tag);
     this.setTextContent('preview-bio', preset.bio);
@@ -712,6 +703,54 @@ export class HarukaSettingsManager {
     }
   }
 
+  private injectProviderEngineUi(): void {
+    const providerSelect = document.getElementById('provider-llm') as HTMLSelectElement | null;
+    if (providerSelect && !providerSelect.querySelector('option[value="opensouls-local"]')) {
+      providerSelect.insertAdjacentHTML(
+        'afterbegin',
+        '<option value="opensouls-local">OpenSouls Bridge (local Bun soul)</option>'
+      );
+    }
+
+    const providersPanel = document.getElementById('panel-providers');
+    if (providersPanel && !document.getElementById('opensouls-engine-card')) {
+      providersPanel.insertAdjacentHTML(
+        'afterbegin',
+        `
+          <div id="opensouls-engine-card" class="providers-alert-note" style="margin-bottom: 16px;">
+            <div class="alert-note-header">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3l7 4v5c0 5-3.5 7.8-7 9-3.5-1.2-7-4-7-9V7l7-4z"></path>
+                <path d="M9 12l2 2 4-4"></path>
+              </svg>
+              <span>Soul Engine Mode</span>
+            </div>
+            <p class="alert-note-body" style="margin-bottom: 14px;">
+              Use the active Character Card preset as Haruka's bias, branding, and response posture. Switch to OpenSouls when your local bridge is running from this repo.
+            </p>
+            <div class="settings-row">
+              <label class="settings-row-label" for="chat-engine-mode">
+                <span>Conversation Engine</span>
+                <span class="settings-row-sub">Direct adapter uses the local /api/haruka/chat route. OpenSouls bridge uses the bundled local bridge in this project.</span>
+              </label>
+              <select id="chat-engine-mode" class="settings-select">
+                <option value="direct">Direct LLM Adapter</option>
+                <option value="opensouls-bridge">OpenSouls Bridge</option>
+              </select>
+            </div>
+            <div id="opensouls-bridge-fields">
+              <div class="settings-row">
+                <label class="settings-row-label" for="opensouls-base-url">External OpenSouls Bridge URL (optional)</label>
+                <input type="text" id="opensouls-base-url" class="settings-input-text">
+                <span id="opensouls-profile-hint" class="settings-row-sub"></span>
+              </div>
+            </div>
+          </div>
+        `
+      );
+    }
+  }
+
   private setActiveTab(tabName: string): void {
     document.querySelectorAll<HTMLElement>('.settings-nav-item').forEach((item) => {
       item.classList.toggle('active', item.dataset.tab === tabName);
@@ -725,6 +764,31 @@ export class HarukaSettingsManager {
     document.querySelectorAll<HTMLElement>('.theme-swatch-btn').forEach((button) => {
       button.classList.toggle('active', button.dataset.theme === this.settings.themePalette);
     });
+  }
+
+  private updateProviderEngineUi(): void {
+    const bridgeFields = document.getElementById('opensouls-bridge-fields');
+    const providerSelect = document.getElementById('provider-llm') as HTMLSelectElement | null;
+    const isOpenSouls = this.settings.chatEngineMode === 'opensouls-bridge';
+
+    if (bridgeFields) {
+      bridgeFields.style.display = isOpenSouls ? 'block' : 'none';
+    }
+
+    if (providerSelect && isOpenSouls) {
+      providerSelect.value = 'opensouls-local';
+    } else if (providerSelect && providerSelect.value === 'opensouls-local') {
+      providerSelect.value = 'openai-compatible';
+      this.settings.chatProvider = 'openai-compatible';
+    }
+  }
+
+  private updateOpenSoulsProfileHint(): void {
+    const profile = getHarukaSoulProfile(this.settings.presetCard);
+    this.setTextContent(
+      'opensouls-profile-hint',
+      `Active preset drives the unified Haruka soul automatically: ${profile.name} (${profile.tag}), ${profile.memory}% memory emphasis, ${profile.logic}% reasoning emphasis. Leave this URL empty to use the bundled bridge in this project, including on Vercel.`
+    );
   }
 
   private updateRangeLabel(id: string, value: number): void {

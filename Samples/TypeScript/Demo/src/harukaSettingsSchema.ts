@@ -1,10 +1,12 @@
+import type { HarukaEngineMode, HarukaSoulProfileId } from './harukaChatContract';
+
 export interface FactItem {
   id: number;
   text: string;
 }
 
 export interface HarukaSettings {
-  presetCard: string;
+  presetCard: HarukaSoulProfileId;
   syncPreset: boolean;
   thinkingMode: boolean;
   visionModule: boolean;
@@ -18,9 +20,11 @@ export interface HarukaSettings {
   eyeTracking: number;
   vectorMemory: boolean;
   bufferAllocation: number;
+  chatEngineMode: HarukaEngineMode;
   chatProvider: string;
   speechProvider: string;
   sttProvider: string;
+  openSoulsBaseUrl: string;
   wsUrl: string;
   autoReconnect: boolean;
   themePalette: string;
@@ -56,9 +60,11 @@ export const defaultHarukaSettings: HarukaSettings = {
   eyeTracking: 75,
   vectorMemory: true,
   bufferAllocation: 2048,
-  chatProvider: 'ollama',
+  chatEngineMode: 'direct',
+  chatProvider: 'openai-compatible',
   speechProvider: 'elevenlabs',
   sttProvider: 'webspeech',
+  openSoulsBaseUrl: '',
   wsUrl: '',
   autoReconnect: true,
   themePalette: 'gold',
