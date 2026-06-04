@@ -1,4 +1,5 @@
 import type { HarukaChatRequest } from '../../src/harukaChatContract';
+import { runHarukaChat } from '../../src/server/harukaChatService';
 
 const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v4';
 
@@ -45,7 +46,6 @@ export default async function handler(request: VercelLikeRequest, response: Verc
 
   try {
     const payload = normalizeBody(request.body);
-    const { runHarukaChat } = await import('../../src/server/harukaChatService');
     const result = await runHarukaChat(payload);
 
     response.status(result.ok ? 200 : 502).json({

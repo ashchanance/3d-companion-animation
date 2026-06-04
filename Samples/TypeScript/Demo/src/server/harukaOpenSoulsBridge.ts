@@ -30,9 +30,9 @@ function readAssistantContent(payload: OpenAiCompatibleResponse): string {
 
 function resolveProviderConfig(providerConfig?: HarukaProviderConfig): Required<HarukaProviderConfig> {
   return {
-    apiKey: providerConfig?.apiKey?.trim() || process.env.VITE_MEGALLM_API_KEY || '',
-    baseUrl: providerConfig?.baseUrl?.trim() || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
-    model: providerConfig?.model?.trim() || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
+    apiKey: providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '',
+    baseUrl: providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
+    model: providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
   };
 }
 
