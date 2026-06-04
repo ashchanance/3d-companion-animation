@@ -18,9 +18,9 @@ function jsonResponse(result: HarukaChatResponse): HarukaChatResponse {
 }
 
 function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown> {
-  const apiKey = request.providerConfig?.apiKey?.trim() || process.env.VITE_MEGALLM_API_KEY || '';
-  const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
-  const model = request.providerConfig?.model?.trim() || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
+  const apiKey = request.providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
+  const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
+  const model = request.providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
 
   return {
     routeVersion: 'haruka-chat-2026-06-05-v3',
@@ -54,9 +54,9 @@ function readAssistantContent(payload: OpenAiCompatibleResponse): string {
 }
 
 async function runDirectProvider(request: HarukaChatRequest): Promise<HarukaChatResponse> {
-  const apiKey = request.providerConfig?.apiKey?.trim() || process.env.VITE_MEGALLM_API_KEY || '';
-  const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
-  const model = request.providerConfig?.model?.trim() || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
+  const apiKey = request.providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
+  const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
+  const model = request.providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
 
   const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST',
