@@ -1,6 +1,15 @@
 import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
 
+interface RuntimeSettings {
+  speechSynthesis?: boolean;
+}
+
+interface PromptResult {
+  ok: boolean;
+  reply: string;
+}
+
 export class ChatManager {
   private _form: HTMLFormElement | null = null;
   private _input: HTMLInputElement | null = null;
@@ -18,6 +27,8 @@ export class ChatManager {
   private _audioChunks: Blob[] = [];
   private _isRecording: boolean = false;
   private _history: { role: 'user' | 'assistant'; content: string }[] = [];
+  private _speechEnabled: boolean = true;
+  private _isProcessingReply: boolean = false;
 
   constructor() {
     this.initializeUI();
@@ -57,12 +68,85 @@ export class ChatManager {
     console.log(`[ChatManager] Active language set to: ${lang}`);
   }
 
+  public applyRuntimeSettings(settings: RuntimeSettings): void {
+    if (typeof settings.speechSynthesis === 'boolean') {
+      this._speechEnabled = settings.speechSynthesis;
+    }
+  }
+
+  public canAcceptExternalComment(): boolean {
+    return !this._isProcessingReply;
+  }
+
+  public beginExternalViewerTurn(username: string, message: string): boolean {
+    if (this._isProcessingReply) {
+      return false;
+    }
+
+    this._history.push({
+      role: 'user',
+      content: `A Pump.fun viewer named ${username} says: "${message}".`
+    });
+    if (this._history.length > 10) {
+      this._history = this._history.slice(-10);
+    }
+
+    this._isProcessingReply = true;
+    this.showTypingState();
+    this.triggerCharacterAction('thinking');
+    return true;
+  }
+
+  public presentExternalHarukaReply(reply: string): void {
+    const text = reply.trim();
+    if (!text) {
+      return;
+    }
+
+    this._history.push({ role: 'assistant', content: text });
+    if (this._history.length > 10) {
+      this._history = this._history.slice(-10);
+    }
+
+    const emotion = this.detectEmotion(text);
+    this.displayReply(text, emotion);
+    this.triggerCharacterAction(emotion);
+    this._isProcessingReply = false;
+  }
+
+  public failExternalViewerTurn(message = 'Sorry, it seems my connection is having trouble... Please try again later!'): void {
+    this.displayReply(message, 'sad');
+    this.triggerCharacterAction('sad');
+    this._isProcessingReply = false;
+  }
+
+  public async handleExternalViewerComment(
+    username: string,
+    message: string,
+    promptOverride?: string
+  ): Promise<PromptResult> {
+    if (this._isProcessingReply) {
+      return { ok: false, reply: '' };
+    }
+
+    const prompt =
+      promptOverride?.trim() ||
+      `A Pump.fun viewer named ${username} says: "${message}". Reply directly to them in character.`;
+    return this.submitPrompt(prompt);
+  }
+
   private handleFormSubmit(e: Event): void {
     e.preventDefault();
     if (!this._input || !this._input.value.trim()) return;
 
     const userMessage = this._input.value.trim();
     this._input.value = '';
+
+    void this.submitPrompt(userMessage);
+  }
+
+  private async submitPrompt(userMessage: string): Promise<PromptResult> {
+    this._isProcessingReply = true;
 
     // Cancel active speech and simulation
     if (this._activeAudio) {
@@ -86,7 +170,7 @@ export class ChatManager {
     this.triggerCharacterAction('thinking');
 
     // Call MegaLLM API
-    this.callMegaLLM(userMessage);
+    return this.callMegaLLM(userMessage);
   }
 
   private showTypingState(): void {
@@ -102,7 +186,7 @@ export class ChatManager {
     }
   }
 
-  private async callMegaLLM(message: string): Promise<void> {
+  private async callMegaLLM(message: string): Promise<PromptResult> {
     const apiKey = (import.meta as any).env.VITE_MEGALLM_API_KEY || '';
     const baseUrl = (import.meta as any).env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
     const modelName = (import.meta as any).env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
@@ -155,6 +239,7 @@ export class ChatManager {
 
       this.displayReply(reply, emotion);
       this.triggerCharacterAction(emotion);
+      return { ok: true, reply };
 
     } catch (error) {
       console.error('MegaLLM API Error:', error);
@@ -164,6 +249,12 @@ export class ChatManager {
 
       this.displayReply('Sorry, it seems my connection is having trouble... Please try again later!', 'sad');
       this.triggerCharacterAction('sad');
+      return {
+        ok: false,
+        reply: 'Sorry, it seems my connection is having trouble... Please try again later!'
+      };
+    } finally {
+      this._isProcessingReply = false;
     }
   }
 
@@ -293,6 +384,11 @@ export class ChatManager {
   }
 
   private speakReply(text: string): void {
+    if (!this._speechEnabled) {
+      this.scheduleHideTimeout();
+      return;
+    }
+
     // 1. Cancel any active speech and clear existing timeouts
     if (this._activeAudio) {
       this._activeAudio.pause();

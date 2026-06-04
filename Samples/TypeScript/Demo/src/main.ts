@@ -9,6 +9,10 @@ import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
 import { ChatManager } from './chatmanager';
 import { Grainient } from './grainient';
+import { HarukaSettingsManager } from './harukaSettingsManager';
+import { PumpRelayController } from './pumpRelayController';
+
+(window as any).__harukaSettingsManagerActive = true;
 
 /**
  * ブラウザロード後の処理
@@ -41,7 +45,14 @@ window.addEventListener(
     LAppDelegate.getInstance().run();
 
     // Initialize ChatManager to handle dynamic LLM interaction and speech bubbles
-    (window as any).chatManager = new ChatManager();
+    const chatManager = new ChatManager();
+    (window as any).chatManager = chatManager;
+
+    const settingsManager = new HarukaSettingsManager();
+    (window as any).harukaSettingsManager = settingsManager;
+
+    const relayController = new PumpRelayController(settingsManager, chatManager);
+    (window as any).pumpRelayController = relayController;
 
     // Initialize Grainient background
     const bgContainer = document.getElementById('grainient-bg');

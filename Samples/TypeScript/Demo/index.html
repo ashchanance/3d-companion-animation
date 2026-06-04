@@ -331,6 +331,9 @@
       justify-content: space-between;
       box-sizing: border-box;
       padding: 24px;
+      transform: scale(var(--chat-layout-scale, 1));
+      transform-origin: center bottom;
+      transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     /* Premium Glass Back Button */
@@ -2157,6 +2160,390 @@
       background: var(--slate-50);
       color: var(--text-main);
     }
+
+    .settings-textarea {
+      width: 100%;
+      min-height: 88px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(30, 42, 58, 0.12);
+      background: var(--slate-50);
+      color: var(--text-main);
+      font-size: 13px;
+      line-height: 1.55;
+      font-family: var(--font-sans);
+      box-sizing: border-box;
+      resize: vertical;
+      outline: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .settings-textarea:hover {
+      border-color: rgba(30, 42, 58, 0.2);
+      background: #ffffff;
+    }
+    .settings-textarea:focus {
+      border-color: var(--primary-400);
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(217, 164, 52, 0.12);
+    }
+    .settings-textarea-code {
+      min-height: 132px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+
+    .relay-field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .relay-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .relay-status-pill.ok {
+      background: rgba(83, 142, 98, 0.14);
+      border-color: rgba(83, 142, 98, 0.18);
+      color: #2f6a3d;
+    }
+    .relay-status-pill.warn {
+      background: rgba(217, 164, 52, 0.14);
+      border-color: rgba(217, 164, 52, 0.18);
+      color: #8e6016;
+    }
+    .relay-status-pill.idle {
+      background: rgba(30, 42, 58, 0.08);
+      border-color: rgba(30, 42, 58, 0.08);
+      color: var(--slate-600);
+    }
+    .relay-status-pill.live {
+      background: rgba(54, 113, 208, 0.13);
+      border-color: rgba(54, 113, 208, 0.18);
+      color: #2451a2;
+    }
+
+    .relay-summary-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, rgba(251, 248, 234, 0.9), rgba(245, 237, 202, 0.72));
+      border: 1px solid rgba(217, 164, 52, 0.14);
+      box-shadow: 0 14px 32px rgba(217, 164, 52, 0.08);
+    }
+    .relay-summary-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .relay-summary-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-600);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .relay-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .relay-summary-grid > div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+    }
+    .relay-summary-stat {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+    .relay-summary-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--slate-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .relay-console {
+      position: absolute;
+      top: 92px;
+      right: 24px;
+      width: min(420px, calc(100vw - 48px));
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(250, 246, 240, 0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 28px 48px rgba(30, 42, 58, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .relay-console-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .relay-console-head h3 {
+      margin: 4px 0 0;
+      font-family: var(--font-serif);
+      font-size: 24px;
+      line-height: 1;
+      color: var(--text-main);
+    }
+    .relay-console-eyebrow {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--primary-600);
+    }
+    .relay-inline-link {
+      border: none;
+      background: transparent;
+      color: var(--primary-700);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 6px 0;
+    }
+    .relay-inline-link:hover {
+      color: var(--primary-500);
+    }
+    .relay-console-status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .relay-console-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .relay-console-card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 14px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+    }
+    .relay-console-value {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+    .relay-console-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-500);
+    }
+    .relay-console-token {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.2;
+      word-break: break-all;
+    }
+    .relay-target-card {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 16px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(245, 237, 202, 0.56));
+      border: 1px solid rgba(217, 164, 52, 0.14);
+    }
+    .relay-target-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-600);
+    }
+    .relay-target-sub {
+      display: block;
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-main);
+      word-break: break-all;
+    }
+    .relay-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .relay-console-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .relay-console-actions .btn-secondary-custom[disabled] {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .relay-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.66);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+    }
+    .relay-feed-panel {
+      margin-top: 6px;
+    }
+    .relay-feed-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--slate-500);
+    }
+    .relay-feed-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 240px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .relay-feed-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(250, 246, 240, 0.88);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+    }
+    .relay-feed-item.info {
+      border-left: 3px solid rgba(54, 113, 208, 0.52);
+    }
+    .relay-feed-item.warn {
+      border-left: 3px solid rgba(217, 164, 52, 0.58);
+    }
+    .relay-feed-item.error {
+      border-left: 3px solid rgba(186, 74, 74, 0.54);
+    }
+    .relay-feed-item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .relay-feed-item p {
+      margin: 0;
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--slate-600);
+    }
+    .relay-feed-quote {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(217, 164, 52, 0.12);
+      color: var(--primary-800);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .relay-feed-empty {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(30, 42, 58, 0.04);
+      font-size: 12px;
+      color: var(--slate-500);
+      text-align: center;
+    }
+
+    @media (max-width: 1180px) {
+      .relay-console {
+        top: auto;
+        bottom: 122px;
+        right: 20px;
+        width: min(420px, calc(100vw - 40px));
+      }
+    }
+
+    @media (max-width: 860px) {
+      .relay-field-grid,
+      .relay-console-grid,
+      .relay-console-actions,
+      .relay-summary-grid {
+        grid-template-columns: 1fr;
+      }
+      .relay-target-card,
+      .relay-summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .relay-chip-list {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .relay-console {
+        left: 16px;
+        right: 16px;
+        bottom: 116px;
+        width: auto;
+        padding: 16px;
+        border-radius: 20px;
+      }
+      .relay-console-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .relay-feed-list {
+        max-height: 180px;
+      }
+    }
     
     .btn-destructive-custom {
       display: flex;
@@ -2782,6 +3169,9 @@
       // =======================================================
       // SETTINGS INTERACTIVE LOGIC
       // =======================================================
+      const settingsManagedExternally = Boolean(window.__harukaSettingsManagerActive);
+
+      if (!settingsManagedExternally) {
       
       // Settings Modal Toggle Logic
       const settingsBtn = document.getElementById('settings-btn');
@@ -3035,7 +3425,7 @@
             
             // Reset text inputs
             const textEndpoint = document.getElementById('conn-endpoint');
-            if (textEndpoint) textEndpoint.value = 'wss://engine.moeru.ai/haruka/ws';
+            if (textEndpoint) textEndpoint.value = 'wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket';
             
             // Revert active system theme button to gold
             document.querySelectorAll('.theme-swatch-btn').forEach(btn => {
@@ -3050,6 +3440,7 @@
             alert("Settings reset to defaults!");
           }
         });
+      }
       }
     });
   </script>
@@ -3534,7 +3925,7 @@
               <div class="websocket-diagnostic">
                 <div class="diagnostic-info">
                   <span class="diagnostic-title">Central Rig Server</span>
-                  <span class="diagnostic-ping">Endpoint: wss://engine.moeru.ai/haruka/ws</span>
+                  <span class="diagnostic-ping">Endpoint: wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket</span>
                 </div>
                 <div class="diagnostic-badge">
                   <span class="diagnostic-badge-dot"></span>
@@ -3543,8 +3934,8 @@
               </div>
               
               <div class="settings-row">
-                <label class="settings-row-label" for="conn-endpoint">WebSocket Endpoint URL</label>
-                <input type="text" id="conn-endpoint" class="settings-input-text" value="wss://engine.moeru.ai/haruka/ws">
+                <label class="settings-row-label" for="conn-endpoint">Pump.fun WebSocket URL</label>
+                <input type="text" id="conn-endpoint" class="settings-input-text" value="wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket">
               </div>
               
               <div class="settings-switch-row">
