@@ -476,7 +476,7 @@ export class HarukaSettingsManager {
         <button type="button" class="relay-inline-link" id="relay-open-settings">Configure</button>
       </div>
       <div class="relay-console-status-row">
-        <span class="relay-status-pill ${this.bridgeAvailable ? 'ok' : 'warn'}">${this.bridgeAvailable ? 'Local helper ready' : 'Local helper unavailable'}</span>
+        <span class="relay-status-pill ${this.bridgeAvailable ? 'ok' : 'warn'}">${this.bridgeAvailable ? 'Live stream ready' : 'Live stream unavailable'}</span>
         <span class="relay-status-pill ${state?.running ? 'live' : 'idle'}">${state?.running ? 'Relay live' : 'Relay idle'}</span>
       </div>
       <div class="relay-console-grid">
@@ -531,7 +531,7 @@ export class HarukaSettingsManager {
 
   private renderRelayPanel(): void {
     const state = this.relayState;
-    this.setTextContent('relay-bridge-availability', this.bridgeAvailable ? 'Local helper ready' : 'Local helper unavailable');
+    this.setTextContent('relay-bridge-availability', this.bridgeAvailable ? 'Live stream ready' : 'Live stream unavailable');
     this.setClassName('relay-bridge-availability', `relay-status-pill ${this.bridgeAvailable ? 'ok' : 'warn'}`);
     this.setTextContent('relay-running-status', state?.running ? 'Streaming' : 'Stopped');
     this.setClassName('relay-running-status', `relay-status-pill ${state?.running ? 'live' : 'idle'}`);
@@ -594,10 +594,10 @@ export class HarukaSettingsManager {
         `
           <div class="settings-section-panel" id="panel-pumpfun">
             <h3 class="settings-section-title">Pump.fun Live Relay</h3>
-            <p class="settings-section-desc">Configure the local Pump.fun helper that listens to live comments, filters them, and lets Haruka answer inside this page while it stays open.</p>
+            <p class="settings-section-desc">Configure the Vercel-compatible live stream that listens to Pump.fun comments and lets Haruka answer inside this page while the tab stays open.</p>
             <div class="relay-summary-card">
               <div class="relay-summary-row">
-                <span class="relay-summary-label">Local helper</span>
+                <span class="relay-summary-label">Live stream</span>
                 <span id="relay-bridge-availability" class="relay-status-pill warn">Waiting</span>
               </div>
               <div class="relay-summary-row">
@@ -613,7 +613,7 @@ export class HarukaSettingsManager {
             <div class="settings-switch-row">
               <div class="settings-switch-label-group">
                 <span class="settings-switch-title">Enable Relay</span>
-                <span class="settings-switch-desc">Start the local Pump.fun listener and the live Haruka browser responder.</span>
+                <span class="settings-switch-desc">Start the live Pump.fun stream and the Haruka browser responder.</span>
               </div>
               <label class="tactile-switch">
                 <input type="checkbox" id="relay-enabled">

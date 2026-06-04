@@ -8,14 +8,14 @@ interface QueueItem {
   message: string;
 }
 
-interface BridgeStatePayload {
+interface StreamStatePayload {
   running?: boolean;
   pumpConnected?: boolean;
   lastError?: string | null;
   activeTokenAddress?: string;
 }
 
-interface ActivityPayload {
+interface StreamActivityPayload {
   timestamp?: string;
   level: 'info' | 'warn' | 'error';
   type: string;
@@ -25,7 +25,7 @@ interface ActivityPayload {
   message?: string;
 }
 
-interface CommentPayload {
+interface StreamCommentPayload {
   username?: string;
   message?: string;
 }
@@ -48,6 +48,8 @@ export class PumpRelayController {
   private bridgeAvailable = true;
   private bridgeBusy = false;
   private bridgeStream: EventSource | null = null;
+  private shouldReconnect = false;
+  private reconnectTimer: number | null = null;
   private settings!: HarukaSettings;
   private recentFingerprints = new Map<string, number>();
   private queue: QueueItem[] = [];
@@ -65,7 +67,6 @@ export class PumpRelayController {
       this.chatManager.applyRuntimeSettings({ speechSynthesis: settings.speechSynthesis });
       this.commitUi();
     });
-    void this.bootstrapBridgeState();
     this.commitUi();
   }
 
@@ -82,32 +83,13 @@ export class PumpRelayController {
       }
 
       if (button.id === 'relay-disconnect-btn' || button.id === 'relay-console-disconnect') {
-        void this.disconnect();
+        this.disconnect();
       }
 
       if (button.id === 'relay-test-btn' || button.id === 'relay-console-test') {
         void this.test();
       }
     });
-  }
-
-  private async bootstrapBridgeState(): Promise<void> {
-    try {
-      const response = await fetch('/__pumpfun_live/state');
-      if (!response.ok) {
-        this.bridgeAvailable = false;
-        this.commitUi();
-        return;
-      }
-
-      this.bridgeAvailable = true;
-      const payload = (await response.json()) as BridgeStatePayload;
-      this.applyBridgeState(payload);
-      this.ensureBridgeStream();
-    } catch {
-      this.bridgeAvailable = false;
-      this.commitUi();
-    }
   }
 
   private async autoToggle(settings: HarukaSettings): Promise<void> {
@@ -117,7 +99,7 @@ export class PumpRelayController {
     }
 
     if (!settings.relayEnabled && this.state.running) {
-      await this.disconnect();
+      this.disconnect();
     }
   }
 
@@ -148,7 +130,7 @@ export class PumpRelayController {
     this.commitUi();
   }
 
-  private addBridgeActivity(payload: ActivityPayload): void {
+  private addServerActivity(payload: StreamActivityPayload): void {
     const activity: RelayActivity = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       timestamp: payload.timestamp || new Date().toISOString(),
@@ -164,61 +146,6 @@ export class PumpRelayController {
     this.commitUi();
   }
 
-  private applyBridgeState(payload: BridgeStatePayload): void {
-    if (typeof payload.running === 'boolean') {
-      this.state.running = payload.running;
-    }
-    if (typeof payload.pumpConnected === 'boolean') {
-      this.state.pumpConnected = payload.pumpConnected;
-    }
-    if (typeof payload.activeTokenAddress === 'string') {
-      this.state.activeTokenAddress = payload.activeTokenAddress;
-    }
-    if (typeof payload.lastError === 'string' || payload.lastError === null) {
-      this.state.lastError = payload.lastError ?? null;
-    }
-
-    this.state.harukaConnected = this.shouldUseBrowserResponder();
-    this.commitUi();
-  }
-
-  private ensureBridgeStream(): void {
-    if (this.bridgeStream) {
-      return;
-    }
-
-    try {
-      const stream = new EventSource('/__pumpfun_live/events');
-      this.bridgeStream = stream;
-
-      stream.addEventListener('state', (event) => {
-        const payload = JSON.parse((event as MessageEvent<string>).data) as BridgeStatePayload;
-        this.bridgeAvailable = true;
-        this.applyBridgeState(payload);
-      });
-
-      stream.addEventListener('activity', (event) => {
-        const payload = JSON.parse((event as MessageEvent<string>).data) as ActivityPayload;
-        this.addBridgeActivity(payload);
-      });
-
-      stream.addEventListener('comment', (event) => {
-        const payload = JSON.parse((event as MessageEvent<string>).data) as CommentPayload;
-        const username = payload.username?.trim() || 'anonymous';
-        const message = payload.message?.trim() || '';
-        this.enqueueComment(username, message);
-      });
-
-      stream.onerror = () => {
-        this.bridgeAvailable = false;
-        this.commitUi();
-      };
-    } catch {
-      this.bridgeAvailable = false;
-      this.commitUi();
-    }
-  }
-
   private async connect(): Promise<void> {
     if (this.state.running) {
       return;
@@ -232,73 +159,114 @@ export class PumpRelayController {
     }
 
     this.bridgeBusy = true;
+    this.shouldReconnect = true;
+    this.state.running = true;
+    this.state.pumpConnected = false;
+    this.state.activeTokenAddress = tokenAddress;
+    this.state.lastError = null;
+    this.state.harukaConnected = this.shouldUseBrowserResponder();
     this.commitUi();
 
-    try {
-      this.ensureBridgeStream();
-      const response = await fetch('/__pumpfun_live/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tokenAddress,
-          username: this.settings.pumpRoomUsername.trim(),
-          historyLimit: this.settings.pumpHistoryLimit,
-          pumpWsUrl: this.settings.pumpWsUrl.trim()
-        })
-      });
+    this.openStream();
 
-      const payload = (await response.json()) as { ok?: boolean; error?: string; state?: BridgeStatePayload };
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || 'Failed to start the local Pump.fun helper.');
-      }
-
-      if (payload.state) {
-        this.applyBridgeState(payload.state);
-      } else {
-        this.state.running = true;
-        this.state.activeTokenAddress = tokenAddress;
-      }
-
-      this.state.harukaConnected = this.shouldUseBrowserResponder();
-      if (this.state.harukaConnected) {
-        this.addActivity('info', 'browser-ready', 'Browser responder ready', 'Haruka will answer live comments directly in this page while it stays open.');
-      } else {
-        this.addActivity('warn', 'browser-muted', 'Browser responder muted', 'Live replies are disabled in the UI settings, so comments will only be logged.');
-      }
-    } catch (error) {
-      this.state.running = false;
-      this.state.pumpConnected = false;
-      this.state.harukaConnected = false;
-      this.state.lastError = error instanceof Error ? error.message : 'Unknown relay start error.';
-      this.addActivity('error', 'relay-start-error', 'Relay start failed', this.state.lastError);
-    } finally {
-      this.bridgeBusy = false;
-      this.commitUi();
-    }
+    this.bridgeBusy = false;
+    this.commitUi();
   }
 
-  private async disconnect(): Promise<void> {
-    this.bridgeBusy = true;
-    this.commitUi();
-
-    try {
-      await fetch('/__pumpfun_live/disconnect', {
-        method: 'POST'
-      });
-    } catch {
-      // Ignore disconnect request failures and fall back to local state reset.
-    } finally {
-      this.state.running = false;
-      this.state.pumpConnected = false;
-      this.state.harukaConnected = false;
-      this.state.lastError = null;
-      this.queue = [];
-      this.state.queueLength = 0;
-      this.bridgeBusy = false;
-      this.commitUi();
+  private disconnect(): void {
+    this.shouldReconnect = false;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
+
+    if (this.bridgeStream) {
+      this.bridgeStream.close();
+      this.bridgeStream = null;
+    }
+
+    this.state.running = false;
+    this.state.pumpConnected = false;
+    this.state.harukaConnected = false;
+    this.state.lastError = null;
+    this.state.queueLength = 0;
+    this.queue = [];
+    this.addActivity('info', 'relay-stopped', 'Relay stopped', 'The Pump.fun relay stream has been closed for this browser tab.');
+    this.commitUi();
+  }
+
+  private openStream(): void {
+    if (this.bridgeStream) {
+      this.bridgeStream.close();
+      this.bridgeStream = null;
+    }
+
+    const streamUrl = this.buildStreamUrl();
+    this.bridgeStream = new EventSource(streamUrl);
+    this.bridgeAvailable = true;
+
+    this.bridgeStream.onopen = () => {
+      this.bridgeAvailable = true;
+      this.state.lastError = null;
+      this.commitUi();
+    };
+
+    this.bridgeStream.addEventListener('state', (event) => {
+      const payload = JSON.parse((event as MessageEvent<string>).data) as StreamStatePayload;
+      if (typeof payload.running === 'boolean') {
+        this.state.running = payload.running;
+      }
+      if (typeof payload.pumpConnected === 'boolean') {
+        this.state.pumpConnected = payload.pumpConnected;
+      }
+      if (typeof payload.activeTokenAddress === 'string') {
+        this.state.activeTokenAddress = payload.activeTokenAddress;
+      }
+      if (typeof payload.lastError === 'string' || payload.lastError === null) {
+        this.state.lastError = payload.lastError ?? null;
+      }
+      this.state.harukaConnected = this.shouldUseBrowserResponder();
+      this.commitUi();
+    });
+
+    this.bridgeStream.addEventListener('activity', (event) => {
+      const payload = JSON.parse((event as MessageEvent<string>).data) as StreamActivityPayload;
+      this.addServerActivity(payload);
+    });
+
+    this.bridgeStream.addEventListener('comment', (event) => {
+      const payload = JSON.parse((event as MessageEvent<string>).data) as StreamCommentPayload;
+      const username = payload.username?.trim() || 'anonymous';
+      const message = payload.message?.trim() || '';
+      this.enqueueComment(username, message);
+    });
+
+    this.bridgeStream.onerror = () => {
+      this.bridgeAvailable = false;
+      this.state.pumpConnected = false;
+      this.state.lastError = this.state.lastError || 'The Vercel live stream disconnected.';
+      this.commitUi();
+
+      if (!this.shouldReconnect || this.reconnectTimer) {
+        return;
+      }
+
+      this.reconnectTimer = window.setTimeout(() => {
+        this.reconnectTimer = null;
+        if (this.shouldReconnect) {
+          this.openStream();
+        }
+      }, 1500);
+    };
+  }
+
+  private buildStreamUrl(): string {
+    const url = new URL('/api/pumpfun-live/stream', window.location.origin);
+    url.searchParams.set('tokenAddress', this.settings.pumpTokenAddress.trim());
+    url.searchParams.set('username', this.settings.pumpRoomUsername.trim() || 'HarukaRelay');
+    url.searchParams.set('historyLimit', String(this.settings.pumpHistoryLimit));
+    url.searchParams.set('pumpWsUrl', this.settings.pumpWsUrl.trim());
+    return url.toString();
   }
 
   private async test(): Promise<void> {
