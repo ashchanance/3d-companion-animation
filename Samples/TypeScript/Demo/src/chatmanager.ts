@@ -32,6 +32,8 @@ export class ChatManager {
   private _typewriterInterval: number | null = null;
   private _typewriterSpeed: number = 45; // ms per character
   private _activeAudio: HTMLAudioElement | null = null;
+  private _activeAudioUrl: string | null = null;
+  private _activeUtterance: SpeechSynthesisUtterance | null = null;
   private _activeLang: 'en' | 'jp' = 'en';
   private _micBtn: HTMLButtonElement | null = null;
   private _mediaRecorder: MediaRecorder | null = null;
@@ -178,19 +180,8 @@ export class ChatManager {
     this._isProcessingReply = true;
 
     // Cancel active speech and simulation
-    if (this._activeAudio) {
-      this._activeAudio.pause();
-      this._activeAudio = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (this._speakingTimeout) {
-      clearTimeout(this._speakingTimeout);
-      this._speakingTimeout = null;
-    }
     this.clearTypewriter();
-    this.stopSpeakingSim();
+    this.stopActivePlayback();
 
     // Show bubble with typing indicator
     this.showTypingState();
@@ -232,7 +223,6 @@ export class ChatManager {
           engineMode: this._chatEngineMode,
           providerId: this._chatProvider,
           providerConfig: {
-            apiKey: (import.meta as any).env.VITE_MEGALLM_API_KEY || '',
             baseUrl: (import.meta as any).env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
             model: (import.meta as any).env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
           },
@@ -398,18 +388,7 @@ export class ChatManager {
       this._bubble.className = 'cloud-bubble hidden';
       this.clearHideTimeout();
     }
-    if (this._activeAudio) {
-      this._activeAudio.pause();
-      this._activeAudio = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (this._speakingTimeout) {
-      clearTimeout(this._speakingTimeout);
-      this._speakingTimeout = null;
-    }
-    this.stopSpeakingSim();
+    this.stopActivePlayback();
   }
 
   private speakReply(text: string): void {
@@ -419,17 +398,7 @@ export class ChatManager {
     }
 
     // 1. Cancel any active speech and clear existing timeouts
-    if (this._activeAudio) {
-      this._activeAudio.pause();
-      this._activeAudio = null;
-    }
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    if (this._speakingTimeout) {
-      clearTimeout(this._speakingTimeout);
-      this._speakingTimeout = null;
-    }
+    this.stopActivePlayback();
 
     const delegate = LAppDelegate.getInstance();
     if (!delegate) return;
@@ -492,6 +461,8 @@ export class ChatManager {
 
       const audio = new Audio(audioUrl);
       this._activeAudio = audio;
+      this._activeAudioUrl = audioUrl;
+      audio.preload = 'auto';
 
       audio.onplay = () => {
         if (typeof model.startLipSyncSimulating === 'function') {
@@ -499,42 +470,73 @@ export class ChatManager {
         }
       };
 
+      let hasStopped = false;
       const handleAudioStop = () => {
+        if (hasStopped) {
+          return;
+        }
+        hasStopped = true;
         if (typeof model.stopLipSyncSimulating === 'function') {
           model.stopLipSyncSimulating();
         }
-        URL.revokeObjectURL(audioUrl);
         if (this._activeAudio === audio) {
           this._activeAudio = null;
+        }
+        if (this._activeAudioUrl === audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+          this._activeAudioUrl = null;
         }
         this.scheduleHideTimeout();
       };
 
       audio.onended = handleAudioStop;
       audio.onerror = handleAudioStop;
-      audio.onpause = handleAudioStop;
+      audio.onabort = handleAudioStop;
 
       await audio.play();
 
     } catch (e) {
       console.error('ElevenLabs TTS Error, falling back to Web Speech API:', e);
+      this.stopActiveAudio();
+      this.stopSpeakingSim();
       this.speakWebSpeech(text, model);
     }
   }
 
   private speakWebSpeech(text: string, model: any): void {
+    // Strip emojis and brackets from text for smoother reading
+    const cleanText = text
+      .replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '')
+      .replace(/[\[\]\(\)\{\}]/g, ' ')
+      .trim();
+
+    if (!cleanText) {
+      this.scheduleHideTimeout();
+      return;
+    }
+
     // Start mouth movement simulation
     if (typeof (model as any).startLipSyncSimulating === 'function') {
       (model as any).startLipSyncSimulating();
     }
 
-    // Estimate speaking duration as fallback (e.g., 65ms per character + 500ms padding)
-    const estimatedDuration = Math.max(1500, text.length * 65 + 500);
+    const approximateWordCount = cleanText.split(/\s+/).filter(Boolean).length || 1;
+    // Keep the watchdog intentionally generous so browser TTS is not cut off early.
+    const estimatedDuration = Math.max(6000, approximateWordCount * 900 + 4000);
 
-    const stopSpeaking = () => {
+    const clearSpeechWatchdog = () => {
       if (this._speakingTimeout) {
         clearTimeout(this._speakingTimeout);
         this._speakingTimeout = null;
+      }
+    };
+
+    let utterance: SpeechSynthesisUtterance | null = null;
+
+    const stopSpeaking = () => {
+      clearSpeechWatchdog();
+      if (utterance && this._activeUtterance === utterance) {
+        this._activeUtterance = null;
       }
       if (typeof (model as any).stopLipSyncSimulating === 'function') {
         (model as any).stopLipSyncSimulating();
@@ -542,55 +544,53 @@ export class ChatManager {
       this.scheduleHideTimeout();
     };
 
-    // Set fallback timeout to stop mouth movement
-    this._speakingTimeout = window.setTimeout(() => {
-      stopSpeaking();
-    }, estimatedDuration);
-
     // Try using Web Speech API for TTS
     if ('speechSynthesis' in window) {
-      // Strip emojis and brackets from text for smoother reading
-      const cleanText = text
-        .replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '')
-        .replace(/[\[\]\(\)\{\}]/g, ' ')
-        .trim();
+      utterance = new SpeechSynthesisUtterance(cleanText);
+      this._activeUtterance = utterance;
+      const voices = window.speechSynthesis.getVoices();
 
-      if (cleanText) {
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        const voices = window.speechSynthesis.getVoices();
-
-        if (this._activeLang === 'jp') {
-          utterance.lang = 'ja-JP'; // Japanese
-          const jaVoice = voices.find(voice => voice.lang.toLowerCase().includes('ja') || voice.lang.toLowerCase().includes('jp'));
-          if (jaVoice) {
-            utterance.voice = jaVoice;
-          }
-        } else {
-          utterance.lang = 'en-US'; // English
-          const enVoice = voices.find(voice => voice.lang.toLowerCase().includes('en'));
-          if (enVoice) {
-            utterance.voice = enVoice;
-          }
+      if (this._activeLang === 'jp') {
+        utterance.lang = 'ja-JP'; // Japanese
+        const jaVoice = voices.find(voice => voice.lang.toLowerCase().includes('ja') || voice.lang.toLowerCase().includes('jp'));
+        if (jaVoice) {
+          utterance.voice = jaVoice;
         }
-
-        utterance.onstart = () => {
-          // Re-affirm simulation start
-          if (typeof (model as any).startLipSyncSimulating === 'function') {
-            (model as any).startLipSyncSimulating();
-          }
-        };
-
-        utterance.onend = () => {
-          stopSpeaking();
-        };
-
-        utterance.onerror = () => {
-          stopSpeaking();
-        };
-
-        window.speechSynthesis.speak(utterance);
+      } else {
+        utterance.lang = 'en-US'; // English
+        const enVoice = voices.find(voice => voice.lang.toLowerCase().includes('en'));
+        if (enVoice) {
+          utterance.voice = enVoice;
+        }
       }
+
+      utterance.onstart = () => {
+        // Re-affirm simulation start
+        if (typeof (model as any).startLipSyncSimulating === 'function') {
+          (model as any).startLipSyncSimulating();
+        }
+      };
+
+      utterance.onend = () => {
+        stopSpeaking();
+      };
+
+      utterance.onerror = () => {
+        stopSpeaking();
+      };
+
+      this._speakingTimeout = window.setTimeout(() => {
+        if (utterance && this._activeUtterance === utterance) {
+          console.warn('[ChatManager] Speech synthesis watchdog elapsed before onend; releasing speech state.');
+          stopSpeaking();
+        }
+      }, estimatedDuration);
+
+      window.speechSynthesis.speak(utterance);
+      return;
     }
+
+    stopSpeaking();
   }
 
   private stopSpeakingSim(): void {
@@ -622,7 +622,9 @@ export class ChatManager {
     
     const isTypewriterRunning = this._typewriterInterval !== null;
     const isAudioPlaying = this._activeAudio !== null && !this._activeAudio.paused && !this._activeAudio.ended;
-    const isSpeechSpeaking = this._speakingTimeout !== null;
+    const isSpeechSpeaking =
+      this._activeUtterance !== null ||
+      ('speechSynthesis' in window && (window.speechSynthesis.speaking || window.speechSynthesis.pending));
 
     if (isTypewriterRunning || isAudioPlaying || isSpeechSpeaking) {
       console.log('[ChatManager] Postponing hide timeout (typewriter, audio, or speech is still active)');
@@ -633,6 +635,44 @@ export class ChatManager {
     this._hideTimeout = window.setTimeout(() => {
       this.hideBubble();
     }, 10000);
+  }
+
+  private stopActiveAudio(): void {
+    if (!this._activeAudio) {
+      if (this._activeAudioUrl) {
+        URL.revokeObjectURL(this._activeAudioUrl);
+        this._activeAudioUrl = null;
+      }
+      return;
+    }
+
+    this._activeAudio.onplay = null;
+    this._activeAudio.onended = null;
+    this._activeAudio.onerror = null;
+    this._activeAudio.onabort = null;
+
+    this._activeAudio.pause();
+    this._activeAudio.src = '';
+    this._activeAudio.load();
+    this._activeAudio = null;
+
+    if (this._activeAudioUrl) {
+      URL.revokeObjectURL(this._activeAudioUrl);
+      this._activeAudioUrl = null;
+    }
+  }
+
+  private stopActivePlayback(): void {
+    this.stopActiveAudio();
+    if (this._speakingTimeout) {
+      clearTimeout(this._speakingTimeout);
+      this._speakingTimeout = null;
+    }
+    this._activeUtterance = null;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    this.stopSpeakingSim();
   }
 
   private clearTypewriter(): void {
