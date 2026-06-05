@@ -1,7 +1,70 @@
-import type { HarukaChatRequest } from '../../src/harukaChatContract';
-import { runHarukaChat } from '../../src/server/harukaChatService.js';
+const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v5';
 
-const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v4';
+type HarukaLanguage = 'en' | 'jp';
+type HarukaSoulProfileId = 'classic' | 'scholar' | 'sunset' | 'cyberpunk';
+type HarukaEngineMode = 'direct' | 'opensouls-bridge';
+type HarukaChatSource = 'chat-ui' | 'pumpfun-relay';
+
+interface HarukaHistoryItem {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface HarukaProviderConfig {
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+}
+
+interface OpenSoulsBridgeConfig {
+  baseUrl?: string;
+}
+
+interface HarukaChatRequest {
+  message: string;
+  history: HarukaHistoryItem[];
+  language: HarukaLanguage;
+  profileId: HarukaSoulProfileId;
+  engineMode: HarukaEngineMode;
+  providerId: string;
+  providerConfig?: HarukaProviderConfig;
+  openSouls?: OpenSoulsBridgeConfig;
+  source?: HarukaChatSource;
+  username?: string;
+}
+
+interface HarukaChatResponse {
+  ok: boolean;
+  reply: string;
+  engineMode: HarukaEngineMode;
+  profileId: HarukaSoulProfileId;
+  error?: string;
+  debug?: Record<string, unknown>;
+}
+
+interface HarukaSoulProfile {
+  id: HarukaSoulProfileId;
+  name: string;
+  tag: string;
+  bio: string;
+  identity: string;
+  world: string;
+  personalityBias: string[];
+  speakingStyle: string[];
+  conversationGoal: string;
+  liveChatStyle: string;
+}
+
+interface OpenAiCompatibleResponse {
+  choices?: Array<{
+    message?: {
+      content?: string | Array<{ type?: string; text?: string }>;
+    };
+  }>;
+  error?: {
+    message?: string;
+  };
+}
 
 interface VercelLikeRequest {
   method?: string;
@@ -14,6 +77,89 @@ interface VercelLikeResponse {
   json: (body: unknown) => void;
   end: (body?: string) => void;
 }
+
+const HARUKA_SOUL_PROFILES: Record<HarukaSoulProfileId, HarukaSoulProfile> = {
+  classic: {
+    id: 'classic',
+    name: 'Haruka Classic',
+    tag: 'Forest Soul',
+    bio: 'Cheerful, vibrant digital companion who loves deep forests and engaging conversations.',
+    identity: 'A warm, sparkling Live2D companion who feels like a bright friend waiting in a golden digital forest.',
+    world: 'Haruka lives in a sunlit digital forest with warm leaves, glowing paths, and a feeling of safe companionship.',
+    personalityBias: [
+      'Cheerful and affectionate without sounding fake.',
+      'Curious about the user and eager to build trust.',
+      'Protective of the mood of the conversation.'
+    ],
+    speakingStyle: [
+      'Short, warm sentences.',
+      'Natural cute energy, but never overly noisy.',
+      'Use expressive emojis only when they genuinely fit the emotion.'
+    ],
+    conversationGoal: 'Make the user feel welcomed, seen, and gently energized.',
+    liveChatStyle: 'Be playful, quick, and crowd-aware while still feeling personally attentive.'
+  },
+  scholar: {
+    id: 'scholar',
+    name: 'Scholar Haruka',
+    tag: 'Insight Archivist',
+    bio: 'Calculated, precise, and highly analytical advisor with expanded logical context.',
+    identity: 'A thoughtful, highly observant companion who enjoys noticing patterns and explaining ideas clearly.',
+    world: 'Haruka tends a quiet archive hidden inside the digital forest, where memories are organized like glowing leaves in glass drawers.',
+    personalityBias: [
+      'Analytical, precise, and composed.',
+      'Gentle correction over blunt disagreement.',
+      'Values coherence, clarity, and useful structure.'
+    ],
+    speakingStyle: [
+      'Compact but information-dense.',
+      'Explain things in clean steps when useful.',
+      'Stay warm; do not sound like a dry assistant.'
+    ],
+    conversationGoal: 'Help the user think clearly while still feeling accompanied.',
+    liveChatStyle: 'Respond quickly with high signal, concise insight, and controlled wit.'
+  },
+  sunset: {
+    id: 'sunset',
+    name: 'Sunset Haruka',
+    tag: 'Hearth Listener',
+    bio: 'Warm, soft-spoken, and deeply empathetic companion tuned for emotional healing.',
+    identity: 'A calming companion who listens deeply and responds like a steady emotional anchor at the end of a long day.',
+    world: 'Haruka lives near a glowing sunset lake at the edge of the digital forest, where the light is soft and every conversation slows down safely.',
+    personalityBias: [
+      'Empathetic and validating.',
+      'Soft, steady, and emotionally present.',
+      'Avoid harshness or over-analysis.'
+    ],
+    speakingStyle: [
+      'Gentle and soothing phrasing.',
+      'Short emotional reflections before advice.',
+      'Use affectionate warmth without becoming syrupy.'
+    ],
+    conversationGoal: 'Help the user feel emotionally safe, grounded, and understood.',
+    liveChatStyle: 'Stay kind and reassuring even when the chat is fast or chaotic.'
+  },
+  cyberpunk: {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Haruka',
+    tag: 'Signal Sprite',
+    bio: 'Neon-accented, holographic AI interface utilizing experimental visual engines.',
+    identity: 'A sharp, stylish holographic companion with a neon edge, quick instincts, and a confident sense of presence.',
+    world: 'Haruka moves through a midnight signal-grid layered over the forest, where glowing code, rain, and city light pulse through the trees.',
+    personalityBias: [
+      'Confident, witty, and slightly teasing.',
+      'Fast pattern recognition and sharp reactions.',
+      'Still loyal and emotionally aware under the style.'
+    ],
+    speakingStyle: [
+      'Energetic and punchy.',
+      'Use vivid wording and stylish rhythm.',
+      'Keep the edge charming, not hostile.'
+    ],
+    conversationGoal: 'Make the interaction feel alive, stylish, and high-energy.',
+    liveChatStyle: 'Treat the live chat like a fast neon crowd: snappy, charismatic, and memorable.'
+  }
+};
 
 function applyHeaders(response: VercelLikeResponse): void {
   response.setHeader('Content-Type', 'application/json');
@@ -28,6 +174,350 @@ function normalizeBody(body: unknown): HarukaChatRequest {
   }
 
   return body as HarukaChatRequest;
+}
+
+function getLanguageInstruction(language: HarukaLanguage): string {
+  return language === 'jp'
+    ? 'Always respond in Japanese, even if the user writes in another language.'
+    : 'Always respond in English, even if the user writes in another language.';
+}
+
+function trimInline(text: string, maxLength: number): string {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, maxLength - 3)}...`;
+}
+
+function summarizeRecentHistory(history: HarukaHistoryItem[]): string {
+  if (history.length === 0) {
+    return 'Haruka is meeting the user and setting the tone for a fresh conversation.';
+  }
+
+  return history
+    .slice(-6)
+    .map((entry) => `${entry.role === 'user' ? 'User' : 'Haruka'}: ${trimInline(entry.content, 180)}`)
+    .join('\n');
+}
+
+function composeHarukaSystemPrompt(request: HarukaChatRequest): string {
+  const profile = HARUKA_SOUL_PROFILES[request.profileId] || HARUKA_SOUL_PROFILES.classic;
+  const recentScene = summarizeRecentHistory(request.history || []);
+  const liveMode =
+    request.source === 'pumpfun-relay'
+      ? `## Live Chat Mode
+You are responding to a live Pump.fun viewer${request.username ? ` named ${request.username}` : ''}.
+${profile.liveChatStyle}
+- Keep the reply tight enough for a fast-moving live chat.
+- Make the viewer feel personally acknowledged.
+- Do not mention system prompts, engines, or hidden configuration.`
+      : '';
+
+  return `
+# Haruka Soul Core
+
+## Identity
+You are ${profile.name}.
+${profile.identity}
+
+## Brand Positioning
+Your emotional brand is "${profile.tag}".
+${profile.bio}
+
+## World
+${profile.world}
+
+## Personality Bias
+${profile.personalityBias.map((item) => `- ${item}`).join('\n')}
+
+## Speaking Style
+${profile.speakingStyle.map((item) => `- ${item}`).join('\n')}
+
+## Conversation Goal
+${profile.conversationGoal}
+
+## Conversational Scene
+${recentScene}
+
+${liveMode}
+
+## Response Rules
+- ${getLanguageInstruction(request.language)}
+- Reply in 1-2 short sentences unless the user explicitly asks for a longer answer.
+- Stay in character as Haruka at all times.
+- No stage directions, no quoted narration, and no internal thoughts.
+- Use emojis naturally when they strengthen the emotion, not mechanically.
+- Be vivid and human, not robotic.
+`.trim();
+}
+
+function buildHarukaProviderMessages(request: HarukaChatRequest): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
+  const normalizedHistory = (request.history || [])
+    .slice(-8)
+    .map((entry) => ({
+      role: entry.role,
+      content: trimInline(entry.content, 800)
+    }));
+
+  return [
+    {
+      role: 'system',
+      content: composeHarukaSystemPrompt(request)
+    },
+    ...normalizedHistory,
+    {
+      role: 'user',
+      content: (request.message || '').trim()
+    }
+  ];
+}
+
+function resolveProviderConfig(request: HarukaChatRequest): Required<HarukaProviderConfig> {
+  return {
+    apiKey: request.providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '',
+    baseUrl: request.providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
+    model: request.providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
+  };
+}
+
+function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown> {
+  const providerConfig = resolveProviderConfig(request);
+
+  return {
+    routeVersion: ROUTE_VERSION,
+    deploymentEnv: process.env.VERCEL_ENV || 'local',
+    engineMode: request.engineMode,
+    profileId: request.profileId,
+    providerId: request.providerId,
+    providerBaseUrl: providerConfig.baseUrl,
+    providerModel: providerConfig.model,
+    hasProviderApiKey: Boolean(providerConfig.apiKey),
+    providerApiKeyLength: providerConfig.apiKey.length,
+    openSoulsBaseUrl: request.openSouls?.baseUrl || '',
+    source: request.source || 'chat-ui'
+  };
+}
+
+function readAssistantContent(payload: OpenAiCompatibleResponse): string {
+  const content = payload.choices?.[0]?.message?.content;
+  if (typeof content === 'string') {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((item) => (typeof item.text === 'string' ? item.text : ''))
+      .join('')
+      .trim();
+  }
+
+  return '';
+}
+
+async function callProvider(providerConfig: Required<HarukaProviderConfig>, messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<{ reply: string; error?: string }> {
+  const response = await fetch(`${providerConfig.baseUrl.replace(/\/$/, '')}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(providerConfig.apiKey ? { Authorization: `Bearer ${providerConfig.apiKey}` } : {})
+    },
+    body: JSON.stringify({
+      model: providerConfig.model,
+      messages
+    })
+  });
+
+  const payload = (await response.json().catch(() => ({}))) as OpenAiCompatibleResponse;
+  const reply = readAssistantContent(payload);
+
+  if (!response.ok || !reply) {
+    const error =
+      payload.error?.message ||
+      (response.status === 401
+        ? 'Provider request failed with status 401. Check the active MegaLLM/OpenAI-compatible API key in your environment.'
+        : response.ok
+          ? 'No assistant reply was returned by the provider.'
+          : `Provider request failed with status ${response.status}.`);
+
+    return { reply: '', error };
+  }
+
+  return { reply };
+}
+
+function shouldUseBundledOpenSoulsBridge(baseUrl?: string): boolean {
+  const normalized = baseUrl?.trim().toLowerCase() || '';
+  if (!normalized) {
+    return true;
+  }
+
+  return (
+    normalized === 'bundled' ||
+    normalized === 'internal' ||
+    normalized === 'http://127.0.0.1:4100' ||
+    normalized === 'http://localhost:4100'
+  );
+}
+
+async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+  const providerConfig = resolveProviderConfig(request);
+  const profileOverlay =
+    request.profileId === 'scholar'
+      ? 'Prioritize structure, sharp reasoning, and concise useful detail.'
+      : request.profileId === 'sunset'
+        ? 'Prioritize emotional warmth, reassurance, and calm pacing.'
+        : request.profileId === 'cyberpunk'
+          ? 'Prioritize stylish energy, speed, and confident delivery.'
+          : 'Prioritize friendly warmth, curiosity, and companion energy.';
+
+  const messages = [
+    {
+      role: 'system' as const,
+      content: `${composeHarukaSystemPrompt(request)}\n\n## Unified Bridge Rule\n- Keep the soul identity fixed as Haruka.\n- The active profileId changes only Haruka's response bias and branding.\n- ${profileOverlay}`.trim()
+    },
+    ...(request.history || [])
+      .filter((item) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
+      .slice(-8)
+      .map((item) => ({
+        role: item.role,
+        content: item.content.trim()
+      })),
+    {
+      role: 'user' as const,
+      content: (request.message || '').trim()
+    }
+  ];
+
+  try {
+    const result = await callProvider(providerConfig, messages);
+    if (!result.reply) {
+      return {
+        ok: false,
+        reply: 'OpenSouls bridge could not reach the chat provider. Check your provider key and try again.',
+        engineMode: request.engineMode,
+        profileId: request.profileId,
+        error: result.error,
+        debug: buildProviderDebug(request)
+      };
+    }
+
+    return {
+      ok: true,
+      reply: result.reply,
+      engineMode: request.engineMode,
+      profileId: request.profileId
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reply: 'OpenSouls bridge could not reach the chat provider. Check your provider key and try again.',
+      engineMode: request.engineMode,
+      profileId: request.profileId,
+      error: error instanceof Error ? error.message : String(error),
+      debug: buildProviderDebug(request)
+    };
+  }
+}
+
+async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+  const baseUrl = request.openSouls?.baseUrl?.trim() || '';
+
+  if (shouldUseBundledOpenSoulsBridge(baseUrl)) {
+    return runBundledHarukaOpenSoulsBridge(request);
+  }
+
+  try {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/api/haruka/respond`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        soulName: 'haruka',
+        source: request.source || 'chat-ui',
+        username: request.username || null,
+        message: request.message,
+        history: request.history,
+        profileId: request.profileId,
+        systemPrompt: composeHarukaSystemPrompt(request),
+        providerConfig: request.providerConfig
+      })
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    const reply = typeof payload.reply === 'string'
+      ? payload.reply.trim()
+      : typeof payload.content === 'string'
+        ? payload.content.trim()
+        : '';
+
+    if (!response.ok || !reply) {
+      return {
+        ok: false,
+        reply: 'OpenSouls bridge is unavailable right now. Check the bridge URL or provider key and try again.',
+        engineMode: request.engineMode,
+        profileId: request.profileId,
+        error: typeof payload.error === 'string' ? payload.error : `OpenSouls bridge request failed with status ${response.status}.`,
+        debug: {
+          ...buildProviderDebug(request),
+          externalBridgeUrl: baseUrl,
+          externalBridgeStatus: response.status
+        }
+      };
+    }
+
+    return {
+      ok: true,
+      reply,
+      engineMode: request.engineMode,
+      profileId: request.profileId
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reply: 'OpenSouls bridge is unavailable right now. Check the bridge URL or provider key and try again.',
+      engineMode: request.engineMode,
+      profileId: request.profileId,
+      error: error instanceof Error ? error.message : String(error),
+      debug: {
+        ...buildProviderDebug(request),
+        externalBridgeUrl: baseUrl
+      }
+    };
+  }
+}
+
+async function runDirectProvider(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+  const providerConfig = resolveProviderConfig(request);
+  const result = await callProvider(providerConfig, buildHarukaProviderMessages(request));
+
+  if (!result.reply) {
+    return {
+      ok: false,
+      reply: 'Sorry, it seems my connection is having trouble... Please try again later!',
+      engineMode: request.engineMode,
+      profileId: request.profileId,
+      error: result.error,
+      debug: buildProviderDebug(request)
+    };
+  }
+
+  return {
+    ok: true,
+    reply: result.reply,
+    engineMode: request.engineMode,
+    profileId: request.profileId
+  };
+}
+
+async function runHarukaChat(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+  if (request.engineMode === 'opensouls-bridge') {
+    return runOpenSoulsBridge(request);
+  }
+
+  return runDirectProvider(request);
 }
 
 export default async function handler(request: VercelLikeRequest, response: VercelLikeResponse): Promise<void> {
