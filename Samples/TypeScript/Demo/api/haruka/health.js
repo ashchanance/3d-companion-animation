@@ -1,16 +1,6 @@
-const ROUTE_VERSION = 'api-haruka-health-2026-06-05-v1';
+const ROUTE_VERSION = 'api-haruka-health-2026-06-05-v2';
 
-interface VercelLikeRequest {
-  method?: string;
-}
-
-interface VercelLikeResponse {
-  status: (code: number) => VercelLikeResponse;
-  setHeader: (name: string, value: string | string[]) => void;
-  json: (body: unknown) => void;
-}
-
-export default function handler(_request: VercelLikeRequest, response: VercelLikeResponse): void {
+module.exports = function handler(_request, response) {
   const apiKey = process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
   const baseUrl = process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '';
   const model = process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || '';
@@ -27,4 +17,4 @@ export default function handler(_request: VercelLikeRequest, response: VercelLik
     megallmBaseUrl: baseUrl,
     megallmModel: model
   });
-}
+};

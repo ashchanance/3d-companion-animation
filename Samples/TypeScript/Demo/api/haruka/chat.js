@@ -1,84 +1,6 @@
-const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v5';
+const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v6';
 
-type HarukaLanguage = 'en' | 'jp';
-type HarukaSoulProfileId = 'classic' | 'scholar' | 'sunset' | 'cyberpunk';
-type HarukaEngineMode = 'direct' | 'opensouls-bridge';
-type HarukaChatSource = 'chat-ui' | 'pumpfun-relay';
-
-interface HarukaHistoryItem {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-interface HarukaProviderConfig {
-  apiKey?: string;
-  baseUrl?: string;
-  model?: string;
-}
-
-interface OpenSoulsBridgeConfig {
-  baseUrl?: string;
-}
-
-interface HarukaChatRequest {
-  message: string;
-  history: HarukaHistoryItem[];
-  language: HarukaLanguage;
-  profileId: HarukaSoulProfileId;
-  engineMode: HarukaEngineMode;
-  providerId: string;
-  providerConfig?: HarukaProviderConfig;
-  openSouls?: OpenSoulsBridgeConfig;
-  source?: HarukaChatSource;
-  username?: string;
-}
-
-interface HarukaChatResponse {
-  ok: boolean;
-  reply: string;
-  engineMode: HarukaEngineMode;
-  profileId: HarukaSoulProfileId;
-  error?: string;
-  debug?: Record<string, unknown>;
-}
-
-interface HarukaSoulProfile {
-  id: HarukaSoulProfileId;
-  name: string;
-  tag: string;
-  bio: string;
-  identity: string;
-  world: string;
-  personalityBias: string[];
-  speakingStyle: string[];
-  conversationGoal: string;
-  liveChatStyle: string;
-}
-
-interface OpenAiCompatibleResponse {
-  choices?: Array<{
-    message?: {
-      content?: string | Array<{ type?: string; text?: string }>;
-    };
-  }>;
-  error?: {
-    message?: string;
-  };
-}
-
-interface VercelLikeRequest {
-  method?: string;
-  body?: unknown;
-}
-
-interface VercelLikeResponse {
-  status: (code: number) => VercelLikeResponse;
-  setHeader: (name: string, value: string | string[]) => void;
-  json: (body: unknown) => void;
-  end: (body?: string) => void;
-}
-
-const HARUKA_SOUL_PROFILES: Record<HarukaSoulProfileId, HarukaSoulProfile> = {
+const HARUKA_SOUL_PROFILES = {
   classic: {
     id: 'classic',
     name: 'Haruka Classic',
@@ -161,29 +83,29 @@ const HARUKA_SOUL_PROFILES: Record<HarukaSoulProfileId, HarukaSoulProfile> = {
   }
 };
 
-function applyHeaders(response: VercelLikeResponse): void {
+function applyHeaders(response) {
   response.setHeader('Content-Type', 'application/json');
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
-function normalizeBody(body: unknown): HarukaChatRequest {
+function normalizeBody(body) {
   if (typeof body === 'string') {
-    return JSON.parse(body) as HarukaChatRequest;
+    return JSON.parse(body);
   }
 
-  return body as HarukaChatRequest;
+  return body || {};
 }
 
-function getLanguageInstruction(language: HarukaLanguage): string {
+function getLanguageInstruction(language) {
   return language === 'jp'
     ? 'Always respond in Japanese, even if the user writes in another language.'
     : 'Always respond in English, even if the user writes in another language.';
 }
 
-function trimInline(text: string, maxLength: number): string {
-  const normalized = text.replace(/\s+/g, ' ').trim();
+function trimInline(text, maxLength) {
+  const normalized = String(text || '').replace(/\s+/g, ' ').trim();
   if (normalized.length <= maxLength) {
     return normalized;
   }
@@ -191,8 +113,8 @@ function trimInline(text: string, maxLength: number): string {
   return `${normalized.slice(0, maxLength - 3)}...`;
 }
 
-function summarizeRecentHistory(history: HarukaHistoryItem[]): string {
-  if (history.length === 0) {
+function summarizeRecentHistory(history) {
+  if (!Array.isArray(history) || history.length === 0) {
     return 'Haruka is meeting the user and setting the tone for a fresh conversation.';
   }
 
@@ -202,7 +124,7 @@ function summarizeRecentHistory(history: HarukaHistoryItem[]): string {
     .join('\n');
 }
 
-function composeHarukaSystemPrompt(request: HarukaChatRequest): string {
+function composeHarukaSystemPrompt(request) {
   const profile = HARUKA_SOUL_PROFILES[request.profileId] || HARUKA_SOUL_PROFILES.classic;
   const recentScene = summarizeRecentHistory(request.history || []);
   const liveMode =
@@ -253,13 +175,12 @@ ${liveMode}
 `.trim();
 }
 
-function buildHarukaProviderMessages(request: HarukaChatRequest): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
-  const normalizedHistory = (request.history || [])
-    .slice(-8)
-    .map((entry) => ({
-      role: entry.role,
-      content: trimInline(entry.content, 800)
-    }));
+function buildHarukaProviderMessages(request) {
+  const history = Array.isArray(request.history) ? request.history : [];
+  const normalizedHistory = history.slice(-8).map((entry) => ({
+    role: entry.role,
+    content: trimInline(entry.content, 800)
+  }));
 
   return [
     {
@@ -269,20 +190,22 @@ function buildHarukaProviderMessages(request: HarukaChatRequest): Array<{ role: 
     ...normalizedHistory,
     {
       role: 'user',
-      content: (request.message || '').trim()
+      content: String(request.message || '').trim()
     }
   ];
 }
 
-function resolveProviderConfig(request: HarukaChatRequest): Required<HarukaProviderConfig> {
+function resolveProviderConfig(request) {
+  const providerConfig = request.providerConfig || {};
+
   return {
-    apiKey: request.providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '',
-    baseUrl: request.providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1',
-    model: request.providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b'
+    apiKey: String(providerConfig.apiKey || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '').trim(),
+    baseUrl: String(providerConfig.baseUrl || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1').trim(),
+    model: String(providerConfig.model || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b').trim()
   };
 }
 
-function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown> {
+function buildProviderDebug(request) {
   const providerConfig = resolveProviderConfig(request);
 
   return {
@@ -295,20 +218,23 @@ function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown>
     providerModel: providerConfig.model,
     hasProviderApiKey: Boolean(providerConfig.apiKey),
     providerApiKeyLength: providerConfig.apiKey.length,
-    openSoulsBaseUrl: request.openSouls?.baseUrl || '',
+    openSoulsBaseUrl: request.openSouls && request.openSouls.baseUrl ? request.openSouls.baseUrl : '',
     source: request.source || 'chat-ui'
   };
 }
 
-function readAssistantContent(payload: OpenAiCompatibleResponse): string {
-  const content = payload.choices?.[0]?.message?.content;
+function readAssistantContent(payload) {
+  const content = payload && payload.choices && payload.choices[0] && payload.choices[0].message
+    ? payload.choices[0].message.content
+    : '';
+
   if (typeof content === 'string') {
     return content.trim();
   }
 
   if (Array.isArray(content)) {
     return content
-      .map((item) => (typeof item.text === 'string' ? item.text : ''))
+      .map((item) => (item && typeof item.text === 'string' ? item.text : ''))
       .join('')
       .trim();
   }
@@ -316,7 +242,7 @@ function readAssistantContent(payload: OpenAiCompatibleResponse): string {
   return '';
 }
 
-async function callProvider(providerConfig: Required<HarukaProviderConfig>, messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<{ reply: string; error?: string }> {
+async function callProvider(providerConfig, messages) {
   const response = await fetch(`${providerConfig.baseUrl.replace(/\/$/, '')}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -329,12 +255,13 @@ async function callProvider(providerConfig: Required<HarukaProviderConfig>, mess
     })
   });
 
-  const payload = (await response.json().catch(() => ({}))) as OpenAiCompatibleResponse;
+  const payload = await response.json().catch(() => ({}));
   const reply = readAssistantContent(payload);
 
   if (!response.ok || !reply) {
+    const providerError = payload && payload.error && typeof payload.error.message === 'string' ? payload.error.message : '';
     const error =
-      payload.error?.message ||
+      providerError ||
       (response.status === 401
         ? 'Provider request failed with status 401. Check the active MegaLLM/OpenAI-compatible API key in your environment.'
         : response.ok
@@ -347,8 +274,8 @@ async function callProvider(providerConfig: Required<HarukaProviderConfig>, mess
   return { reply };
 }
 
-function shouldUseBundledOpenSoulsBridge(baseUrl?: string): boolean {
-  const normalized = baseUrl?.trim().toLowerCase() || '';
+function shouldUseBundledOpenSoulsBridge(baseUrl) {
+  const normalized = String(baseUrl || '').trim().toLowerCase();
   if (!normalized) {
     return true;
   }
@@ -361,7 +288,7 @@ function shouldUseBundledOpenSoulsBridge(baseUrl?: string): boolean {
   );
 }
 
-async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+async function runBundledHarukaOpenSoulsBridge(request) {
   const providerConfig = resolveProviderConfig(request);
   const profileOverlay =
     request.profileId === 'scholar'
@@ -372,12 +299,13 @@ async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest): Prom
           ? 'Prioritize stylish energy, speed, and confident delivery.'
           : 'Prioritize friendly warmth, curiosity, and companion energy.';
 
+  const history = Array.isArray(request.history) ? request.history : [];
   const messages = [
     {
-      role: 'system' as const,
+      role: 'system',
       content: `${composeHarukaSystemPrompt(request)}\n\n## Unified Bridge Rule\n- Keep the soul identity fixed as Haruka.\n- The active profileId changes only Haruka's response bias and branding.\n- ${profileOverlay}`.trim()
     },
-    ...(request.history || [])
+    ...history
       .filter((item) => item && (item.role === 'user' || item.role === 'assistant') && typeof item.content === 'string')
       .slice(-8)
       .map((item) => ({
@@ -385,8 +313,8 @@ async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest): Prom
         content: item.content.trim()
       })),
     {
-      role: 'user' as const,
-      content: (request.message || '').trim()
+      role: 'user',
+      content: String(request.message || '').trim()
     }
   ];
 
@@ -421,8 +349,8 @@ async function runBundledHarukaOpenSoulsBridge(request: HarukaChatRequest): Prom
   }
 }
 
-async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaChatResponse> {
-  const baseUrl = request.openSouls?.baseUrl?.trim() || '';
+async function runOpenSoulsBridge(request) {
+  const baseUrl = request.openSouls && request.openSouls.baseUrl ? String(request.openSouls.baseUrl).trim() : '';
 
   if (shouldUseBundledOpenSoulsBridge(baseUrl)) {
     return runBundledHarukaOpenSoulsBridge(request);
@@ -446,12 +374,13 @@ async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaCha
       })
     });
 
-    const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-    const reply = typeof payload.reply === 'string'
-      ? payload.reply.trim()
-      : typeof payload.content === 'string'
-        ? payload.content.trim()
-        : '';
+    const payload = await response.json().catch(() => ({}));
+    const reply =
+      typeof payload.reply === 'string'
+        ? payload.reply.trim()
+        : typeof payload.content === 'string'
+          ? payload.content.trim()
+          : '';
 
     if (!response.ok || !reply) {
       return {
@@ -489,7 +418,7 @@ async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaCha
   }
 }
 
-async function runDirectProvider(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+async function runDirectProvider(request) {
   const providerConfig = resolveProviderConfig(request);
   const result = await callProvider(providerConfig, buildHarukaProviderMessages(request));
 
@@ -512,7 +441,7 @@ async function runDirectProvider(request: HarukaChatRequest): Promise<HarukaChat
   };
 }
 
-async function runHarukaChat(request: HarukaChatRequest): Promise<HarukaChatResponse> {
+async function runHarukaChat(request) {
   if (request.engineMode === 'opensouls-bridge') {
     return runOpenSoulsBridge(request);
   }
@@ -520,7 +449,7 @@ async function runHarukaChat(request: HarukaChatRequest): Promise<HarukaChatResp
   return runDirectProvider(request);
 }
 
-export default async function handler(request: VercelLikeRequest, response: VercelLikeResponse): Promise<void> {
+module.exports = async function handler(request, response) {
   applyHeaders(response);
 
   if (request.method === 'OPTIONS') {
@@ -564,4 +493,4 @@ export default async function handler(request: VercelLikeRequest, response: Verc
       }
     });
   }
-}
+};
