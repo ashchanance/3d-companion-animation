@@ -1,5 +1,5 @@
 import type { HarukaChatRequest } from '../../src/harukaChatContract';
-import { runHarukaChat } from '../../src/server/harukaChatService';
+import { runHarukaChat } from '../../src/server/harukaChatService.js';
 
 const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v4';
 

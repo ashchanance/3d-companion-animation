@@ -1,6 +1,6 @@
 import type { HarukaChatRequest, HarukaChatResponse } from '../harukaChatContract';
-import { buildHarukaProviderMessages, composeHarukaSystemPrompt } from '../harukaPromptComposer';
-import { runBundledHarukaOpenSoulsBridge, shouldUseBundledOpenSoulsBridge } from './harukaOpenSoulsBridge';
+import { buildHarukaProviderMessages, composeHarukaSystemPrompt } from '../harukaPromptComposer.js';
+import { runBundledHarukaOpenSoulsBridge, shouldUseBundledOpenSoulsBridge } from './harukaOpenSoulsBridge.js';
 
 interface OpenAiCompatibleResponse {
   choices?: Array<{

@@ -1,5 +1,5 @@
 import type { HarukaChatRequest, HarukaHistoryItem } from './harukaChatContract';
-import { getHarukaSoulProfile, getLanguageInstruction } from './harukaSoulProfiles';
+import { getHarukaSoulProfile, getLanguageInstruction } from './harukaSoulProfiles.js';
 
 interface ProviderMessage {
   role: 'system' | 'user' | 'assistant';

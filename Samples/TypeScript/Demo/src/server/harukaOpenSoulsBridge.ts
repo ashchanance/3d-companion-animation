@@ -1,5 +1,5 @@
 import type { HarukaChatRequest, HarukaChatResponse, HarukaProviderConfig } from '../harukaChatContract';
-import { composeHarukaSystemPrompt } from '../harukaPromptComposer';
+import { composeHarukaSystemPrompt } from '../harukaPromptComposer.js';
 
 interface OpenAiCompatibleResponse {
   choices?: Array<{
