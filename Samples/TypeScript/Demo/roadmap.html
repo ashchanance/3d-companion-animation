@@ -599,10 +599,60 @@
     
     <!-- Left-aligned Editorial Intro -->
     <header class="page-intro">
-      <span class="page-tag">What's Coming</span>
-      <h1 class="page-title">The journey ahead.</h1>
-      <p class="page-desc">Haruka is actively developed. Here's where we're headed, one phase at a time.</p>
+      <span class="page-tag">Roadmap</span>
+      <h1 class="page-title">What is live now, and what comes next.</h1>
+      <p class="page-desc">This roadmap should be read against the real HARUKA implementation in this checkout, not a generic multi-app template.</p>
     </header>
+
+    <div class="roadmap-card" style="margin-bottom: 28px;">
+      <div class="card-meta-row">
+        <span class="period-text">Current shipping shape</span>
+        <span class="status-badge in-progress">
+          <span class="badge-dot"></span>
+          <span>Repo Reality</span>
+        </span>
+      </div>
+      <h3>Step 2 to Step 5 in this repo</h3>
+      <p class="phase-desc">The active HARUKA stack already has a shared chat backend, embed widget path, bundled soul engine mode, and an env-driven usage gate.</p>
+
+      <div class="roadmap-bullets-grid">
+        <div class="roadmap-bullet-item completed">
+          <div class="roadmap-bullet-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <span>Step 2: shared `/api/haruka/chat` backend is implemented</span>
+        </div>
+
+        <div class="roadmap-bullet-item completed">
+          <div class="roadmap-bullet-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <span>Step 3: widget path through `embed.js` and `widget.html` is implemented</span>
+        </div>
+
+        <div class="roadmap-bullet-item planned">
+          <div class="roadmap-bullet-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
+            </svg>
+          </div>
+          <span>Step 4: persistent soul runtime is still optional, not required for Vercel-only deploys</span>
+        </div>
+
+        <div class="roadmap-bullet-item planned">
+          <div class="roadmap-bullet-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
+            </svg>
+          </div>
+          <span>Step 5: usage gate is implemented in backend and becomes active only when env is enabled</span>
+        </div>
+      </div>
+    </div>
 
     <!-- Timeline Grid -->
     <div class="timeline-container">

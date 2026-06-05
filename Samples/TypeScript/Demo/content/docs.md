@@ -4,185 +4,246 @@
 Documentation
 
 ## Headline
-Get up and running.
+Operate Haruka with clarity.
 
 ## Desc
-Everything you need to use, configure, and self-host Haruka.
+Where the features live, what they do, and how this checkout is meant to be deployed.
 
 ---
 
-## 1. Overview
+## 1. Getting Started
 
-### What is Haruka?
-Haruka is an open-source, self-hosted AI companion platform featuring an animated 3D character powered by large language models. It runs directly in your browser using WebGPU for private, high-speed AI inference.
+### What Haruka is in this repo
+Haruka in this checkout is a browser-first Live2D companion with a shared chat backend.
 
-Unlike cloud-based chatbots, Haruka processes conversations locally — your data never leaves your device unless you explicitly connect to an external LLM provider.
+The active app combines:
 
-> 💡 Haruka works best on Chrome or Edge with WebGPU enabled. No installation required for the web version.
+- Live2D rendering in the browser
+- text chat and voice chat
+- a settings-driven soul/profile system
+- one backend route for both the main app and the widget
 
-### Core Concepts
+### Browser recommendation
+Use Chrome or Edge for the most reliable voice and media behavior.
 
-| Concept | Description |
+---
+
+## 2. Main UI Map
+
+### Where to click
+
+- `Settings` button: top-right gear button in the chat scene
+- `Background` button: top-right image button next to Settings
+- `EN / JP` toggle: bottom-right language bar
+- microphone button: next to the chat input
+- send button: blue round button in the chat input row
+
+### What each area controls
+
+| UI Surface | What it controls |
 |---|---|
-| Character | Your animated VRM 3D companion — Haruka |
-| LLM Provider | The language model powering Haruka's intelligence |
-| WebGPU Mode | Runs AI inference entirely on your GPU — fully local & private |
-| Voice Mode | Real-time speech recognition + text-to-speech for voice chat |
+| Settings -> HARUKA Card | personality preset and soul bias |
+| Settings -> Providers | chat provider and soul engine mode |
+| Settings -> Pump.fun Relay | live comment relay behavior |
+| Background button | scene/background selection |
+| EN / JP toggle | response language |
+| microphone button | browser voice input |
 
 ---
 
-## 2. Quick Start
+## 3. Providers and Soul Engine
 
-### Option A — Use the Web App
-Simply visit the Haruka web app and click **Start Chat**. No setup needed.
+### Where it is
+Open `Settings` -> `Providers`.
 
-### Option B — Self-Host Locally
+### What you can change
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/faxxxan/KIRA-AI-Companion
-cd KIRA-AI-Companion
+| Control | Purpose |
+|---|---|
+| Provider dropdown | choose the active LLM adapter |
+| `Conversation Engine` | switch between direct chat and OpenSouls-style bridge mode |
+| `External OpenSouls Bridge URL (optional)` | only used if you intentionally split runtime into another service later |
 
-# 2. Install dependencies (requires pnpm)
-pnpm install
+### Engine modes
 
-# 3. Copy and configure environment
-cp .env.example .env
+- `Direct LLM Adapter`: browser talks to `/api/haruka/chat`, and the backend calls the provider directly
+- `OpenSouls Bridge`: still uses `/api/haruka/chat`, but the backend applies the bundled Haruka soul bridge behavior first
 
-# 4. Start development server
-pnpm dev
+### HARUKA Card
+The `HARUKA Card` preset changes Haruka's response bias.
+
+The current presets are:
+
+- `classic`
+- `scholar`
+- `sunset`
+- `cyberpunk`
+
+These presets affect tone, structure, emotional warmth, and response posture.
+
+---
+
+## 4. Voice Chat
+
+### How to enable it
+
+1. Click the microphone button next to the chat input
+2. Allow browser microphone access
+3. Speak naturally
+
+### Notes
+
+- Chrome and Edge are the safest choice
+- Safari support is limited
+- if speech feels interrupted, stop and retry once permissions are granted cleanly
+
+---
+
+## 5. Embed Widget
+
+### What it is
+Haruka can be embedded into another website without maintaining a second app.
+
+The widget reuses:
+
+- the same Live2D frontend
+- the same `/api/haruka/chat` backend
+- the same provider and soul behavior
+
+### Public widget files
+
+- `/embed.js`
+- `/widget.html`
+
+### Basic embed snippet
+
+```html
+<script
+  src="https://harukacompanion.tech/embed.js"
+  data-api-key="YOUR_WIDGET_KEY"
+  data-lang="en">
+</script>
 ```
 
-The app will be available at `http://localhost:5173`
+### How it works
 
-> ⚠️ Requires Node.js ≥ 20 and pnpm ≥ 9. Do not use npm or yarn — this project uses pnpm workspaces.
-
----
-
-## 3. Configuration
-
-### Required Dependencies
-
-| Service | Version | Purpose |
-|---|---|---|
-| Node.js | ≥ 20 | Runtime environment |
-| pnpm | ≥ 9 | Package manager |
-| PostgreSQL | ≥ 15 | User data & chat history |
-| Redis | ≥ 7 | Session & caching |
-
-### Build Commands
-
-```bash
-# Build all apps
-pnpm build
-
-# Build web app only
-pnpm -F @proj-airi/stage-web build
-
-# Run tests
-pnpm test
-
-# Lint codebase
-pnpm lint
-```
+1. another site loads `embed.js`
+2. `embed.js` opens `widget.html`
+3. `widget.html` runs Haruka in compact embed mode
+4. requests still go to `/api/haruka/chat`
 
 ---
 
-## 4. Voice Interaction
+## 6. Pump.fun Relay
 
-Haruka supports real-time, bidirectional voice interaction using the Web Speech API for recognition and a TTS engine for character responses.
+### Where it is
+Open `Settings` -> `Pump.fun Relay`.
 
-### How to Enable
-Click the microphone icon in the chat interface. Grant browser microphone permissions when prompted. Haruka will begin listening and responding vocally.
+### What it does
+This mode listens to Pump.fun live comments and lets Haruka answer from the current page while the tab stays open.
 
-> ℹ️ Voice recognition works best in Chrome or Edge. Safari support is limited due to Web Speech API availability.
+### Main controls
 
-### Voice Style
-Haruka's voice is cheerful, bright, and energetic — available in English and Japanese.
-
----
-
-## 5. LLM Providers
-
-Haruka connects to 20+ language model providers. You can switch providers anytime from the settings panel.
-
-| Provider | Status | Notes |
-|---|---|---|
-| OpenAI (GPT-4o, etc.) | ✓ Supported | Requires API key |
-| Anthropic Claude | ✓ Supported | Requires API key |
-| DeepSeek | ✓ Supported | Requires API key |
-| Google Gemini | ✓ Supported | Requires API key |
-| Local (WebGPU) | ✓ Built-in | No API key — fully private |
-| Ollama | ✓ Supported | Self-hosted local models |
-
-> ✦ For maximum privacy, use **WebGPU mode** — your conversations are processed entirely on your device.
+| Control | Purpose |
+|---|---|
+| `Enable Relay` | start or stop relay behavior |
+| `Mirror comments in UI` | show live relay messages inside the page |
+| `Pump.fun Token Address` | target live room identifier |
+| `Relay Username Label` | label used for relay identity |
+| `History sync size` | how many recent messages are considered |
+| `Queue delay (ms)` | pause between processed relay items |
+| `Queue max size` | queue capacity before dropping |
+| `Blocked words` | reject unwanted comments |
+| `Relay message template` | viewer context injected into Haruka |
 
 ---
 
-## 6. Self-Hosting Guide
+## 7. Usage Gate and Widget Keys
 
-### Project Structure
+### What this feature is
+Step 5 is a backend-side usage gate.
 
-```
-Haruka/
-├── apps/
-│   ├── stage-web/         # Web application
-│   ├── stage-tamagotchi/  # Desktop (Electron)
-│   ├── stage-pocket/      # Mobile (iOS/Android)
-│   └── server/            # Backend API
-├── packages/              # Shared components & utilities
-├── plugins/               # Extensions & integrations
-└── docs/                  # Documentation source
-```
+It is not a normal end-user settings panel yet.
 
-### Platform Commands
+### What it can do
 
-```bash
-# Desktop app (Electron)
-pnpm dev:tamagotchi
+- require valid widget API keys
+- limit requests per widget key
+- limit requests per browser session
+- return `401` for invalid widget keys
+- return `402` when quota is exhausted
 
-# Mobile — iOS
-pnpm dev:pocket:ios
-
-# Mobile — Android
-pnpm dev:pocket:android
-```
-
----
-
-## 7. Environment Variables
-
-Create a `.env` file in the project root. All required variables must be set before running the server.
+### Main environment variables
 
 ```env
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/haruka
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# Auth secret (generate a long random string)
-BETTER_AUTH_SECRET=your-secret-key
-
-# OAuth — optional
-AUTH_GOOGLE_CLIENT_ID=your-google-client-id
-AUTH_GOOGLE_CLIENT_SECRET=your-google-client-secret
-AUTH_GITHUB_CLIENT_ID=your-github-client-id
-AUTH_GITHUB_CLIENT_SECRET=your-github-client-secret
+HARUKA_EMBED_API_KEYS=your-widget-key
+HARUKA_USAGE_GATE_ENABLED=true
+HARUKA_USAGE_WINDOW_MINUTES=60
+HARUKA_USAGE_LIMIT_WEB_APP=0
+HARUKA_USAGE_LIMIT_EMBED_WIDGET=0
+HARUKA_USAGE_KEY_LIMITS=your-widget-key:25
+HARUKA_USAGE_BYPASS_KEYS=
 ```
 
-> ⚠️ `DATABASE_URL`, `REDIS_URL`, and `BETTER_AUTH_SECRET` are required. OAuth variables are optional.
+### How to verify it
+Check `/api/haruka/health`.
+
+The important fields are:
+
+- `embedApiKeyRequired`
+- `configuredEmbedKeyCount`
+- `usageGateEnabled`
+- `configuredUsageKeyCount`
 
 ---
 
-## 8. Contributing
+## 8. Deployment Shape
 
-Contributions are welcome! Here's how:
+### Recommended shape for this repo
+This checkout is designed to work as one Vercel deployment.
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'feat: add your feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+### Main routes
 
-Please read `CONTRIBUTING.md` for details on code of conduct and submission process.
+| Route | Purpose |
+|---|---|
+| `/` | main Haruka app |
+| `/api/haruka/chat` | shared chat backend |
+| `/api/haruka/health` | health and debug info |
+| `/embed.js` | widget loader |
+| `/widget.html` | widget entry |
+
+### Optional later split
+Only move to a separate backend later if you truly need:
+
+- durable memory outside browser history
+- longer-running orchestration
+- external billing state
+
+---
+
+## 9. Roadmap Concepts and Current Status
+
+### What the roadmap means in this repo
+
+| Step | Meaning in this checkout | Current status |
+|---|---|---|
+| Step 2 | stable shared chat backend | implemented |
+| Step 3 | embeddable widget using the same app and API | implemented |
+| Step 4 | optional persistent soul runtime beyond serverless | optional path only |
+| Step 5 | usage gate and widget key control in front of chat | implemented in backend, enabled only when env is set |
+
+### Important distinction
+
+- `implemented in code` does not automatically mean `enabled in production`
+- Step 5 becomes active only when the production env values are present and the project is redeployed
+
+### FAQ
+
+**Does Haruka need a separate backend for embeds?**  
+No. The widget uses the same backend route.
+
+**Can I use bundled OpenSouls on Vercel only?**  
+Yes. That is the default shape for this repo.
+
+**Where do I see quota state?**  
+Use `/api/haruka/health` and backend responses, not the end-user settings panel.

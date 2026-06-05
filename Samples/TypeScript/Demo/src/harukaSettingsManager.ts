@@ -728,6 +728,22 @@ export class HarukaSettingsManager {
             <p class="alert-note-body" style="margin-bottom: 14px;">
               Use the active Character Card preset as Haruka's bias, branding, and response posture. OpenSouls mode can run through the bundled bridge in this repo with no extra service by default.
             </p>
+            <div class="providers-help-links">
+              <a class="providers-help-link" href="docs.html#feature-map" target="_blank" rel="noreferrer">
+                <span>How to enable embed</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7"></path>
+                  <path d="M8 7h9v9"></path>
+                </svg>
+              </a>
+              <a class="providers-help-link" href="roadmap.html" target="_blank" rel="noreferrer">
+                <span>Roadmap concepts</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17L17 7"></path>
+                  <path d="M8 7h9v9"></path>
+                </svg>
+              </a>
+            </div>
             <div class="settings-row">
               <label class="settings-row-label" for="chat-engine-mode">
                 <span>Conversation Engine</span>

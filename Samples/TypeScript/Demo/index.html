@@ -2710,6 +2710,31 @@
       line-height: 1.55;
       margin: 0;
     }
+    .providers-help-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .providers-help-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-700);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(191, 143, 39, 0.08);
+      border: 1px solid rgba(191, 143, 39, 0.18);
+      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+    .providers-help-link:hover {
+      background: rgba(191, 143, 39, 0.13);
+      border-color: rgba(191, 143, 39, 0.3);
+      transform: translateY(-1px);
+    }
   </style>
   
   <!-- Live2DCubismCore script -->

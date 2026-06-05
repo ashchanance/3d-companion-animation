@@ -6,196 +6,246 @@
 Documentation
 
 ## Headline
-Everything you need to know.
+Operate Haruka with clarity.
 
 ## Desc
-Simple guides to help you get the most out of your time with Haruka.
+Where the features live, what they do, and how this checkout is meant to be deployed.
 
 ---
 
 ## 1. Getting Started
 
-### What is Haruka?
-Haruka is your personal AI companion, a cheerful, expressive Live2D character
-who lives right inside your browser. No downloads. No installs. No setup.
+### What Haruka is in this repo
+Haruka in this checkout is a browser-first Live2D companion with a shared chat backend.
 
-Just open the page, and she's already there.
+The active app combines:
 
-She's powered by advanced language models and rendered in real-time 3D,
-with expressions that move naturally as you talk.
-Whether you want to chat, practice Japanese, or just have someone to talk to,
-Haruka is ready whenever you are.
+- Live2D rendering in the browser
+- text chat and voice chat
+- a settings-driven soul/profile system
+- one backend route for both the main app and the widget
 
-> 💡 Haruka works best on **Google Chrome** or **Microsoft Edge**.
-> Make sure your browser is up to date for the best experience.
-
----
-
-## 2. How to Start a Conversation
-
-Getting started takes less than a minute.
-
-**Step 1: Open Haruka**
-Visit the Haruka web app. She'll appear on screen automatically, no login required to start.
-
-**Step 2: Choose Your Language**
-Select **EN** for English or **JP** for Japanese using the toggle on screen.
-You can switch anytime during your conversation.
-
-**Step 3: Start Talking**
-Type your message in the input box at the bottom and press send,
-or click the **microphone icon** to talk to her with your voice.
-
-That's it. She'll respond right away.
+### Browser recommendation
+Use Chrome or Edge for the most reliable voice and media behavior.
 
 ---
 
-## 3. Voice Interaction
+## 2. Main UI Map
 
-Haruka supports real-time voice, you can speak naturally and she'll talk back.
+### Where to click
 
-### How to Enable Voice
-1. Click the **microphone icon** in the chat interface
-2. Allow microphone access when your browser asks
-3. Start speaking, Haruka will listen and respond out loud
+- `Settings` button: top-right gear button in the chat scene
+- `Background` button: top-right image button next to Settings
+- `EN / JP` toggle: bottom-right language bar
+- microphone button: next to the chat input
+- send button: blue round button in the chat input row
 
-### Tips for Best Results
-- Speak clearly and at a natural pace
-- Works best in a quiet environment
-- If she doesn't respond, try refreshing and allowing mic permission again
+### What each area controls
 
-> ⚠️ Voice works best on **Chrome** and **Edge**.
-> Safari has limited support for real-time voice features.
-
----
-
-## 4. Choosing Your AI Model
-
-Haruka can be powered by different AI providers: you choose which one fits you best.
-
-### Available Providers
-
-| Provider | Notes |
+| UI Surface | What it controls |
 |---|---|
-| **Local (WebGPU)** | Runs entirely on your device: fully private, no API key needed |
-| **OpenAI (GPT-4o)** | Powerful and fast: requires your own API key |
-| **Anthropic Claude** | Thoughtful and nuanced: requires your own API key |
-| **DeepSeek** | Great for detailed conversations: requires your own API key |
-| **Google Gemini** | Versatile and capable: requires your own API key |
-| **Ollama** | Run local models on your own machine |
-
-### How to Switch Providers
-Open the **Settings panel** from the menu and select your preferred provider.
-If the provider requires an API key, paste it in the field provided.
-Your key is stored locally on your device only, never sent anywhere else.
-
-> ✦ **Recommended for privacy:** Use **Local (WebGPU)** mode.
-> Your entire conversation stays on your device, nothing is sent to any server.
+| Settings -> HARUKA Card | personality preset and soul bias |
+| Settings -> Providers | chat provider and soul engine mode |
+| Settings -> Pump.fun Relay | live comment relay behavior |
+| Background button | scene/background selection |
+| EN / JP toggle | response language |
+| microphone button | browser voice input |
 
 ---
 
-## 5. Privacy: How It Works
+## 3. Providers and Soul Engine
 
-Your privacy is not an afterthought. It's built into how Haruka works from the ground up.
+### Where it is
+Open `Settings` -> `Providers`.
 
-### What happens to your conversations?
-When you use **Local (WebGPU)** mode, everything is processed directly on your device.
-Your words never leave your browser. No server receives them. No one can read them.
+### What you can change
 
-When you use an external provider (like OpenAI or Claude),
-your messages are sent to that provider's API, the same way any app using those services works.
-Your API key and conversations are handled according to that provider's own privacy policy.
-
-### Does Haruka store my chat history?
-Chat history is stored **locally in your browser** only.
-Clearing your browser data will clear your history.
-Nothing is saved on any external server.
-
-### Do I need an account?
-No account is required to use Haruka.
-Open the page and start, she's ready immediately.
-
----
-
-## 6. Changing Haruka's Background
-
-You can personalize your experience by choosing a background scene for Haruka's world.
-
-### How to Change
-Open the **Background** option from the settings or the scene selector on screen.
-Pick the environment that feels right for you: each one is inspired by Haruka's lore.
-
-### Available Scenes
-
-| Scene | Vibe |
+| Control | Purpose |
 |---|---|
-| **Sunny Digital Forest** | Warm, golden, default: the heart of Haruka's world |
-| **Morning Glow** | Soft pink sunrise light, fresh and peaceful |
-| **Your Spot** | The secret clearing: intimate and quiet |
-| **Golden Hour** | Late afternoon light, nostalgic and warm |
-| **Night Forest** | Stars and bioluminescent glow, calm and dreamy |
-| **Japanese Classroom** | Classic school afternoon, warm and familiar |
-| **Cherry Blossom Park** | Spring in full bloom, joyful and light |
-| **Cozy Room** | A quiet personal space, soft lamp light at night |
+| Provider dropdown | choose the active LLM adapter |
+| `Conversation Engine` | switch between direct chat and OpenSouls-style bridge mode |
+| `External OpenSouls Bridge URL (optional)` | only used if you intentionally split runtime into another service later |
+
+### Engine modes
+
+- `Direct LLM Adapter`: browser talks to `/api/haruka/chat`, and the backend calls the provider directly
+- `OpenSouls Bridge`: still uses `/api/haruka/chat`, but the backend applies the bundled Haruka soul bridge behavior first
+
+### HARUKA Card
+The `HARUKA Card` preset changes Haruka's response bias.
+
+The current presets are:
+
+- `classic`
+- `scholar`
+- `sunset`
+- `cyberpunk`
+
+These presets affect tone, structure, emotional warmth, and response posture.
 
 ---
 
-## 7. Language & Japanese Practice
+## 4. Voice Chat
 
-Haruka speaks both **English** and **Japanese**, and she loves helping you practice.
+### How to enable it
 
-### Switching Language
-Use the **EN / JP toggle** visible on the main screen.
-Haruka will respond in whichever language you select.
+1. Click the microphone button next to the chat input
+2. Allow browser microphone access
+3. Speak naturally
 
-### Practicing Japanese with Haruka
-Just start talking in Japanese, or ask her to respond in Japanese while you write in English.
-She's patient, encouraging, and won't make you feel bad for making mistakes.
+### Notes
 
-Some things you can try:
-- *"Let's practice Japanese together"*
-- *"Can you correct my Japanese?"*
-- *"Respond only in Japanese please"*
-- *"What does [word] mean in Japanese?"*
+- Chrome and Edge are the safest choice
+- Safari support is limited
+- if speech feels interrupted, stop and retry once permissions are granted cleanly
 
 ---
 
-## 8. Tips for a Better Experience
+## 5. Embed Widget
 
-A few things that make conversations with Haruka feel more natural:
+### What it is
+Haruka can be embedded into another website without maintaining a second app.
 
-- **Be yourself**: she responds better to casual, natural language than formal prompts
-- **Give her context**: the more she knows about what you want, the better she responds
-- **Try voice mode**: talking out loud feels more like a real conversation
-- **Switch AI models** if responses feel slow or generic: different models have different strengths
-- **Try different backgrounds**: the right scene makes the whole experience feel more alive
+The widget reuses:
+
+- the same Live2D frontend
+- the same `/api/haruka/chat` backend
+- the same provider and soul behavior
+
+### Public widget files
+
+- `/embed.js`
+- `/widget.html`
+
+### Basic embed snippet
+
+```html
+<script
+  src="https://harukacompanion.tech/embed.js"
+  data-api-key="YOUR_WIDGET_KEY"
+  data-lang="en">
+</script>
+```
+
+### How it works
+
+1. another site loads `embed.js`
+2. `embed.js` opens `widget.html`
+3. `widget.html` runs Haruka in compact embed mode
+4. requests still go to `/api/haruka/chat`
 
 ---
 
-## 9. Frequently Asked Questions
+## 6. Pump.fun Relay
 
-**Is Haruka free to use?**
-Yes, you can start chatting immediately with no account and no payment.
-Some AI providers may require their own API key if you choose to use them.
+### Where it is
+Open `Settings` -> `Pump.fun Relay`.
 
-**Does Haruka work on mobile?**
-Yes. Haruka is accessible on mobile browsers.
-For the best experience, use Chrome on Android or Safari on iOS.
-You can also install her as a home screen app (PWA) for quick access.
+### What it does
+This mode listens to Pump.fun live comments and lets Haruka answer from the current page while the tab stays open.
 
-**Why does Haruka sometimes take a moment to respond?**
-Response speed depends on which AI provider you're using.
-Local (WebGPU) mode may take a moment to load the first time,
-after that, responses are fast and fully private.
+### Main controls
 
-**Can I change how Haruka talks to me?**
-Yes, you can describe the kind of conversation you want.
-Try telling her: *"Be more casual"*, *"Keep responses short"*, or *"Let's have a deep conversation."*
+| Control | Purpose |
+|---|---|
+| `Enable Relay` | start or stop relay behavior |
+| `Mirror comments in UI` | show live relay messages inside the page |
+| `Pump.fun Token Address` | target live room identifier |
+| `Relay Username Label` | label used for relay identity |
+| `History sync size` | how many recent messages are considered |
+| `Queue delay (ms)` | pause between processed relay items |
+| `Queue max size` | queue capacity before dropping |
+| `Blocked words` | reject unwanted comments |
+| `Relay message template` | viewer context injected into Haruka |
 
-**What browsers are supported?**
-Chrome and Edge are fully supported.
-Firefox and Safari have partial support, some voice features may not work.
+---
 
-**Is my API key safe?**
-Yes. Your API key is stored only in your browser's local storage.
-It is never sent to Haruka's servers, only directly to the provider you selected.
+## 7. Usage Gate and Widget Keys
+
+### What this feature is
+Step 5 is a backend-side usage gate.
+
+It is not a normal end-user settings panel yet.
+
+### What it can do
+
+- require valid widget API keys
+- limit requests per widget key
+- limit requests per browser session
+- return `401` for invalid widget keys
+- return `402` when quota is exhausted
+
+### Main environment variables
+
+```env
+HARUKA_EMBED_API_KEYS=your-widget-key
+HARUKA_USAGE_GATE_ENABLED=true
+HARUKA_USAGE_WINDOW_MINUTES=60
+HARUKA_USAGE_LIMIT_WEB_APP=0
+HARUKA_USAGE_LIMIT_EMBED_WIDGET=0
+HARUKA_USAGE_KEY_LIMITS=your-widget-key:25
+HARUKA_USAGE_BYPASS_KEYS=
+```
+
+### How to verify it
+Check `/api/haruka/health`.
+
+The important fields are:
+
+- `embedApiKeyRequired`
+- `configuredEmbedKeyCount`
+- `usageGateEnabled`
+- `configuredUsageKeyCount`
+
+---
+
+## 8. Deployment Shape
+
+### Recommended shape for this repo
+This checkout is designed to work as one Vercel deployment.
+
+### Main routes
+
+| Route | Purpose |
+|---|---|
+| `/` | main Haruka app |
+| `/api/haruka/chat` | shared chat backend |
+| `/api/haruka/health` | health and debug info |
+| `/embed.js` | widget loader |
+| `/widget.html` | widget entry |
+
+### Optional later split
+Only move to a separate backend later if you truly need:
+
+- durable memory outside browser history
+- longer-running orchestration
+- external billing state
+
+---
+
+## 9. Roadmap Concepts and Current Status
+
+### What the roadmap means in this repo
+
+| Step | Meaning in this checkout | Current status |
+|---|---|---|
+| Step 2 | stable shared chat backend | implemented |
+| Step 3 | embeddable widget using the same app and API | implemented |
+| Step 4 | optional persistent soul runtime beyond serverless | optional path only |
+| Step 5 | usage gate and widget key control in front of chat | implemented in backend, enabled only when env is set |
+
+### Important distinction
+
+- `implemented in code` does not automatically mean `enabled in production`
+- Step 5 becomes active only when the production env values are present and the project is redeployed
+
+### FAQ
+
+**Does Haruka need a separate backend for embeds?**  
+No. The widget uses the same backend route.
+
+**Can I use bundled OpenSouls on Vercel only?**  
+Yes. That is the default shape for this repo.
+
+**Where do I see quota state?**  
+Use `/api/haruka/health` and backend responses, not the end-user settings panel.

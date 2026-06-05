@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HARUKA - Interactive AI 3D Companion | Documentation</title>
   
-  <meta name="description" content="Official documentation for Haruka: Overview, Quick Start, Configuration, LLM Providers, and Self-Hosting Guide.">
+  <meta name="description" content="Official HARUKA documentation for the active web checkout: UI locations, soul engine, embed widget, relay, usage gate, and deployment shape.">
   
   <!-- Modern Google Fonts for Premium Aesthetics -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -639,6 +639,7 @@
       <div>
         <h3 class="sidebar-section-title">Chapters</h3>
         <ul class="sidebar-menu">
+          <li class="sidebar-link" id="side-feature-map"><a href="#feature-map">0. Fast Guide</a></li>
           <li class="sidebar-link active" id="side-getting-started"><a href="#getting-started">1. Getting Started</a></li>
           <li class="sidebar-link" id="side-conversation"><a href="#conversation">2. How to Start a Conversation</a></li>
           <li class="sidebar-link" id="side-voice-interaction"><a href="#voice-interaction">3. Voice Interaction</a></li>
@@ -658,9 +659,103 @@
       <!-- Top Header -->
       <header class="page-intro">
         <span class="page-tag">Documentation</span>
-        <h1 class="page-title">Everything you need to know.</h1>
-        <p class="page-desc">Simple guides to help you get the most out of your time with Haruka.</p>
+        <h1 class="page-title">Operate Haruka with clarity.</h1>
+        <p class="page-desc">Where the features live, what they do, and how this checkout is meant to be deployed.</p>
       </header>
+
+      <div class="docs-divider"></div>
+
+      <section id="feature-map" class="docs-chapter">
+        <h2>0. Fast Guide to the New Features</h2>
+
+        <p>This checkout now has one shared Haruka app, one shared backend, and one optional widget path. The most important controls live in the main UI and in the backend env layer.</p>
+
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Where to find it</th>
+                <th>What it does</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>HARUKA Card</strong></td>
+                <td>Settings -> HARUKA Card</td>
+                <td>Changes Haruka's personality bias and response posture</td>
+              </tr>
+              <tr>
+                <td><strong>Providers &amp; Soul Engine</strong></td>
+                <td>Settings -> Providers</td>
+                <td>Switches provider adapter and bundled OpenSouls-style engine mode</td>
+              </tr>
+              <tr>
+                <td><strong>Pump.fun Relay</strong></td>
+                <td>Settings -> Pump.fun Relay</td>
+                <td>Lets Haruka listen to Pump.fun live comments while the tab stays open</td>
+              </tr>
+              <tr>
+                <td><strong>Embed Widget</strong></td>
+                <td><code>/embed.js</code> and <code>/widget.html</code></td>
+                <td>Lets Haruka run inside another website without maintaining a second app</td>
+              </tr>
+              <tr>
+                <td><strong>Usage Gate / Widget Keys</strong></td>
+                <td>Backend env + <code>/api/haruka/health</code></td>
+                <td>Controls widget API keys, quota windows, and over-limit behavior</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="docs-alert info">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>Important:</strong> Step 5 usage gate is a backend feature. You will not see a normal user-facing quota panel in Settings yet. Verify it from <code>/api/haruka/health</code> and real chat responses.
+          </div>
+        </div>
+
+        <h3>Embed widget snippet</h3>
+        <div class="docs-code-container">
+          <div class="code-header">
+            <span class="code-lang-label">HTML</span>
+            <button class="btn-copy-code" onclick="copyCode(this)">
+              <span>Copy</span>
+            </button>
+          </div>
+          <pre class="docs-code-pre"><code>&lt;script
+  src="https://harukacompanion.tech/embed.js"
+  data-api-key="YOUR_WIDGET_KEY"
+  data-lang="en"&gt;
+&lt;/script&gt;</code></pre>
+        </div>
+
+        <h3>Step meanings in this repo</h3>
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Step</th>
+                <th>Meaning here</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Step 2</strong></td><td>Stable shared chat backend</td><td>Implemented</td></tr>
+              <tr><td><strong>Step 3</strong></td><td>Embeddable widget using the same app and API</td><td>Implemented</td></tr>
+              <tr><td><strong>Step 4</strong></td><td>Optional persistent soul runtime beyond serverless</td><td>Optional path only</td></tr>
+              <tr><td><strong>Step 5</strong></td><td>Usage gate and widget key control in front of chat</td><td>Implemented in backend, enabled only when env is set</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <div class="docs-divider"></div>
       

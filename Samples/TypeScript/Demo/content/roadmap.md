@@ -1,64 +1,71 @@
 # Roadmap
 
 ## Section Eyebrow
-What's Coming
+Roadmap
 
 ## Headline
-The journey ahead.
+What is live now, and what comes next.
 
 ## Desc
-Haruka is actively developed. Here's where we're headed — one phase at a time.
+This roadmap follows the real HARUKA implementation in this checkout, not a generic multi-app template.
 
 ---
 
-## Phase 1 — Foundation
-**Status:** ✓ Completed
-**Period:** Q1 2026
+## Phase 1 - Core companion surface
+**Status:** Completed
+**Period:** Live now
 
-Haruka's first chapter — laying the groundwork for everything that comes after.
-
-- ✓ Core 3D character rendering with VRM support
-- ✓ WebGPU local AI inference integration
-- ✓ Real-time voice input & TTS output
-- ✓ Web app (PWA) — accessible directly from browser
-- ✓ 20+ LLM provider support
-
----
-
-## Phase 2 — Companion Intelligence
-**Status:** ● In Progress
-**Period:** Q2 2026
-
-Making Haruka smarter, more aware, and more emotionally expressive.
-
-- ◐ Persistent memory & long-term conversation context
-- ◐ Emotion-aware response system
-- ◐ Gaming companion mode (real-time game context detection)
-- ○ Character personality customization & settings
-- ○ Expanded multilingual support
+- Main Haruka web app
+- Live2D companion rendering
+- Text chat
+- Voice input and TTS flow
+- Language toggle
+- Background switching
 
 ---
 
-## Phase 3 — Platform & Ecosystem
-**Status:** ○ Planned
-**Period:** Q3 2026
+## Phase 2 - Soul control and live relay
+**Status:** Completed
+**Period:** Live now
 
-Opening Haruka to the world — more platforms, more freedom, more creators.
-
-- ○ Plugin marketplace for community-built extensions
-- ○ Custom VRM character import support
-- ○ Desktop app (Electron) — full official release
-- ○ iOS & Android official release
+- HARUKA Card personality presets
+- Providers panel
+- bundled OpenSouls bridge mode
+- Pump.fun Relay panel
+- Vercel-compatible backend health surface
 
 ---
 
-## Phase 4 — The Living World
-**Status:** ○ Vision
-**Period:** Q4 2026 and beyond
+## Phase 3 - Distribution and embed
+**Status:** Implemented
+**Period:** Live in code and deploy
 
-The bigger dream — a world where companions truly live alongside you.
+- Shared backend for main app and widget
+- Public `embed.js`
+- Public `widget.html`
+- compact widget mode for external sites
+- one Vercel deployment shape for app + widget + backend
 
-- ○ Multi-character shared scenes
-- ○ Companion lore & world-building tools
-- ○ Creator tools for custom stories & scenarios
-- ○ Community character gallery & sharing platform
+---
+
+## Phase 4 - Optional deeper runtime
+**Status:** Optional path
+**Period:** Later if needed
+
+- separate persistent soul runtime
+- durable memory beyond browser history
+- longer-running orchestration
+- external bridge service only if serverless is no longer enough
+
+---
+
+## Phase 5 - Usage gate and key control
+**Status:** Implemented in backend, env-driven
+**Period:** Ready to enable
+
+- widget API key validation
+- per-key quota windows
+- per-session usage limits
+- backend `401` for invalid widget keys
+- backend `402` for exhausted quota
+- production activation depends on env and redeploy
