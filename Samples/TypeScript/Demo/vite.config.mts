@@ -1,7 +1,7 @@
 import path from 'path';
 import { createRequire } from 'module';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { defineConfig, type ConfigEnv, type Plugin, type UserConfig } from 'vite';
+import { defineConfig, loadEnv, type ConfigEnv, type Plugin, type UserConfig } from 'vite';
 import type { HarukaChatRequest } from './src/harukaChatContract';
 import { runHarukaChat } from './src/server/harukaChatService';
 
@@ -47,12 +47,92 @@ function createPumpfunStreamPlugin(): Plugin {
 }
 
 function createHarukaChatPlugin(): Plugin {
+  const readEmbedKeys = (): string[] =>
+    String(process.env.HARUKA_EMBED_API_KEYS || '')
+      .split(/[\r\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const parseBooleanFlag = (value: string | undefined): boolean => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+  };
+
+  const parsePositiveInteger = (value: string | undefined, fallback: number): number => {
+    const parsed = Number.parseInt(String(value || '').trim(), 10);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return fallback;
+    }
+
+    return parsed;
+  };
+
+  const splitEnvList = (value: string | undefined): string[] =>
+    String(value || '')
+      .split(/[\r\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+  const countKeyLimits = (value: string | undefined): number => {
+    let count = 0;
+
+    for (const entry of splitEnvList(value)) {
+      const separatorIndex = entry.indexOf(':');
+      if (separatorIndex <= 0) {
+        continue;
+      }
+
+      const rawLimit = entry.slice(separatorIndex + 1).trim();
+      const limit = parsePositiveInteger(rawLimit, 0);
+      if (limit > 0) {
+        count += 1;
+      }
+    }
+
+    return count;
+  };
+
+  const handleHealthRequest = (res: ServerResponse): void => {
+    const apiKey = process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
+    const baseUrl = process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '';
+    const model = process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || '';
+    const embedKeys = readEmbedKeys();
+
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(
+      JSON.stringify({
+        ok: true,
+        routeVersion: 'api-haruka-health-2026-06-05-v4',
+        deploymentEnv: process.env.VERCEL_ENV || 'local',
+        vercelRegion: process.env.VERCEL_REGION || 'unknown',
+        hasMegallmApiKey: Boolean(apiKey),
+        megallmApiKeyLength: apiKey.length,
+        megallmBaseUrl: baseUrl,
+        megallmModel: model,
+        bundledOpenSoulsBridgeReady: true,
+        defaultOpenSoulsMode: 'bundled',
+        externalOpenSoulsBridgeRequired: false,
+        embedApiKeyRequired: embedKeys.length > 0,
+        configuredEmbedKeyCount: embedKeys.length,
+        usageGateEnabled: parseBooleanFlag(process.env.HARUKA_USAGE_GATE_ENABLED),
+        usageWindowMinutes: parsePositiveInteger(process.env.HARUKA_USAGE_WINDOW_MINUTES, 60) || 60,
+        webAppWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_WEB_APP, 0),
+        embedWidgetWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_EMBED_WIDGET, 0),
+        configuredUsageKeyCount: countKeyLimits(process.env.HARUKA_USAGE_KEY_LIMITS),
+        usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length
+      })
+    );
+  };
+
   const handleNodeRequest = (req: IncomingMessage, res: ServerResponse): void => {
     if (req.method === 'OPTIONS') {
       res.writeHead(204, {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, X-Haruka-Api-Key'
       });
       res.end();
       return;
@@ -70,7 +150,15 @@ function createHarukaChatPlugin(): Plugin {
     void readJsonBody<HarukaChatRequest>(req)
       .then((payload) => runHarukaChat(payload))
       .then((result) => {
-        res.writeHead(result.ok ? 200 : 502, {
+        const statusCode =
+          typeof result.statusCode === 'number'
+            ? result.statusCode
+            : result.ok
+              ? 200
+              : result.error === 'Embed API key validation failed.'
+                ? 401
+                : 502;
+        res.writeHead(statusCode, {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         });
@@ -93,6 +181,20 @@ function createHarukaChatPlugin(): Plugin {
   const attach = (server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) => {
     server.middlewares.use((req, res, next) => {
       const requestUrl = req.url ? new URL(req.url, 'http://127.0.0.1') : null;
+      if (requestUrl?.pathname === '/api/haruka/health') {
+        if (req.method !== 'GET') {
+          res.writeHead(405, {
+            'Content-Type': 'application/json',
+            Allow: 'GET'
+          });
+          res.end(JSON.stringify({ ok: false, error: 'Method not allowed.' }));
+          return;
+        }
+
+        handleHealthRequest(res);
+        return;
+      }
+
       if (requestUrl?.pathname !== '/api/haruka/chat') {
         next();
         return;
@@ -284,6 +386,13 @@ async function handlePumpfunStreamRequest(
 }
 
 export default defineConfig((env: ConfigEnv): UserConfig => {
+  const resolvedEnv = loadEnv(env.mode, __dirname, '');
+  for (const [key, value] of Object.entries(resolvedEnv)) {
+    if (typeof process.env[key] === 'undefined') {
+      process.env[key] = value;
+    }
+  }
+
   return {
     plugins: [createPumpfunStreamPlugin(), createHarukaChatPlugin()],
     server: {

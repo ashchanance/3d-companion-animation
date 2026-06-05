@@ -11,8 +11,10 @@ import { ChatManager } from './chatmanager';
 import { Grainient } from './grainient';
 import { HarukaSettingsManager } from './harukaSettingsManager';
 import { PumpRelayController } from './pumpRelayController';
+import { initializeHarukaEmbedMode } from './widgetEmbedMode';
 
 (window as any).__harukaSettingsManagerActive = true;
+const embedContext = initializeHarukaEmbedMode();
 
 /**
  * ブラウザロード後の処理
@@ -47,6 +49,7 @@ window.addEventListener(
     // Initialize ChatManager to handle dynamic LLM interaction and speech bubbles
     const chatManager = new ChatManager();
     (window as any).chatManager = chatManager;
+    chatManager.setLanguage(embedContext.language);
 
     const settingsManager = new HarukaSettingsManager();
     (window as any).harukaSettingsManager = settingsManager;

@@ -1,6 +1,7 @@
 import type { HarukaChatRequest, HarukaChatResponse } from '../harukaChatContract';
 import { buildHarukaProviderMessages, composeHarukaSystemPrompt } from '../harukaPromptComposer.js';
 import { runBundledHarukaOpenSoulsBridge, shouldUseBundledOpenSoulsBridge } from './harukaOpenSoulsBridge.js';
+import { evaluateHarukaUsageGate } from './harukaUsageGate.js';
 
 interface OpenAiCompatibleResponse {
   choices?: Array<{
@@ -17,13 +18,21 @@ function jsonResponse(result: HarukaChatResponse): HarukaChatResponse {
   return result;
 }
 
+function readEmbedKeys(): string[] {
+  return String(process.env.HARUKA_EMBED_API_KEYS || '')
+    .split(/[\r\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown> {
   const apiKey = request.providerConfig?.apiKey?.trim() || process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
   const baseUrl = request.providerConfig?.baseUrl?.trim() || process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || 'https://ai.megallm.io/v1';
   const model = request.providerConfig?.model?.trim() || process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || 'openai-gpt-oss-120b';
+  const embedKeys = readEmbedKeys();
 
   return {
-    routeVersion: 'haruka-chat-2026-06-05-v3',
+    routeVersion: 'haruka-chat-2026-06-05-v4',
     deploymentEnv: process.env.VERCEL_ENV || 'local',
     engineMode: request.engineMode,
     profileId: request.profileId,
@@ -33,8 +42,40 @@ function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown>
     hasProviderApiKey: Boolean(apiKey),
     providerApiKeyLength: apiKey.length,
     openSoulsBaseUrl: request.openSouls?.baseUrl || '',
-    source: request.source || 'chat-ui'
+    source: request.source || 'chat-ui',
+    clientType: request.clientType || 'web-app',
+    embedApiKeyRequired: embedKeys.length > 0,
+    configuredEmbedKeyCount: embedKeys.length,
+    hasEmbedApiKey: Boolean(request.apiKey?.trim()),
+    userId: request.userId || null,
+    sessionId: request.sessionId || null
   };
+}
+
+function validateEmbedAccess(request: HarukaChatRequest): HarukaChatResponse | null {
+  const isEmbedRequest = request.clientType === 'embed-widget' || Boolean(request.apiKey?.trim());
+  if (!isEmbedRequest) {
+    return null;
+  }
+
+  const allowedKeys = readEmbedKeys();
+  if (allowedKeys.length === 0) {
+    return null;
+  }
+
+  const providedKey = request.apiKey?.trim() || '';
+  if (allowedKeys.includes(providedKey)) {
+    return null;
+  }
+
+  return jsonResponse({
+    ok: false,
+    reply: 'This HARUKA widget key is missing or invalid.',
+    engineMode: request.engineMode,
+    profileId: request.profileId,
+    error: 'Embed API key validation failed.',
+    debug: buildProviderDebug(request)
+  });
 }
 
 function readAssistantContent(payload: OpenAiCompatibleResponse): string {
@@ -171,9 +212,37 @@ async function runOpenSoulsBridge(request: HarukaChatRequest): Promise<HarukaCha
 }
 
 export async function runHarukaChat(request: HarukaChatRequest): Promise<HarukaChatResponse> {
-  if (request.engineMode === 'opensouls-bridge') {
-    return runOpenSoulsBridge(request);
+  const accessError = validateEmbedAccess(request);
+  if (accessError) {
+    return accessError;
   }
 
-  return runDirectProvider(request);
+  const usageDecision = evaluateHarukaUsageGate(request);
+  if (!usageDecision.ok) {
+    return jsonResponse({
+      ...(usageDecision.response as HarukaChatResponse),
+      engineMode: request.engineMode,
+      profileId: request.profileId,
+      debug: {
+        ...buildProviderDebug(request),
+        usageGate: usageDecision.usage
+      }
+    });
+  }
+
+  const usage = usageDecision.usage;
+
+  if (request.engineMode === 'opensouls-bridge') {
+    const result = await runOpenSoulsBridge(request);
+    return jsonResponse({
+      ...result,
+      ...(usage.scope === 'disabled' ? {} : { usage })
+    });
+  }
+
+  const result = await runDirectProvider(request);
+  return jsonResponse({
+    ...result,
+    ...(usage.scope === 'disabled' ? {} : { usage })
+  });
 }

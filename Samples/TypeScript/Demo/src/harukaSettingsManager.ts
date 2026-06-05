@@ -708,7 +708,7 @@ export class HarukaSettingsManager {
     if (providerSelect && !providerSelect.querySelector('option[value="opensouls-local"]')) {
       providerSelect.insertAdjacentHTML(
         'afterbegin',
-        '<option value="opensouls-local">OpenSouls Bridge (local Bun soul)</option>'
+        '<option value="opensouls-local">OpenSouls Bridge (bundled / Vercel-ready)</option>'
       );
     }
 
@@ -726,12 +726,12 @@ export class HarukaSettingsManager {
               <span>Soul Engine Mode</span>
             </div>
             <p class="alert-note-body" style="margin-bottom: 14px;">
-              Use the active Character Card preset as Haruka's bias, branding, and response posture. Switch to OpenSouls when your local bridge is running from this repo.
+              Use the active Character Card preset as Haruka's bias, branding, and response posture. OpenSouls mode can run through the bundled bridge in this repo with no extra service by default.
             </p>
             <div class="settings-row">
               <label class="settings-row-label" for="chat-engine-mode">
                 <span>Conversation Engine</span>
-                <span class="settings-row-sub">Direct adapter uses the local /api/haruka/chat route. OpenSouls bridge uses the bundled local bridge in this project.</span>
+                <span class="settings-row-sub">Direct adapter uses the local /api/haruka/chat route. OpenSouls bridge uses the bundled bridge in this project and only needs an external URL if you intentionally split the runtime later.</span>
               </label>
               <select id="chat-engine-mode" class="settings-select">
                 <option value="direct">Direct LLM Adapter</option>
@@ -787,7 +787,7 @@ export class HarukaSettingsManager {
     const profile = getHarukaSoulProfile(this.settings.presetCard);
     this.setTextContent(
       'opensouls-profile-hint',
-      `Active preset drives the unified Haruka soul automatically: ${profile.name} (${profile.tag}), ${profile.memory}% memory emphasis, ${profile.logic}% reasoning emphasis. Leave this URL empty to use the bundled bridge in this project, including on Vercel.`
+      `Active preset drives the unified Haruka soul automatically: ${profile.name} (${profile.tag}), ${profile.memory}% memory emphasis, ${profile.logic}% reasoning emphasis. Leave this URL empty to use the bundled bridge in this project, including on Vercel. Only fill it if you intentionally move OpenSouls to a separate service later.`
     );
   }
 

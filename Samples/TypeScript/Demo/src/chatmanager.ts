@@ -21,6 +21,15 @@ interface PromptRequestMeta {
   username?: string;
 }
 
+interface EmbedContext {
+  enabled?: boolean;
+  apiKey?: string;
+  userId?: string;
+  sessionId?: string;
+}
+
+const WEB_SESSION_STORAGE_KEY = 'haruka.web.sessionId';
+
 export class ChatManager {
   private _form: HTMLFormElement | null = null;
   private _input: HTMLInputElement | null = null;
@@ -45,9 +54,16 @@ export class ChatManager {
   private _chatProvider: string = 'openai-compatible';
   private _chatEngineMode: HarukaEngineMode = 'direct';
   private _presetCard: HarukaSoulProfileId = 'classic';
-  private _openSoulsBaseUrl: string = 'http://127.0.0.1:4100';
+  private _openSoulsBaseUrl: string = '';
+  private _embedApiKey = '';
+  private _embedUserId = '';
+  private _embedSessionId = '';
+  private _webSessionId = '';
+  private _clientType: 'web-app' | 'embed-widget' = 'web-app';
 
   constructor() {
+    this.ensureWebSessionId();
+    this.readEmbedContext();
     this.initializeUI();
     // Warm up speech synthesis voices
     if ('speechSynthesis' in window) {
@@ -55,6 +71,34 @@ export class ChatManager {
       window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
       };
+    }
+  }
+
+  private readEmbedContext(): void {
+    const context = ((window as any).__harukaEmbedContext || {}) as EmbedContext;
+    if (!context.enabled) {
+      return;
+    }
+
+    this._clientType = 'embed-widget';
+    this._embedApiKey = typeof context.apiKey === 'string' ? context.apiKey.trim() : '';
+    this._embedUserId = typeof context.userId === 'string' ? context.userId.trim() : '';
+    this._embedSessionId = typeof context.sessionId === 'string' ? context.sessionId.trim() : '';
+  }
+
+  private ensureWebSessionId(): void {
+    try {
+      const existing = window.localStorage.getItem(WEB_SESSION_STORAGE_KEY)?.trim() || '';
+      if (existing) {
+        this._webSessionId = existing;
+        return;
+      }
+
+      const created = `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      window.localStorage.setItem(WEB_SESSION_STORAGE_KEY, created);
+      this._webSessionId = created;
+    } catch {
+      this._webSessionId = `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
     }
   }
 
@@ -98,7 +142,7 @@ export class ChatManager {
     if (typeof settings.presetCard === 'string') {
       this._presetCard = settings.presetCard;
     }
-    if (typeof settings.openSoulsBaseUrl === 'string' && settings.openSoulsBaseUrl.trim()) {
+    if (typeof settings.openSoulsBaseUrl === 'string') {
       this._openSoulsBaseUrl = settings.openSoulsBaseUrl.trim();
     }
   }
@@ -230,7 +274,11 @@ export class ChatManager {
             baseUrl: this._openSoulsBaseUrl
           },
           source: meta?.source || 'chat-ui',
-          username: meta?.username || null
+          username: meta?.username || null,
+          clientType: this._clientType,
+          apiKey: this._embedApiKey || undefined,
+          userId: this._embedUserId || undefined,
+          sessionId: this._embedSessionId || this._webSessionId || undefined
         })
       });
 
@@ -245,7 +293,13 @@ export class ChatManager {
 
       if (!response.ok || !data.ok) {
         console.error('Haruka chat server payload:', data);
-        throw new Error(typeof data.error === 'string' ? data.error : `HTTP error! status: ${response.status}`);
+        const failureReply = reply || 'Sorry, it seems my connection is having trouble... Please try again later!';
+        this.displayReply(failureReply, 'sad');
+        this.triggerCharacterAction('sad');
+        return {
+          ok: false,
+          reply: failureReply
+        };
       }
 
       this._history.push({ role: 'user', content: historyContent });

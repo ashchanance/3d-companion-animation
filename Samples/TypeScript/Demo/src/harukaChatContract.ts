@@ -21,6 +21,8 @@ export interface OpenSoulsBridgeConfig {
   baseUrl?: string;
 }
 
+export type HarukaClientType = 'web-app' | 'embed-widget';
+
 export interface HarukaChatRequest {
   message: string;
   history: HarukaHistoryItem[];
@@ -32,6 +34,10 @@ export interface HarukaChatRequest {
   openSouls?: OpenSoulsBridgeConfig;
   source?: HarukaChatSource;
   username?: string;
+  clientType?: HarukaClientType;
+  apiKey?: string;
+  userId?: string;
+  sessionId?: string;
 }
 
 export interface HarukaChatResponse {
@@ -40,5 +46,17 @@ export interface HarukaChatResponse {
   engineMode: HarukaEngineMode;
   profileId: HarukaSoulProfileId;
   error?: string;
+  statusCode?: number;
+  usage?: HarukaUsageInfo;
   debug?: Record<string, unknown>;
+}
+
+export interface HarukaUsageInfo {
+  scope: 'disabled' | 'web-app' | 'embed-widget' | 'embed-api-key' | 'bypass';
+  gateEnabled: boolean;
+  windowMinutes: number;
+  limit: number | null;
+  used: number;
+  remaining: number | null;
+  resetAt?: string;
 }
