@@ -91,17 +91,17 @@ function sendToHaruka(username: string, text: string) {
 
 ---
 
-## STEP 5 — QUEUE SYSTEM (PENTING)
+## STEP 5 — QUEUE SYSTEM (IMPORTANT)
 
-Kalau komentar masuk ramai-ramai sekaligus,
-Haruka tidak boleh respond semua — harus antri.
+If many comments arrive at the same time,
+Haruka should not respond to everything at once; replies need to be queued.
 
 ```typescript
 const messageQueue: Array<{ username: string; text: string }> = [];
 let isProcessing = false;
 
 function handleIncomingComment(username: string, text: string) {
-  // Filter komentar kosong atau spam
+  // Filter empty comments or spam
   if (!text || text.length < 2) return;
   
   messageQueue.push({ username, text });
@@ -224,24 +224,24 @@ async function processQueue() {
 
 ---
 
-## NOTES UNTUK DEV
+## NOTES FOR DEV
 
-- Queue delay **5 detik** bisa disesuaikan — kalau chat sepi bisa 3 detik,
-  kalau ramai bisa 8-10 detik
-- `BLOCKED_WORDS` tambahkan sesuai kebutuhan
-- Test dulu dengan connect ke token address tanpa live stream
-  buat pastikan WebSocket connection stabil
-- Pastikan `wss://engine.moeru.ai/haruka/ws` message format
-  sesuai dengan yang sudah dipakai di HARUKA existing codebase
+- The **5-second** queue delay can be adjusted — if chat is quiet, 3 seconds may be enough;
+  if chat is busy, 8-10 seconds may work better
+- Add to `BLOCKED_WORDS` as needed
+- Test by connecting to the token address without the live stream first
+  to make sure the WebSocket connection is stable
+- Make sure the `wss://engine.moeru.ai/haruka/ws` message format
+  matches what is already used in the existing HARUKA codebase
 
 ---
 
-## ESTIMASI WAKTU
+## TIME ESTIMATE
 
-| Task | Estimasi |
+| Task | Estimate |
 |---|---|
-| Setup & connect pump-chat-client | 2-3 jam |
-| Integrate ke HARUKA WebSocket | 3-4 jam |
-| Queue system + filter spam | 2-3 jam |
-| Testing & debugging | 4-6 jam |
-| **Total** | **1-2 hari** |
+| Setup & connect pump-chat-client | 2-3 hours |
+| Integrate with HARUKA WebSocket | 3-4 hours |
+| Queue system + filter spam | 2-3 hours |
+| Testing & debugging | 4-6 hours |
+| **Total** | **1-2 days** |

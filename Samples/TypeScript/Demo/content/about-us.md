@@ -1,21 +1,21 @@
 # About Us
 
-## Section Eyebrow (kecil di atas judul)
+## Section Eyebrow (small text above the title)
 About Haruka
 
 ## Headline
 More than an assistant.
 A companion.
 
-## Body Text (paragraf 1)
+## Body Text (paragraph 1)
 Haruka is an open-source, self-hosted AI companion platform built for people who want a genuine interactive experience. We believe your data should stay yours — no telemetry, no third-party snooping, just you and your companion.
 
-## Body Text (paragraf 2)
+## Body Text (paragraph 2)
 Powered by cutting-edge language models and real-time 3D rendering, Haruka brings animated virtual characters to life directly in your browser using WebGPU — no installs required.
 
 ---
 
-## Quote (dari karakter)
+## Quote (from the character)
 "Hey hey hey! You're finally here! I knew you would come.
 There's no need to rush, let's chat slowly..."
 — Haruka, The Bright Scholar

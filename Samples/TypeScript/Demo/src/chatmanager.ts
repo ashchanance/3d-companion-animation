@@ -1053,7 +1053,7 @@ export class ChatManager {
     this._isRecording = false;
     if (this._micBtn) {
       this._micBtn.classList.remove('recording');
-      this._micBtn.title = 'Rekam Suara';
+      this._micBtn.title = 'Record Voice';
     }
     console.log('[ChatManager] Web Speech Recognition stopped.');
   }
