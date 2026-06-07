@@ -1,3 +1,5 @@
+const { buildX402Snapshot } = require('./x402.js');
+
 const ROUTE_VERSION = 'api-haruka-health-2026-06-05-v4';
 
 function readEmbedKeys() {
@@ -75,6 +77,7 @@ module.exports = function handler(_request, response) {
     webAppWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_WEB_APP, 0),
     embedWidgetWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_EMBED_WIDGET, 0),
     configuredUsageKeyCount: parseKeyLimits(process.env.HARUKA_USAGE_KEY_LIMITS),
-    usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length
+    usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length,
+    ...buildX402Snapshot()
   });
 };

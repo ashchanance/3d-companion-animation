@@ -1,3 +1,11 @@
+const {
+  buildX402Snapshot,
+  cancelHarukaX402,
+  finalizeHarukaX402,
+  processHarukaX402,
+  writeX402Response
+} = require('./x402.js');
+
 const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v7';
 
 const usageBuckets = new Map();
@@ -89,7 +97,14 @@ function applyHeaders(response) {
   response.setHeader('Content-Type', 'application/json');
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Haruka-Api-Key');
+  response.setHeader(
+    'Access-Control-Allow-Headers',
+    'Content-Type, X-Haruka-Api-Key, PAYMENT-SIGNATURE, PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT, X-PAYMENT-RESPONSE'
+  );
+  response.setHeader(
+    'Access-Control-Expose-Headers',
+    'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-PAYMENT-RESPONSE'
+  );
 }
 
 function normalizeBody(body) {
@@ -98,6 +113,11 @@ function normalizeBody(body) {
   }
 
   return body || {};
+}
+
+function readHeaderValue(request, name) {
+  const value = request && request.headers ? request.headers[name] || request.headers[name.toLowerCase()] : undefined;
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function getLanguageInstruction(language) {
@@ -660,13 +680,13 @@ async function runDirectProvider(request) {
   };
 }
 
-async function runHarukaChat(request) {
-  const accessError = validateEmbedAccess(request);
-  if (accessError) {
-    return accessError;
-  }
-
-  const usageDecision = evaluateUsageGate(request);
+async function runHarukaChatCore(request, options) {
+  const usageDecision = options && options.skipUsageGate
+    ? {
+        ok: true,
+        usage: null
+      }
+    : evaluateUsageGate(request);
   if (!usageDecision.ok) {
     return usageDecision;
   }
@@ -676,14 +696,14 @@ async function runHarukaChat(request) {
     const result = await runOpenSoulsBridge(request);
     return {
       ...result,
-      ...(usage.scope === 'disabled' ? {} : { usage })
+      ...(!usage || usage.scope === 'disabled' ? {} : { usage })
     };
   }
 
   const result = await runDirectProvider(request);
   return {
     ...result,
-    ...(usage.scope === 'disabled' ? {} : { usage })
+    ...(!usage || usage.scope === 'disabled' ? {} : { usage })
   };
 }
 
@@ -703,22 +723,70 @@ module.exports = async function handler(request, response) {
 
   try {
     const payload = normalizeBody(request.body);
-    const result = await runHarukaChat(payload);
+    const headerApiKey = String(readHeaderValue(request, 'x-haruka-api-key') || '').trim();
+    if (!payload.apiKey && headerApiKey) {
+      payload.apiKey = headerApiKey;
+    }
+
+    const accessError = validateEmbedAccess(payload);
+    if (accessError) {
+      response.status(401).json({
+        ...accessError,
+        debug: {
+          routeVersion: ROUTE_VERSION,
+          deploymentEnv: process.env.VERCEL_ENV || 'local',
+          vercelRegion: process.env.VERCEL_REGION || 'unknown',
+          x402: buildX402Snapshot(),
+          ...accessError.debug
+        }
+      });
+      return;
+    }
+
+    const x402State = await processHarukaX402(request, payload);
+    if (x402State.handled) {
+      writeX402Response(response, x402State.response);
+      return;
+    }
+
+    const result = await runHarukaChatCore(payload, {
+      skipUsageGate: x402State.skipUsageGate
+    });
 
     const statusCode =
       typeof result.statusCode === 'number'
         ? result.statusCode
         : result.ok
           ? 200
-          : result.error === 'Embed API key validation failed.'
-            ? 401
-            : 502;
+          : 502;
+
+    if (!result.ok && x402State.verified) {
+      await cancelHarukaX402(x402State, {
+        reason: 'handler_failed',
+        responseStatus: statusCode,
+        error: result.error || 'Haruka chat handler returned a failure response.'
+      });
+    }
+
+    if (result.ok && x402State.verified) {
+      const settlement = await finalizeHarukaX402(x402State, result);
+      if (!settlement.ok) {
+        writeX402Response(response, settlement.response);
+        return;
+      }
+
+      for (const [key, value] of Object.entries(settlement.headers || {})) {
+        response.setHeader(key, value);
+      }
+    }
+
     response.status(statusCode).json({
       ...result,
       debug: {
         routeVersion: ROUTE_VERSION,
         deploymentEnv: process.env.VERCEL_ENV || 'local',
         vercelRegion: process.env.VERCEL_REGION || 'unknown',
+        x402: x402State.x402,
         ...result.debug
       }
     });

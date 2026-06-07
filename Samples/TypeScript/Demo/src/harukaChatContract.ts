@@ -21,7 +21,7 @@ export interface OpenSoulsBridgeConfig {
   baseUrl?: string;
 }
 
-export type HarukaClientType = 'web-app' | 'embed-widget';
+export type HarukaClientType = 'web-app' | 'embed-widget' | 'api-client';
 
 export interface HarukaChatRequest {
   message: string;
@@ -47,6 +47,11 @@ export interface HarukaChatResponse {
   profileId: HarukaSoulProfileId;
   error?: string;
   statusCode?: number;
+  paymentRequired?: boolean;
+  x402Version?: number;
+  price?: string;
+  network?: string;
+  payTo?: string;
   usage?: HarukaUsageInfo;
   debug?: Record<string, unknown>;
 }
