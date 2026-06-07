@@ -437,7 +437,7 @@ function buildProviderDebug(request) {
 }
 
 function validateEmbedAccess(request) {
-  const isEmbedRequest = request.clientType === 'embed-widget' || Boolean(request.apiKey && String(request.apiKey).trim());
+  const isEmbedRequest = request.clientType === 'embed-widget';
   if (!isEmbedRequest) {
     return null;
   }
