@@ -303,6 +303,21 @@
       border-color: var(--primary-400);
     }
 
+    .bento-card.x402-coming-card {
+      grid-column: 1 / -1;
+      padding: 32px 36px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(176, 122, 30, 0.12);
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) auto;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .bento-card.x402-coming-card:hover {
+      border-color: rgba(176, 122, 30, 0.26);
+    }
+
     /* Premium Badge Tags */
     .card-badge {
       display: inline-flex;
@@ -366,6 +381,77 @@
       font-size: 14.5px;
       line-height: 1.65;
       color: var(--slate-600);
+    }
+
+    .x402-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--primary-700);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .x402-kicker::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--primary-500);
+      box-shadow: 0 0 0 6px rgba(217, 164, 52, 0.12);
+    }
+
+    .x402-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .x402-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--primary-50);
+      border: 1px solid rgba(176, 122, 30, 0.12);
+      color: var(--primary-700);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .x402-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn-secondary-soft {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 42, 58, 0.1);
+      background: rgba(250, 246, 240, 0.92);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all 0.25s var(--transition-bezier);
+    }
+
+    .btn-secondary-soft:hover {
+      transform: translateY(-2px);
+      border-color: rgba(30, 42, 58, 0.16);
+      background: #ffffff;
     }
 
     /* Featured Card Inner Layout */
@@ -494,8 +580,14 @@
         flex-direction: column;
         align-items: stretch;
       }
+      .bento-card.x402-coming-card {
+        grid-template-columns: 1fr;
+      }
       .featured-right-visual {
         max-width: 100%;
+      }
+      .x402-actions {
+        justify-content: flex-start;
       }
     }
 
@@ -625,6 +717,28 @@
             </div>
             <span class="mock-node-status">Ready</span>
           </div>
+        </div>
+      </div>
+
+      <div class="bento-card x402-coming-card" id="x402-coming-soon">
+        <div>
+          <div class="x402-kicker">Coming Soon</div>
+          <div class="card-content">
+            <h3>x402 Payments for Agent Actions</h3>
+            <p>
+              HARUKA is preparing x402 support, an open protocol built around HTTP 402 so agents can pay per request, unlock premium tools, and access partner APIs without the usual account-first checkout flow.
+            </p>
+          </div>
+          <div class="x402-pills">
+            <span class="x402-pill">HTTP 402 flow</span>
+            <span class="x402-pill">Micropayments</span>
+            <span class="x402-pill">API-native access</span>
+          </div>
+        </div>
+        <div class="x402-actions">
+          <a href="https://docs.x402.org/core-concepts/http-402" target="_blank" rel="noreferrer" class="btn-primary">Read x402</a>
+          <a href="https://docs.cdp.coinbase.com/x402/welcome" target="_blank" rel="noreferrer" class="btn-secondary-soft">Why it fits agents</a>
+          <a href="index.html" class="btn-secondary-soft">Open HARUKA Chat</a>
         </div>
       </div>
 
