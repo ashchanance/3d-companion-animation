@@ -1,3 +1,4 @@
+const path = require('node:path');
 const { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } = require('@x402/core/server');
 const { SOLANA_DEVNET_CAIP2 } = require('@x402/svm');
 const { registerExactSvmScheme } = require('@x402/svm/exact/server');
@@ -12,6 +13,7 @@ const ROUTE_VERSION = 'api-haruka-x402-2026-06-08-v1';
 
 let cachedRuntimePromise = null;
 let cachedRuntimeKey = '';
+let cachedGenerateJwtPromise = null;
 
 function parseBooleanFlag(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -39,8 +41,45 @@ function buildCdpFacilitatorPath(baseUrl, endpoint) {
   return `${basePath}/${endpoint}`;
 }
 
-function loadCdpGenerateJwt() {
-  return require('@coinbase/cdp-sdk/auth').generateJwt;
+async function loadCdpGenerateJwt() {
+  if (!cachedGenerateJwtPromise) {
+    cachedGenerateJwtPromise = (async () => {
+      try {
+        const authModule = require('@coinbase/cdp-sdk/auth');
+        if (typeof authModule.generateJwt === 'function') {
+          return authModule.generateJwt;
+        }
+      } catch (error) {
+        if (!error || error.code !== 'ERR_REQUIRE_ESM') {
+          throw error;
+        }
+      }
+
+      try {
+        const authModule = await import('@coinbase/cdp-sdk/auth');
+        const generateJwt = authModule.generateJwt || authModule.default?.generateJwt;
+        if (typeof generateJwt === 'function') {
+          return generateJwt;
+        }
+      } catch (_error) {
+        // Fall through to explicit CommonJS bundle lookup.
+      }
+
+      const packageJsonPath = require.resolve('@coinbase/cdp-sdk/package.json');
+      const cjsAuthPath = path.join(path.dirname(packageJsonPath), '_cjs', 'auth', 'index.js');
+      const authModule = require(cjsAuthPath);
+      if (typeof authModule.generateJwt === 'function') {
+        return authModule.generateJwt;
+      }
+
+      throw new Error('CDP generateJwt loader could not resolve a callable export.');
+    })().catch((error) => {
+      cachedGenerateJwtPromise = null;
+      throw error;
+    });
+  }
+
+  return cachedGenerateJwtPromise;
 }
 
 function truncateText(value, maxLength) {
@@ -53,7 +92,7 @@ function truncateText(value, maxLength) {
 }
 
 async function createCdpAuthHeaders(config) {
-  const generateJwt = loadCdpGenerateJwt();
+  const generateJwt = await loadCdpGenerateJwt();
   const parsed = new URL(config.facilitatorUrl);
   const createHeaderSet = async (method, endpoint) => {
     const token = await generateJwt({
@@ -347,13 +386,12 @@ async function createRuntime(config) {
 }
 
 async function probeFacilitator(config) {
-  const url = `${config.facilitatorUrl.replace(/\/$/, '')}/supported`;
-  const headers = {
-    'Content-Type': 'application/json',
-    ...((await createFacilitatorAuthHeaders(config)).supported || {})
-  };
-
   try {
+    const url = `${config.facilitatorUrl.replace(/\/$/, '')}/supported`;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...((await createFacilitatorAuthHeaders(config)).supported || {})
+    };
     const response = await fetch(url, {
       method: 'GET',
       headers,
@@ -384,7 +422,7 @@ async function probeFacilitator(config) {
   } catch (error) {
     return {
       ok: false,
-      url,
+      url: `${config.facilitatorUrl.replace(/\/$/, '')}/supported`,
       authMode:
         config.facilitatorAuthMode ||
         (config.facilitatorBearerToken ? 'bearer' : isCdpFacilitator(config.facilitatorUrl) ? 'cdp-jwt' : 'none'),
