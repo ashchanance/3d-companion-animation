@@ -82,15 +82,6 @@ async function loadCdpGenerateJwt() {
   return cachedGenerateJwtPromise;
 }
 
-function truncateText(value, maxLength) {
-  const text = String(value || '');
-  if (text.length <= maxLength) {
-    return text;
-  }
-
-  return `${text.slice(0, maxLength)}...`;
-}
-
 async function createCdpAuthHeaders(config) {
   const generateJwt = await loadCdpGenerateJwt();
   const parsed = new URL(config.facilitatorUrl);
@@ -385,52 +376,6 @@ async function createRuntime(config) {
   return { config, httpServer };
 }
 
-async function probeFacilitator(config) {
-  try {
-    const url = `${config.facilitatorUrl.replace(/\/$/, '')}/supported`;
-    const headers = {
-      'Content-Type': 'application/json',
-      ...((await createFacilitatorAuthHeaders(config)).supported || {})
-    };
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-      redirect: 'follow'
-    });
-    const text = await response.text();
-    let parsedBody = null;
-    try {
-      parsedBody = JSON.parse(text);
-    } catch (_error) {
-      parsedBody = null;
-    }
-
-    return {
-      ok: response.ok,
-      status: response.status,
-      statusText: response.statusText,
-      url,
-      authMode:
-        config.facilitatorAuthMode ||
-        (config.facilitatorBearerToken ? 'bearer' : isCdpFacilitator(config.facilitatorUrl) ? 'cdp-jwt' : 'none'),
-      bodyExcerpt: truncateText(text, 800),
-      parsedKindsCount: Array.isArray(parsedBody && parsedBody.kinds) ? parsedBody.kinds.length : null,
-      parsedNetworks: Array.isArray(parsedBody && parsedBody.kinds)
-        ? parsedBody.kinds.slice(0, 10).map((kind) => kind.network).filter(Boolean)
-        : []
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      url: `${config.facilitatorUrl.replace(/\/$/, '')}/supported`,
-      authMode:
-        config.facilitatorAuthMode ||
-        (config.facilitatorBearerToken ? 'bearer' : isCdpFacilitator(config.facilitatorUrl) ? 'cdp-jwt' : 'none'),
-      error: error instanceof Error ? error.message : String(error)
-    };
-  }
-}
-
 async function getRuntime() {
   const config = readX402Config();
   if (!config.enabled || !config.ready) {
@@ -645,10 +590,6 @@ async function finalizeHarukaX402(processState, responseBody) {
 }
 
 async function handler(request, response) {
-  const query = request && request.query && typeof request.query === 'object' ? request.query : {};
-  const probeRequested = String(query.probe || '').trim() === '1';
-  const config = readX402Config();
-
   response.setHeader('Content-Type', 'application/json');
   response.setHeader('Access-Control-Allow-Origin', '*');
   response.status(200).json({
@@ -656,8 +597,7 @@ async function handler(request, response) {
     routeVersion: ROUTE_VERSION,
     deploymentEnv: process.env.VERCEL_ENV || 'local',
     vercelRegion: process.env.VERCEL_REGION || 'unknown',
-    ...buildX402Snapshot(),
-    ...(probeRequested ? { facilitatorProbe: await probeFacilitator(config) } : {})
+    ...buildX402Snapshot()
   });
 }
 
