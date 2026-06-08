@@ -419,7 +419,8 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
           'about-us': path.resolve(__dirname, 'about-us.html'),
           roadmap: path.resolve(__dirname, 'roadmap.html'),
           docs: path.resolve(__dirname, 'docs.html'),
-          features: path.resolve(__dirname, 'features.html')
+          features: path.resolve(__dirname, 'features.html'),
+          x402: path.resolve(__dirname, 'x402.html')
         }
       }
     }

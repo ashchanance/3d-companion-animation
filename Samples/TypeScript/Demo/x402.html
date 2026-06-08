@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARUKA - x402 and Tokenomics</title>
+  <meta name="description" content="Understand HARUKA's x402 payment gate, buyback and burn loop, pricing tiers, token utility, and on-chain treasury story.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg: #fbf5e6;
+      --panel: rgba(255, 255, 255, 0.68);
+      --panel-soft: rgba(251, 248, 234, 0.82);
+      --panel-strong: #f5edca;
+      --text: #1e2d1f;
+      --muted: #4a5e4b;
+      --line: rgba(30, 45, 31, 0.1);
+      --gold-1: #faf0d0;
+      --gold-2: #e8c05a;
+      --gold-3: #b07a1e;
+      --blue-1: #e6ecf4;
+      --blue-2: #355c91;
+      --green-1: #e5efe1;
+      --green-2: #54755c;
+      --shadow: 0 20px 48px rgba(70, 57, 21, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --transition: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top left, rgba(232, 192, 90, 0.18), transparent 28%),
+        linear-gradient(180deg, #fff9ef 0%, var(--bg) 24%, #f7edd8 100%);
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 80px;
+      padding: 0 40px;
+      border-bottom: 1px solid rgba(30, 45, 31, 0.08);
+      backdrop-filter: blur(20px);
+      background: rgba(251, 245, 230, 0.82);
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      white-space: nowrap;
+    }
+
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .brand-badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--gold-1);
+      color: var(--gold-3);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.25s var(--transition);
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--gold-3);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .icon-link,
+    .btn-primary,
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .icon-link {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      color: var(--muted);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.55);
+    }
+
+    .btn-primary,
+    .btn-secondary {
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #d9a434, #b07a1e);
+      color: #fffdf8;
+      box-shadow: 0 12px 24px rgba(176, 122, 30, 0.24);
+    }
+
+    .btn-secondary {
+      border: 1px solid rgba(30, 45, 31, 0.1);
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--text);
+    }
+
+    .page-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+
+    .hero-copy,
+    .hero-card,
+    .section-card {
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 34px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(245, 237, 202, 0.74)),
+        radial-gradient(circle at top right, rgba(232, 192, 90, 0.14), transparent 36%);
+    }
+
+    .page-tag {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(232, 192, 90, 0.16);
+      color: var(--gold-3);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .hero-copy h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.7rem, 6vw, 4.7rem);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      margin-bottom: 18px;
+    }
+
+    .hero-copy p {
+      color: var(--muted);
+      line-height: 1.85;
+      font-size: 1.04rem;
+      max-width: 650px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .hero-card {
+      padding: 28px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(230, 236, 244, 0.66));
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .stat-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat-item {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.68);
+    }
+
+    .stat-item strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .stat-item span {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .section-card {
+      padding: 28px;
+    }
+
+    .section-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .section-card p,
+    .section-card li {
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .section-card p + p {
+      margin-top: 10px;
+    }
+
+    .flow-list,
+    .utility-list {
+      margin-top: 14px;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .step-stack {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .step {
+      display: flex;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: var(--panel-soft);
+    }
+
+    .step strong {
+      color: var(--text);
+      flex: 0 0 auto;
+      min-width: 28px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 16px;
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    table {
+      width: 100%;
+      min-width: 520px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(30, 45, 31, 0.08);
+      line-height: 1.7;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(245, 237, 202, 0.68);
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .token-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: var(--panel-soft);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+    }
+
+    .token-card h3 {
+      font-family: var(--font-display);
+      margin-bottom: 10px;
+      font-size: 1.12rem;
+    }
+
+    .mono-block {
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      background: #182019;
+      color: #eef7e8;
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      line-height: 1.8;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: var(--green-1);
+      color: var(--green-2);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .pill.blue {
+      background: var(--blue-1);
+      color: var(--blue-2);
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .grid,
+      .token-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 880px) {
+      .landing-nav {
+        padding: 0 20px;
+        height: auto;
+      }
+
+      .nav-container {
+        padding: 16px 0;
+        flex-wrap: wrap;
+      }
+
+      .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
+        padding: 32px 16px 64px;
+      }
+
+      .hero-copy,
+      .hero-card,
+      .section-card {
+        padding: 22px;
+      }
+
+      .hero-copy h1 {
+        font-size: 2.45rem;
+      }
+
+      .brand-badge,
+      .icon-link {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="landing-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-title">HARUKA</span>
+        <span class="brand-badge">はるか</span>
+      </a>
+      <div class="nav-links">
+        <a href="about-us.html">About Us</a>
+        <a href="features.html">Features</a>
+        <a href="lore.html">Lore</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="docs.html">Docs</a>
+        <a href="x402.html" class="active">x402</a>
+      </div>
+      <div class="nav-actions">
+        <a href="https://x.com/meetharuka" target="_blank" rel="noreferrer" class="icon-link" aria-label="X">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z"/></svg>
+        </a>
+        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" rel="noreferrer" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+        </a>
+        <a href="index.html" class="btn-primary">Start Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="page-tag">x402</span>
+        <h1>Every API call buys back $HARUKA.</h1>
+        <p>100% of revenue. Automatic. On-chain. Transparent.</p>
+        <div class="hero-actions">
+          <a href="docs.html#x402-payment" class="btn-primary">Read Developer Docs</a>
+          <a href="index.html" class="btn-secondary">Open HARUKA Chat</a>
+        </div>
+        <div class="status-row">
+          <span class="pill">Devnet Live</span>
+          <span class="pill blue">Mainnet Coming Soon</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="stat-label">What this page covers</div>
+        <div class="stat-grid">
+          <div class="stat-item"><strong>x402 protocol</strong><span>Machine-native payment requests through HTTP 402.</span></div>
+          <div class="stat-item"><strong>Buyback loop</strong><span>100% of API revenue routes toward buyback and burn.</span></div>
+          <div class="stat-item"><strong>Token utility</strong><span>Holders, developers, and users each get a clear role.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="section-card">
+        <h2>What is x402?</h2>
+        <p>x402 is an open payment protocol that embeds payments directly into API requests using HTTP status code 402, "Payment Required."</p>
+        <p>When a developer calls the Haruka API, x402 handles the payment automatically. No invoices. No accounts. No manual process. Everything settles on Solana.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>How it works in HARUKA</h2>
+        <div class="step-stack">
+          <div class="step"><strong>1</strong><span>Developer calls the Haruka API.</span></div>
+          <div class="step"><strong>2</strong><span>x402 middleware checks whether the request is paid.</span></div>
+          <div class="step"><strong>3</strong><span>If unpaid, HARUKA returns 402 with payment instructions. If paid, the request continues.</span></div>
+          <div class="step"><strong>4</strong><span>USDC lands in the HARUKA treasury wallet.</span></div>
+          <div class="step"><strong>5</strong><span>Buyback logic converts incoming USDC into $HARUKA through Jupiter and the tokens are burned.</span></div>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Buyback and Burn</h2>
+        <p>100% of every payment from API usage goes directly to buying back and burning $HARUKA.</p>
+        <p>Not 50%. Not 70%. All of it. No team cut. No operational budget. The full amount goes back to the token.</p>
+        <p>The more developers that build with Haruka, the more $HARUKA gets bought and burned. Usage directly benefits holders.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Pricing Tiers</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Rate</th>
+                <th>Access</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Free</td>
+                <td>$0</td>
+                <td>100 calls/day (testing)</td>
+              </tr>
+              <tr>
+                <td>Basic</td>
+                <td>$0.001 USDC/call</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <td>Holder</td>
+                <td>$0.0005 USDC/call</td>
+                <td>Hold $HARUKA for 50% discount</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="section-card" style="grid-column: 1 / -1;">
+        <h2>Token Utility - $HARUKA</h2>
+        <div class="token-grid">
+          <div class="token-card">
+            <h3>For Holders</h3>
+            <ul class="utility-list">
+              <li>100% API revenue -> buyback and burn</li>
+              <li>Token-gated features - hold to unlock premium</li>
+              <li>Holder discount on API pricing</li>
+              <li>Supply decreases with every API call</li>
+            </ul>
+          </div>
+          <div class="token-card">
+            <h3>For Developers</h3>
+            <ul class="utility-list">
+              <li>Hold $HARUKA -> reduced API rate</li>
+              <li>Access to premium embed features</li>
+            </ul>
+          </div>
+          <div class="token-card">
+            <h3>For Users</h3>
+            <ul class="utility-list">
+              <li>Hold $HARUKA -> unlock deeper memory</li>
+              <li>Hold $HARUKA -> unlock custom personality</li>
+              <li>Hold $HARUKA -> unlock priority response</li>
+              <li>Swap utility - buy $HARUKA inside the chat</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <article class="section-card">
+        <h2>Supply Mechanics</h2>
+        <div class="mono-block">Total supply   : Fixed - no new minting
+Burn mechanism : Every API payment = burn
+Deflationary   : More usage = less supply
+Lock           : 34M tokens locked via Streamflow</div>
+      </article>
+
+      <article class="section-card">
+        <h2>Treasury</h2>
+        <p>Treasury wallet is public and verifiable on-chain. Anyone can check the balance and transaction history.</p>
+        <p>All buybacks and burns are visible on Solana explorer.</p>
+      </article>
+
+      <article class="section-card">
+        <h2>Token Info</h2>
+        <ul class="utility-list">
+          <li><strong>Token:</strong> $HARUKA</li>
+          <li><strong>Network:</strong> Solana</li>
+          <li><strong>CA:</strong> <code>9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump</code></li>
+        </ul>
+      </article>
+
+      <article class="section-card">
+        <h2>Status</h2>
+        <p>x402 is currently running on devnet. Mainnet deployment is coming soon. Buyback bot activation follows once x402 is on mainnet.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

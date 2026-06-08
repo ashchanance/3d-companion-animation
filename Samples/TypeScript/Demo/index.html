@@ -2928,6 +2928,125 @@
       border-color: rgba(191, 143, 39, 0.3);
       transform: translateY(-1px);
     }
+
+    /* Price Card Styling */
+    .price-card {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(200, 146, 42, 0.3);
+      border-radius: 28px;
+      padding: 24px 32px;
+      width: min(100%, 720px);
+      margin: 0 0 28px 0;
+      box-shadow: 0 18px 40px rgba(30, 42, 58, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      box-sizing: border-box;
+      text-align: left;
+    }
+
+    .price-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .price-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1E2D1F;
+      letter-spacing: 0.02em;
+    }
+
+    .price-card-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #22c55e;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .price-card-main {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .price-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E2D1F;
+    }
+
+    .price-change {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .price-change.price-up {
+      color: #22c55e;
+    }
+
+    .price-change.price-down {
+      color: #ef4444;
+    }
+
+    .price-card-stats {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(200, 146, 42, 0.15);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #3D5A3E;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1E2D1F;
+    }
+
+    .price-card-buy {
+      display: block;
+      text-align: center;
+      background: #C8922A;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 100px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .price-card-buy:hover {
+      background: #A06820;
+    }
+
+    @media (max-width: 768px) {
+      .price-card {
+        padding: 16px;
+        border-radius: 24px;
+      }
+    }
   </style>
   
   <!-- Live2DCubismCore script -->
@@ -2961,6 +3080,7 @@
           <a href="lore.html">Lore</a>
           <a href="roadmap.html">Roadmap</a>
           <a href="docs.html">Docs</a>
+          <a href="x402.html">x402</a>
         </div>
         <div class="nav-actions">
           <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
@@ -2997,28 +3117,48 @@
           </div>
           <h1 class="hero-title">
             HARUKA
-            <span class="hero-subtitle">The Sparkling Soul of the Digital Forest</span>
           </h1>
-          <p class="hero-desc">
-            Meet HARUKA, the Sparkling Soul of the Digital Forest, your interactive AI 3D companion, always cheerful, always listening.
-          </p>
-          <div class="hero-coming-soon">
-            <div class="hero-coming-header">
-              <span class="hero-coming-badge">Live on Devnet</span>
-              <span class="hero-coming-title">x402 powers paid agent actions in HARUKA</span>
+          <div class="price-card">
+            
+            <!-- Header -->
+            <div class="price-card-header">
+              <span class="price-card-title">$HARUKA</span>
+              <span class="price-card-badge">LIVE</span>
             </div>
-            <p class="hero-coming-copy">
-              HARUKA now exposes an x402 payment flow for developer API calls, letting autonomous agents unlock premium actions, partner APIs, and paid requests through clean HTTP 402-native micropayments.
-            </p>
-            <div class="hero-coming-tags">
-              <span class="hero-coming-tag">HTTP 402 native</span>
-              <span class="hero-coming-tag">Onchain micropayments</span>
-              <span class="hero-coming-tag">Agent-ready access</span>
+
+            <!-- Price + Change -->
+            <div class="price-card-main">
+              <span id="haruka-price" class="price-value">$0.000000</span>
+              <span id="haruka-change" class="price-change">0.00%</span>
             </div>
+
+            <!-- Stats Row -->
+            <div class="price-card-stats">
+              <div class="stat">
+                <span class="stat-label">Market Cap</span>
+                <span id="haruka-mcap" class="stat-value">—</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Volume 24h</span>
+                <span id="haruka-volume" class="stat-value">—</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">Liquidity</span>
+                <span id="haruka-liquidity" class="stat-value">—</span>
+              </div>
+            </div>
+
+            <!-- Buy Button -->
+            <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" 
+               target="_blank" 
+               class="price-card-buy">
+              Buy on Pump.fun
+            </a>
+
           </div>
           <div class="hero-btns">
             <button id="hero-try-btn" class="btn-hero-primary">Try It Now</button>
-            <a href="features.html#x402-payments" class="btn-hero-secondary">Explore x402</a>
+            <a href="x402.html" class="btn-hero-secondary">Explore x402</a>
             <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank" class="btn-hero-secondary">HARUKA on pump.fun</a>
             <a href="https://x.com/i/communities/2032167658792346014" target="_blank" class="btn-hero-secondary">Join X Community</a>
           </div>
@@ -3049,8 +3189,8 @@
               </div>
             </div>
             <div class="feature-inline-actions">
-              <a href="features.html#x402-payments" class="btn-feature-inline primary">See x402 in HARUKA</a>
-              <a href="docs.html#x402-payments" class="btn-feature-inline">Read the docs</a>
+              <a href="x402.html" class="btn-feature-inline primary">See x402 in HARUKA</a>
+              <a href="docs.html#x402-payment" class="btn-feature-inline">Read the docs</a>
             </div>
           </div>
           <!-- Real-time Voice -->
@@ -3066,20 +3206,7 @@
             <p>Natural voice interaction using advanced speech recognition and text-to-speech technologies.</p>
           </div>
 
-          <!-- Gaming Companion -->
-          <div class="feature-card">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="6" width="20" height="12" rx="3" ry="3"/>
-                <line x1="6" x2="10" y1="12" y2="12"/>
-                <line x1="8" x2="8" y1="10" y2="14"/>
-                <line x1="15" x2="15.01" y1="13" y2="13" stroke-width="3.5"/>
-                <line x1="18" x2="18.01" y1="11" y2="11" stroke-width="3.5"/>
-              </svg>
-            </div>
-            <h3>Gaming Companion</h3>
-            <p>Capable of responding and understanding popular video games in real-time to play alongside you.</p>
-          </div>
+
 
           <!-- WebGPU Acceleration -->
           <div class="feature-card">
@@ -4288,6 +4415,83 @@
       <span class="toast-desc">Haruka's stage customized successfully!</span>
     </div>
   </div>
+
+  <!-- Price Feed Script -->
+  <script>
+    (function() {
+      const HARUKA_CA = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
+      const API_URL = `https://api.dexscreener.com/latest/dex/tokens/${HARUKA_CA}`;
+
+      async function fetchPrice() {
+        try {
+          const res = await fetch(API_URL);
+          const data = await res.json();
+          const pair = data.pairs?.[0];
+          if (!pair) return;
+
+          // Price
+          const priceEl = document.getElementById('haruka-price');
+          const price = parseFloat(pair.priceUsd);
+          if (priceEl) {
+            priceEl.textContent = price < 0.01 
+              ? `$${price.toFixed(6)}` 
+              : `$${price.toFixed(4)}`;
+          }
+
+          // 24h Change
+          const changeEl = document.getElementById('haruka-change');
+          const change = pair.priceChange?.h24 || 0;
+          const sign = change >= 0 ? '+' : '';
+          if (changeEl) {
+            changeEl.textContent = `${sign}${parseFloat(change).toFixed(2)}%`;
+            changeEl.className = `price-change ${change >= 0 ? 'price-up' : 'price-down'}`;
+          }
+
+          // Market Cap
+          const mcapEl = document.getElementById('haruka-mcap');
+          const mc = pair.marketCap || 0;
+          if (mcapEl) {
+            mcapEl.textContent = mc >= 1_000_000 
+              ? `$${(mc / 1_000_000).toFixed(2)}M`
+              : mc >= 1_000 
+                ? `$${(mc / 1_000).toFixed(1)}K`
+                : `$${mc.toFixed(0)}`;
+          }
+
+          // Volume
+          const volEl = document.getElementById('haruka-volume');
+          const vol = pair.volume?.h24 || 0;
+          if (volEl) {
+            volEl.textContent = vol >= 1_000_000 
+              ? `$${(vol / 1_000_000).toFixed(2)}M`
+              : vol >= 1_000 
+                ? `$${(vol / 1_000).toFixed(1)}K`
+                : `$${vol.toFixed(0)}`;
+          }
+
+          // Liquidity
+          const liqEl = document.getElementById('haruka-liquidity');
+          const liq = pair.liquidity?.usd || 0;
+          if (liqEl) {
+            liqEl.textContent = liq >= 1_000_000 
+              ? `$${(liq / 1_000_000).toFixed(2)}M`
+              : liq >= 1_000 
+                ? `$${(liq / 1_000).toFixed(1)}K`
+                : `$${liq.toFixed(0)}`;
+          }
+
+        } catch (error) {
+          console.error('Price fetch failed:', error);
+        }
+      }
+
+      // Fetch first time
+      fetchPrice();
+
+      // Auto refresh every 30 seconds
+      setInterval(fetchPrice, 30000);
+    })();
+  </script>
 
 </body>
 </html>

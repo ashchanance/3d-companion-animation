@@ -1,71 +1,84 @@
 # Roadmap
 
-## Section Eyebrow
+## Navbar Label
 Roadmap
 
 ## Headline
-What is live now, and what comes next.
+The journey so far.
 
-## Desc
-This roadmap follows the real HARUKA implementation in this checkout, not a generic multi-app template.
+## Subheadline
+Everything we said we'd build - is built.
 
 ---
 
-## Phase 1 - Core companion surface
+### PHASE 1 - Foundation
 **Status:** Completed
-**Period:** Live now
+**Period:** Q1 2026
 
-- Main Haruka web app
-- Live2D companion rendering
-- Text chat
-- Voice input and TTS flow
-- Language toggle
-- Background switching
+The groundwork for everything that came after.
+
+- Live2D real-time character rendering
+- WebGPU local AI inference
+- Real-time voice input and output
+- Web app (PWA) accessible from browser
+- 20+ LLM provider support
+- Customizable backgrounds and scenes
+- EN/JP language toggle
 
 ---
 
-## Phase 2 - Soul control and live relay
+### PHASE 2 - Companion Intelligence
 **Status:** Completed
-**Period:** Live now
+**Period:** Q2 2026
 
-- HARUKA Card personality presets
-- Providers panel
-- bundled OpenSouls bridge mode
-- Pump.fun Relay panel
-- Vercel-compatible backend health surface
+Making Haruka smarter, more aware, and more consistent.
 
----
-
-## Phase 3 - Distribution and embed
-**Status:** Implemented
-**Period:** Live in code and deploy
-
-- Shared backend for main app and widget
-- Public `embed.js`
-- Public `widget.html`
-- compact widget mode for external sites
-- one Vercel deployment shape for app + widget + backend
+- Open Souls Soul Engine integration
+- Persistent memory via SQLite vector store
+- Mental processes before every response
+- Consistent personality across all sessions
+- Long-term vector memory storage
+- Character Card system with presets
 
 ---
 
-## Phase 4 - Optional deeper runtime
-**Status:** Optional path
-**Period:** Later if needed
+### PHASE 3 - Infrastructure
+**Status:** Completed
+**Period:** Q2 2026
 
-- separate persistent soul runtime
-- durable memory beyond browser history
-- longer-running orchestration
-- external bridge service only if serverless is no longer enough
+Turning Haruka from a website into a platform.
+
+- API Server - any app can call Haruka
+- Embed Widget - one line of code, she shows up anywhere
+- First external integration live on Atelier (atelierai.xyz)
+- GitHub repo public
 
 ---
 
-## Phase 5 - Usage gate and key control
-**Status:** Implemented in backend, env-driven
-**Period:** Ready to enable
+### PHASE 4 - Payment and Tokenomics
+**Status:** In Progress
+**Period:** Q2-Q3 2026
 
-- widget API key validation
-- per-key quota windows
-- per-session usage limits
-- backend `401` for invalid widget keys
-- backend `402` for exhausted quota
-- production activation depends on env and redeploy
+Tying everything together with real token utility.
+
+- x402 payment gate integrated (devnet)
+- x402 mainnet deployment
+- Buyback bot - 100% API revenue -> buyback and burn $HARUKA via Jupiter
+- Token-gated features - hold $HARUKA to unlock premium
+- Swap utility - "swap USDC to $HARUKA" inside chat
+
+---
+
+### PHASE 5 - Expansion
+**Status:** Planned
+**Period:** Q3-Q4 2026
+
+Growing Haruka's capabilities and reach.
+
+- Gaming companion mode - real-time game context
+- Screen awareness - desktop app sees your screen
+- Desktop app (Electron) - floating overlay
+- Pump.fun live chat integration - Haruka reads and responds to comments
+- Chrome extension - Haruka on every page
+- Multi-language expansion
+- Companion passport - on-chain profile

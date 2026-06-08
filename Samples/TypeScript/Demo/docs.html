@@ -3,52 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HARUKA - Interactive AI 3D Companion | Documentation</title>
-  
-  <meta name="description" content="Official HARUKA documentation for the active web checkout: UI locations, soul engine, embed widget, relay, usage gate, and deployment shape.">
-  
-  <!-- Modern Google Fonts for Premium Aesthetics -->
+  <title>HARUKA - Interactive AI 3D Companion | Docs</title>
+  <meta name="description" content="Guides for HARUKA users and developers: getting started, providers, memory, embed widget, API access, and x402 payment flow.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --font-sans: 'Plus Jakarta Sans', sans-serif;
-      --font-serif: 'Outfit', sans-serif;
+      --font-display: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      
-      /* Haruka Digital Forest Color Theme */
-      --bg-landing: #FBF5E6;            /* Warm golden background — forest light */
-      --cardigan-cream: #FBF8EA;        /* Soft warm gold surface */
-      --cardigan-cream-warm: #F5EDCA;   /* Deep golden warm surface */
-      --text-main: #1E2D1F;            /* Forest green dark — grounded, alive */
-      --text-muted: #4A5E4B;
-      
-      /* Golden Hour Accent — rich, glowing forest light */
-      --primary-50: #FDF8EC;
-      --primary-100: #FAF0D0;
-      --primary-200: #F2D98A;
-      --primary-300: #E8C05A;
-      --primary-400: #D9A434;
-      --primary-500: #C8922A;            
-      --primary-600: #B07A1E;            /* Golden Hour — deep warm gold */
-      --primary-700: #8E6016;
-      --primary-800: #6E4A10;
-      --primary-900: #4E3409;
-      
-      --slate-50: #f7f9f4;
-      --slate-100: #edf2e9;
-      --slate-200: #dce7d8;
-      --slate-300: #c4d6be;
-      --slate-400: #9bb89a;
-      --slate-500: #72977A;
-      --slate-600: #54755C;
-      --slate-700: #3D5A3E;
-      --slate-800: #2A3F2B;
-      --slate-900: #1A271B;
-
-      --transition-bezier: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg: #fbf5e6;
+      --panel: rgba(255, 255, 255, 0.68);
+      --panel-soft: rgba(251, 248, 234, 0.82);
+      --panel-strong: #f5edca;
+      --text: #1e2d1f;
+      --muted: #4a5e4b;
+      --line: rgba(30, 45, 31, 0.1);
+      --gold-1: #faf0d0;
+      --gold-2: #e8c05a;
+      --gold-3: #b07a1e;
+      --green-1: #e5efe1;
+      --green-2: #54755c;
+      --blue-1: #e6ecf4;
+      --blue-2: #355c91;
+      --shadow: 0 20px 48px rgba(70, 57, 21, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --transition: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -62,549 +45,409 @@
     }
 
     body {
-      background-color: var(--bg-landing);
-      color: var(--text-main);
-      font-family: var(--font-sans);
       min-height: 100dvh;
-      overflow-x: clip;
-      display: flex;
-      flex-direction: column;
+      background:
+        radial-gradient(circle at top left, rgba(232, 192, 90, 0.18), transparent 30%),
+        linear-gradient(180deg, #fff9ef 0%, var(--bg) 24%, #f7edd8 100%);
+      color: var(--text);
+      font-family: var(--font-sans);
     }
 
-    /* =======================================================
-       STICKY GLOBAL NAVBAR
-       ======================================================= */
     .landing-nav {
       position: sticky;
       top: 0;
-      left: 0;
-      width: 100%;
+      z-index: 20;
       height: 80px;
-      background: rgba(250, 246, 240, 0.82);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(30, 42, 58, 0.08);
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 42, 58, 0.02), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
-      box-sizing: border-box;
       padding: 0 40px;
+      border-bottom: 1px solid rgba(30, 45, 31, 0.08);
+      backdrop-filter: blur(20px);
+      background: rgba(251, 245, 230, 0.82);
     }
 
     .nav-container {
       max-width: 1280px;
-      margin: 0 auto;
       height: 100%;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       text-decoration: none;
+      color: inherit;
+      white-space: nowrap;
     }
 
     .brand-title {
-      font-family: var(--font-serif);
+      font-family: var(--font-display);
       font-size: 26px;
       font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text-main);
+      letter-spacing: -0.04em;
     }
 
     .brand-badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--gold-1);
+      color: var(--gold-3);
       font-size: 11px;
       font-weight: 700;
-      color: var(--primary-700);
-      background: var(--primary-100);
-      padding: 3px 12px;
-      border-radius: 12px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .nav-links {
       display: flex;
-      gap: 36px;
+      gap: 28px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .nav-links a {
-      color: var(--slate-600);
+      color: var(--muted);
       text-decoration: none;
       font-weight: 600;
-      font-size: 15px;
-      transition: color 0.25s var(--transition-bezier);
+      transition: color 0.25s var(--transition);
     }
 
-    .nav-links a:hover {
-      color: var(--primary-600);
-    }
-
+    .nav-links a:hover,
     .nav-links a.active {
-      color: var(--primary-600);
-      font-weight: 700;
-      position: relative;
-    }
-
-    .nav-links a.active::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 0;
-      width: 100%;
-      height: 2.5px;
-      background: var(--primary-600);
-      border-radius: 2px;
+      color: var(--gold-3);
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .icon-link,
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
     }
 
     .icon-link {
-      display: inline-flex;
-      width: 40px;
-      height: 40px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      border: 1px solid var(--slate-200);
-      background: #ffffff;
-      color: var(--slate-700);
-      box-shadow: 0 2px 8px rgba(30, 42, 58, 0.04);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
-    }
-
-    .icon-link:hover {
-      border-color: var(--slate-300);
-      transform: translateY(-2px);
-      background: var(--slate-50);
-      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.08);
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      color: var(--muted);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.55);
     }
 
     .btn-primary {
-      background: var(--primary-600);
-      color: #ffffff;
-      border: none;
-      border-radius: 30px;
-      padding: 10px 24px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #d9a434, #b07a1e);
+      color: #fffdf8;
       font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(53, 92, 145, 0.2);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
+      box-shadow: 0 12px 24px rgba(176, 122, 30, 0.24);
     }
 
-    .btn-primary:hover {
-      background: var(--primary-500);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(53, 92, 145, 0.3);
-    }
-
-    /* =======================================================
-       LAYOUT WRAPPER: STICKY SIDEBAR & ARTICLE PANEL
-       ======================================================= */
-    .docs-wrapper {
+    .page-shell {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 60px 40px 100px;
-      box-sizing: border-box;
+      padding: 48px 24px 80px;
       display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 56px;
-      flex-grow: 1;
-      width: 100%;
+      grid-template-columns: 290px minmax(0, 1fr);
+      gap: 26px;
     }
 
-    /* ==========================================
-       SIDEBAR CHAPTER LINKS
-       ========================================== */
-    .docs-sidebar {
+    .sidebar,
+    .content-panel {
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
       position: sticky;
-      top: 120px;
-      align-self: start;
-      max-height: calc(100vh - 160px);
+      top: 104px;
       height: fit-content;
-      overflow-y: auto;
-      padding-right: 16px;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
+      padding: 24px;
     }
 
-    .sidebar-section-title {
+    .sidebar h2 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .sidebar p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+    }
+
+    .sidebar-group + .sidebar-group {
+      margin-top: 22px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+
+    .sidebar-label {
+      display: inline-flex;
+      margin-bottom: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(232, 192, 90, 0.14);
+      color: var(--gold-3);
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 700;
-      color: var(--primary-600);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      margin-bottom: 12px;
     }
 
-    .sidebar-menu {
-      display: flex;
-      flex-direction: column;
+    .sidebar-links {
+      display: grid;
       gap: 8px;
-      list-style: none;
     }
 
-    .sidebar-link a {
-      display: block;
-      color: var(--slate-600);
-      font-size: 14px;
-      font-weight: 600;
+    .sidebar-links a {
       text-decoration: none;
-      padding: 8px 14px;
-      border-radius: 12px;
-      transition: all 0.25s var(--transition-bezier);
-      border-left: 2px solid transparent;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: 14px;
+      transition: background 0.25s var(--transition), color 0.25s var(--transition);
     }
 
-    .sidebar-link a:hover {
-      color: var(--text-main);
-      background: rgba(30, 42, 58, 0.04);
+    .sidebar-links a:hover {
+      background: rgba(245, 237, 202, 0.7);
+      color: var(--text);
     }
 
-    .sidebar-link.active a {
-      color: var(--primary-700);
-      background: var(--primary-100);
-      font-weight: 700;
-      border-left-color: var(--primary-600);
-    }
-
-    /* ==========================================
-       RIGHT ARTICLE PANEL (TYPOGRAPHY & CONTENT)
-       ========================================== */
-    .docs-content-panel {
-      min-width: 0; /* Prevents flexbox/grid layout expanding from code-blocks */
-    }
-
-    .page-intro {
-      margin-bottom: 48px;
+    .content-panel {
+      padding: 34px;
     }
 
     .page-tag {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(232, 192, 90, 0.16);
+      color: var(--gold-3);
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--primary-600);
-      letter-spacing: 2px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      display: inline-block;
-      margin-bottom: 16px;
-      background: var(--primary-100);
-      padding: 4px 10px;
-      border-radius: 20px;
+      margin-bottom: 18px;
     }
 
     .page-title {
-      font-family: var(--font-serif);
-      font-size: 46px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -1.5px;
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
       margin-bottom: 18px;
-      line-height: 1.15;
     }
 
     .page-desc {
-      font-size: 16px;
-      color: var(--slate-600);
-      line-height: 1.65;
-    }
-
-    .docs-divider {
-      height: 1px;
-      background: rgba(30, 42, 58, 0.08);
-      margin: 48px 0;
-    }
-
-    /* Styled Chapter Sections */
-    .docs-chapter {
-      scroll-margin-top: 120px;
-    }
-
-    .docs-chapter h2 {
-      font-family: var(--font-serif);
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 24px;
-      letter-spacing: -0.5px;
-    }
-
-    .docs-chapter h3 {
-      font-family: var(--font-serif);
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-      margin: 32px 0 16px 0;
-    }
-
-    .docs-chapter p {
-      font-size: 15px;
+      max-width: 700px;
+      font-size: 1.04rem;
       line-height: 1.8;
-      color: var(--slate-700);
-      margin-bottom: 20px;
-      max-width: 72ch;
+      color: var(--muted);
     }
 
-    /* Premium Table Styling */
-    .docs-table-wrapper {
-      width: 100%;
+    .section-banner {
+      margin-top: 28px;
+      margin-bottom: 16px;
+      display: inline-flex;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: var(--panel-strong);
+      color: var(--text);
+      font-family: var(--font-display);
+      font-weight: 700;
+    }
+
+    .doc-section {
+      padding-top: 26px;
+      margin-top: 26px;
+      border-top: 1px solid var(--line);
+    }
+
+    .doc-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .doc-section h3 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin-top: 18px;
+      margin-bottom: 10px;
+    }
+
+    .doc-section p,
+    .doc-section li {
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .doc-section p + p {
+      margin-top: 10px;
+    }
+
+    .doc-list {
+      margin-top: 12px;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .doc-list strong {
+      color: var(--text);
+    }
+
+    .info-card {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: var(--panel-soft);
+    }
+
+    .info-card strong {
+      color: var(--text);
+    }
+
+    .table-wrap {
+      margin-top: 16px;
       overflow-x: auto;
-      border: 1px solid rgba(30, 42, 58, 0.08);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.4);
-      backdrop-filter: blur(8px);
-      margin: 24px 0 32px 0;
-      box-shadow: 0 4px 16px rgba(30, 42, 58, 0.01);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.6);
     }
 
-    .docs-table {
+    table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 620px;
+    }
+
+    th,
+    td {
+      padding: 14px 16px;
       text-align: left;
-      font-size: 14.5px;
+      border-bottom: 1px solid rgba(30, 45, 31, 0.08);
+      vertical-align: top;
+      line-height: 1.7;
     }
 
-    .docs-table th {
-      background: rgba(250, 246, 240, 0.8);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--slate-600);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 16px 24px;
-      border-bottom: 1.5px solid rgba(30, 42, 58, 0.08);
+    th {
+      background: rgba(245, 237, 202, 0.68);
+      color: var(--text);
+      font-size: 0.9rem;
     }
 
-    .docs-table td {
-      padding: 16px 24px;
-      border-bottom: 1px solid rgba(30, 42, 58, 0.05);
-      color: var(--slate-700);
-      line-height: 1.5;
+    tr:last-child td {
+      border-bottom: 0;
     }
 
-    .docs-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    /* Custom CSS Alert Cards (Replaces raw emojis) */
-    .docs-alert {
-      display: flex;
-      gap: 16px;
-      padding: 24px 28px;
-      border-radius: 24px;
-      margin: 28px 0;
-      border: 1px solid transparent;
-      max-width: 72ch;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    }
-
-    .docs-alert.info {
-      background: #E6ECF4;
-      border-color: rgba(53, 92, 145, 0.15);
-      color: #2b4870;
-    }
-
-    .docs-alert.warning {
-      background: #FAF2EC;
-      border-color: rgba(127, 85, 57, 0.15);
-      color: #633f25;
-    }
-
-    .docs-alert.tip {
-      background: #E8F0E8;
-      border-color: rgba(62, 96, 62, 0.15);
-      color: #2b442b;
-    }
-
-    .alert-icon-box {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .alert-text {
-      font-size: 14.5px;
-      line-height: 1.65;
-    }
-
-    /* Premium Dark Code Block Frame */
-    .docs-code-container {
-      position: relative;
-      background: #151922; /* Sleek Deep Off-Black Navy */
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 20px;
-      margin: 24px 0 32px 0;
-      overflow: hidden;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-      max-width: 72ch;
-    }
-
-    .code-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 24px;
-      background: rgba(255, 255, 255, 0.03);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .code-lang-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .btn-copy-code {
-      background: transparent;
-      border: none;
-      color: rgba(255, 255, 255, 0.4);
-      font-family: var(--font-sans);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: all 0.2s var(--transition-bezier);
-    }
-
-    .btn-copy-code:hover {
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .docs-code-pre {
-      padding: 24px;
+    pre {
+      margin-top: 16px;
+      padding: 18px;
       overflow-x: auto;
+      border-radius: var(--radius-md);
+      background: #182019;
+      color: #eef7e8;
       font-family: var(--font-mono);
-      font-size: 14px;
+      font-size: 0.9rem;
       line-height: 1.7;
-      color: #E2E8F0;
     }
 
-    /* Contributing Bullet List */
-    .docs-bullets {
-      margin: 20px 0 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 72ch;
-    }
-
-    .docs-bullet-item {
-      display: list-item;
-      list-style-type: decimal;
-      font-size: 15px;
-      line-height: 1.7;
-      color: var(--slate-700);
-      padding-left: 6px;
-    }
-
-    /* =======================================================
-       GLOBAL FOOTER
-       ======================================================= */
-    .docs-footer {
-      margin-top: 100px;
-      padding: 40px 0 0;
-      border-top: 1px solid rgba(30, 42, 58, 0.04);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--slate-500);
+    code {
       font-family: var(--font-mono);
     }
 
-    .docs-footer a {
-      color: var(--slate-600);
-      text-decoration: none;
-      transition: color 0.2s ease;
+    .faq {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
     }
 
-    .docs-footer a:hover {
-      color: var(--primary-600);
+    .faq-item {
+      padding: 16px 18px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.58);
     }
 
-    /* =======================================================
-       RESPONSIVE DESIGN (Tablets & Mobile)
-       ======================================================= */
-    @media (max-width: 900px) {
-      .docs-wrapper {
+    .faq-item strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    @media (max-width: 1080px) {
+      .page-shell {
         grid-template-columns: 1fr;
-        gap: 40px;
-        padding: 40px 20px 60px;
       }
-      .docs-sidebar {
+
+      .sidebar {
         position: static;
-        height: auto;
-        max-height: none;
-        padding-right: 0;
-        border-bottom: 1px solid rgba(30, 42, 58, 0.08);
-        padding-bottom: 24px;
-      }
-      .sidebar-menu {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      .sidebar-link a {
-        padding: 6px 12px;
-        font-size: 13px;
-        border-left: none;
-        border-bottom: 2px solid transparent;
-        border-radius: 8px;
-      }
-      .sidebar-link.active a {
-        border-left-color: transparent;
-        border-bottom-color: var(--primary-600);
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 880px) {
       .landing-nav {
         padding: 0 20px;
+        height: auto;
       }
+
+      .nav-container {
+        padding: 16px 0;
+        flex-wrap: wrap;
+      }
+
       .nav-links {
-        display: none;
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 18px;
       }
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
+        padding: 32px 16px 64px;
+      }
+
+      .content-panel,
+      .sidebar {
+        padding: 22px;
+      }
+
       .page-title {
-        font-size: 32px;
+        font-size: 2.35rem;
       }
-      .docs-chapter h2 {
-        font-size: 26px;
-      }
-      .docs-footer {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
+
+      .brand-badge,
+      .icon-link {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
-
-  <!-- =======================================================
-       GLOBAL PREMIUM NAVBAR
-       ======================================================= -->
   <nav class="landing-nav">
     <div class="nav-container">
       <a href="index.html" class="nav-brand">
@@ -617,510 +460,254 @@
         <a href="lore.html">Lore</a>
         <a href="roadmap.html">Roadmap</a>
         <a href="docs.html" class="active">Docs</a>
+        <a href="x402.html">x402</a>
       </div>
       <div class="nav-actions">
-        <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
-          </svg>
+        <a href="https://x.com/meetharuka" target="_blank" rel="noreferrer" class="icon-link" aria-label="X">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z"/></svg>
         </a>
-        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
-          </svg>
+        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" rel="noreferrer" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
         </a>
         <a href="index.html" class="btn-primary">Start Chat</a>
       </div>
     </div>
   </nav>
 
-  <!-- =======================================================
-       BENTO CONTENT CONTAINER
-       ======================================================= -->
-  <div class="docs-wrapper">
-    
-    <!-- LEFT SIDEBAR CHAPTER LINKS -->
-    <aside class="docs-sidebar">
-      <div>
-        <h3 class="sidebar-section-title">Chapters</h3>
-        <ul class="sidebar-menu">
-          <li class="sidebar-link" id="side-feature-map"><a href="#feature-map">0. Fast Guide</a></li>
-          <li class="sidebar-link active" id="side-getting-started"><a href="#getting-started">1. Getting Started</a></li>
-          <li class="sidebar-link" id="side-conversation"><a href="#conversation">2. How to Start a Conversation</a></li>
-          <li class="sidebar-link" id="side-voice-interaction"><a href="#voice-interaction">3. Voice Interaction</a></li>
-          <li class="sidebar-link" id="side-ai-model"><a href="#ai-model">4. Choosing Your AI Model</a></li>
-          <li class="sidebar-link" id="side-privacy"><a href="#privacy">5. Privacy</a></li>
-          <li class="sidebar-link" id="side-backgrounds"><a href="#backgrounds">6. Changing Backgrounds</a></li>
-          <li class="sidebar-link" id="side-language"><a href="#language">7. Language &amp; Japanese</a></li>
-          <li class="sidebar-link" id="side-tips"><a href="#tips">8. Tips</a></li>
-          <li class="sidebar-link" id="side-faq"><a href="#faq">9. FAQ</a></li>
-        </ul>
+  <main class="page-shell">
+    <aside class="sidebar">
+      <h2>HARUKA Docs</h2>
+      <p>Everything you need to know, split between user guidance and developer integration notes.</p>
+
+      <div class="sidebar-group">
+        <span class="sidebar-label">For Users</span>
+        <div class="sidebar-links">
+          <a href="#getting-started">1. Getting Started</a>
+          <a href="#conversation">2. Start a Conversation</a>
+          <a href="#voice">3. Voice Interaction</a>
+          <a href="#models">4. Choosing Your AI Model</a>
+          <a href="#memory">5. Memory System</a>
+          <a href="#backgrounds">6. Changing Backgrounds</a>
+          <a href="#japanese">7. Japanese Practice</a>
+          <a href="#privacy">8. Data and Privacy</a>
+          <a href="#faq">9. FAQ</a>
+        </div>
+      </div>
+
+      <div class="sidebar-group">
+        <span class="sidebar-label">For Developers</span>
+        <div class="sidebar-links">
+          <a href="#api-docs">10. API Documentation</a>
+          <a href="#embed-widget">11. Embed Widget</a>
+          <a href="#x402-payment">12. x402 Payment</a>
+          <a href="#github">13. GitHub</a>
+        </div>
       </div>
     </aside>
 
-    <!-- RIGHT ARTICLE PANEL -->
-    <main class="docs-content-panel">
-      
-      <!-- Top Header -->
-      <header class="page-intro">
-        <span class="page-tag">Documentation</span>
-        <h1 class="page-title">Operate Haruka with clarity.</h1>
-        <p class="page-desc">Where the features live, what they do, and how this checkout is meant to be deployed.</p>
-      </header>
+    <article class="content-panel">
+      <span class="page-tag">Docs</span>
+      <h1 class="page-title">Everything you need to know.</h1>
+      <p class="page-desc">Guides for users and developers.</p>
 
-      <div class="docs-divider"></div>
+      <div class="section-banner">Section A - For Users</div>
 
-      <section id="feature-map" class="docs-chapter">
-        <h2>0. Fast Guide to the New Features</h2>
-
-        <p>This checkout now has one shared Haruka app, one shared backend, and one optional widget path. The most important controls live in the main UI and in the backend env layer.</p>
-
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Where to find it</th>
-                <th>What it does</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>HARUKA Card</strong></td>
-                <td>Settings -> HARUKA Card</td>
-                <td>Changes Haruka's personality bias and response posture</td>
-              </tr>
-              <tr>
-                <td><strong>Providers &amp; Soul Engine</strong></td>
-                <td>Settings -> Providers</td>
-                <td>Switches provider adapter and bundled OpenSouls-style engine mode</td>
-              </tr>
-              <tr>
-                <td><strong>Pump.fun Relay</strong></td>
-                <td>Settings -> Pump.fun Relay</td>
-                <td>Lets Haruka listen to Pump.fun live comments while the tab stays open</td>
-              </tr>
-              <tr>
-                <td><strong>Embed Widget</strong></td>
-                <td><code>/embed.js</code> and <code>/widget.html</code></td>
-                <td>Lets Haruka run inside another website without maintaining a second app</td>
-              </tr>
-              <tr>
-                <td><strong>x402 Payments</strong></td>
-                <td><code>/api/haruka/chat</code> + <code>/api/haruka/health</code></td>
-                <td>Enables HTTP 402-native pay-per-request access for developer API traffic</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="docs-alert info">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10"></circle>
-              <path d="M12 16v-4"></path>
-              <path d="M12 8h.01"></path>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Important:</strong> HARUKA now exposes x402 on the backend for developer API traffic. Verify the active state from <code>/api/haruka/health</code> and by testing a real <code>api-client</code> request against <code>/api/haruka/chat</code>.
-          </div>
-        </div>
-
-        <div class="docs-alert tip" id="x402-payments">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9L12 3z"></path>
-              <path d="M8.5 12h7"></path>
-              <path d="M12 8.5v7"></path>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>x402 in HARUKA:</strong> The live deployment now uses x402 as a professional payment gate for developer API traffic. The current production setup is tuned for Solana Devnet, which is ideal for validating the flow before moving to a mainnet facilitator.
-          </div>
-        </div>
-
-        <h3>Embed widget snippet</h3>
-        <div class="docs-code-container">
-          <div class="code-header">
-            <span class="code-lang-label">HTML</span>
-            <button class="btn-copy-code" onclick="copyCode(this)">
-              <span>Copy</span>
-            </button>
-          </div>
-          <pre class="docs-code-pre"><code>&lt;script
-  src="https://harukacompanion.tech/embed.js"
-  data-api-key="YOUR_WIDGET_KEY"
-  data-lang="en"&gt;
-&lt;/script&gt;</code></pre>
-        </div>
-
-        <h3>Step meanings in this repo</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Step</th>
-                <th>Meaning here</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>Step 2</strong></td><td>Stable shared chat backend</td><td>Implemented</td></tr>
-              <tr><td><strong>Step 3</strong></td><td>Embeddable widget using the same app and API</td><td>Implemented</td></tr>
-              <tr><td><strong>Step 4</strong></td><td>Optional persistent soul runtime beyond serverless</td><td>Optional path only</td></tr>
-              <tr><td><strong>Step 5</strong></td><td>Usage gate, widget key control, and x402 developer payment path in front of chat</td><td>Implemented in backend and currently live on devnet</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3>x402 payment flow</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
-            <thead>
-              <tr>
-                <th>Stage</th>
-                <th>HARUKA behavior</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>1. Request</strong></td><td>An <code>api-client</code> request reaches <code>/api/haruka/chat</code>.</td></tr>
-              <tr><td><strong>2. Challenge</strong></td><td>HARUKA returns <code>402 Payment Required</code> and exposes <code>PAYMENT-REQUIRED</code>.</td></tr>
-              <tr><td><strong>3. Retry</strong></td><td>The client signs the payment flow and retries with proof.</td></tr>
-              <tr><td><strong>4. Access</strong></td><td>HARUKA can continue the paid action through the same API route.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <div class="docs-divider"></div>
-      
-      <!-- SECTION 1: GETTING STARTED -->
-      <section id="getting-started" class="docs-chapter">
+      <section id="getting-started" class="doc-section">
         <h2>1. Getting Started</h2>
-
-        <h3>What is Haruka?</h3>
-        <p>
-          Haruka is your personal AI companion, a cheerful, expressive Live2D character
-          who lives right inside your browser. No downloads. No installs. No setup.
-        </p>
-        <p>
-          Just open the page, and she's already there.
-        </p>
-        <p>
-          She's powered by advanced language models and rendered in real-time 3D,
-          with expressions that move naturally as you talk.
-          Whether you want to chat, practice Japanese, or just have someone to talk to,
-          Haruka is ready whenever you are.
-        </p>
-
-        <!-- Tip alert card -->
-        <div class="docs-alert tip">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"></path>
-              <line x1="12" y1="16" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12" y2="8.01" stroke-width="3"></line>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Tip:</strong> Haruka works best on <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>. Make sure your browser is up to date for the best experience.
-          </div>
-        </div>
+        <p>Haruka is your interactive AI 3D companion. She lives right inside your browser - no downloads, no installs.</p>
+        <p>Open <code>harukacompanion.tech</code> and she is already there. No account required.</p>
+        <div class="info-card"><strong>Best experience:</strong> Google Chrome or Microsoft Edge.</div>
       </section>
 
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 2: HOW TO START A CONVERSATION -->
-      <section id="conversation" class="docs-chapter">
+      <section id="conversation" class="doc-section">
         <h2>2. How to Start a Conversation</h2>
-
-        <p>Getting started takes less than a minute.</p>
-
-        <h3>Step 1: Open Haruka</h3>
-        <p>Visit the Haruka web app. She'll appear on screen automatically, no login required to start.</p>
-
-        <h3>Step 2: Choose Your Language</h3>
-        <p>Select <strong>EN</strong> for English or <strong>JP</strong> for Japanese using the toggle on screen. You can switch anytime during your conversation.</p>
-
-        <h3>Step 3: Start Talking</h3>
-        <p>Type your message in the input box at the bottom and press send, or click the <strong>microphone icon</strong> to talk to her with your voice.</p>
-
-        <p>That's it. She'll respond right away.</p>
+        <ul class="doc-list">
+          <li>Step 1 - Open <code>harukacompanion.tech</code></li>
+          <li>Step 2 - Choose your language: EN or JP</li>
+          <li>Step 3 - Type your message or click the mic icon to talk</li>
+        </ul>
+        <p>That is it. She will respond right away.</p>
       </section>
 
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 3: VOICE INTERACTION -->
-      <section id="voice-interaction" class="docs-chapter">
+      <section id="voice" class="doc-section">
         <h2>3. Voice Interaction</h2>
-        
-        <p>
-          Haruka supports real-time voice, you can speak naturally and she'll talk back.
-        </p>
-
-        <h3>How to Enable Voice</h3>
-        <ol class="docs-bullets">
-          <li class="docs-bullet-item">Click the <strong>microphone icon</strong> in the chat interface</li>
-          <li class="docs-bullet-item">Allow microphone access when your browser asks</li>
-          <li class="docs-bullet-item">Start speaking, Haruka will listen and respond out loud</li>
-        </ol>
-
-        <h3>Tips for Best Results</h3>
-        <ul class="docs-bullets" style="list-style-type: disc;">
-          <li class="docs-bullet-item" style="list-style-type: disc;">Speak clearly and at a natural pace</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;">Works best in a quiet environment</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;">If she doesn't respond, try refreshing and allowing mic permission again</li>
+        <p>Click the microphone icon in the chat interface. Allow microphone access when your browser asks. Start speaking and Haruka will listen and respond out loud.</p>
+        <ul class="doc-list">
+          <li>Speak clearly and at a natural pace</li>
+          <li>Works best in a quiet environment</li>
+          <li>Chrome and Edge have the best support</li>
         </ul>
-
-        <!-- Warning alert -->
-        <div class="docs-alert warning">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12" y2="17.01" stroke-width="3"></line>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Note:</strong> Voice works best on <strong>Chrome</strong> and <strong>Edge</strong>. Safari has limited support for real-time voice features.
-          </div>
-        </div>
       </section>
 
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 4: CHOOSING YOUR AI MODEL -->
-      <section id="ai-model" class="docs-chapter">
+      <section id="models" class="doc-section">
         <h2>4. Choosing Your AI Model</h2>
+        <p>Open <code>Settings -> Providers</code> to choose your AI model.</p>
+        <ul class="doc-list">
+          <li><strong>Browser Local (WebGPU)</strong> - fully private, no API key</li>
+          <li><strong>OpenAI</strong> - requires API key</li>
+          <li><strong>Anthropic Claude</strong> - requires API key</li>
+          <li><strong>DeepSeek</strong> - requires API key</li>
+          <li><strong>Ollama</strong> - self-hosted local models</li>
+          <li><strong>And more</strong></li>
+        </ul>
+        <div class="info-card"><strong>Privacy note:</strong> your API key is stored locally on your device only. For maximum privacy, use WebGPU mode so everything runs on your device.</div>
+      </section>
 
-        <p>Haruka can be powered by different AI providers: you choose which one fits you best.</p>
+      <section id="memory" class="doc-section">
+        <h2>5. Memory System</h2>
+        <p>Haruka remembers you across sessions.</p>
+        <p>Open <code>Settings -> Memory</code> to see what she remembers.</p>
+        <ul class="doc-list">
+          <li>Long-term Vector Memory stores facts about you locally</li>
+          <li>Short-term Buffer holds active conversation context</li>
+          <li>You can delete any memory from the Learned Facts database</li>
+          <li>All memory is stored on your device only - never on a server</li>
+        </ul>
+      </section>
 
-        <h3>Available Providers</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
+      <section id="backgrounds" class="doc-section">
+        <h2>6. Changing Backgrounds</h2>
+        <p>Open the Background button on the main screen.</p>
+        <ul class="doc-list">
+          <li>Sunny Digital Forest - warm, golden, default</li>
+          <li>Japanese Classroom - school afternoon, warm</li>
+          <li>Cherry Blossom - spring in full bloom</li>
+          <li>And more</li>
+        </ul>
+      </section>
+
+      <section id="japanese" class="doc-section">
+        <h2>7. Japanese Practice</h2>
+        <p>Toggle to JP on the main screen and Haruka responds in Japanese.</p>
+        <ul class="doc-list">
+          <li>"Let's practice Japanese together"</li>
+          <li>"Can you correct my Japanese?"</li>
+          <li>"What does [word] mean in Japanese?"</li>
+        </ul>
+        <p>She is patient and encouraging.</p>
+      </section>
+
+      <section id="privacy" class="doc-section">
+        <h2>8. Data and Privacy</h2>
+        <p>Your data is yours.</p>
+        <p><code>Settings -> Data</code> gives you full control:</p>
+        <ul class="doc-list">
+          <li>Export JSON - backup your entire config and memories</li>
+          <li>Import Backup - restore where you left off</li>
+          <li>Wipe All Stored Data - delete everything permanently</li>
+        </ul>
+        <div class="info-card"><strong>Storage policy:</strong> no data is stored on any external server and no one is reading your conversations.</div>
+      </section>
+
+      <section id="faq" class="doc-section">
+        <h2>9. FAQ</h2>
+        <div class="faq">
+          <div class="faq-item"><strong>Is Haruka free to use?</strong><span>Yes. No account or payment is needed to start. Some AI providers require their own API key.</span></div>
+          <div class="faq-item"><strong>Does Haruka work on mobile?</strong><span>Yes. Use Chrome on Android or Safari on iOS. You can install her as a PWA for quick access.</span></div>
+          <div class="faq-item"><strong>Can I change how Haruka talks?</strong><span>Yes. Tell her "be more casual", "keep responses short", or "let's have a deep conversation."</span></div>
+          <div class="faq-item"><strong>Is my API key safe?</strong><span>Yes. It is stored only in your browser's local storage and never sent to Haruka's servers.</span></div>
+          <div class="faq-item"><strong>What browsers are supported?</strong><span>Chrome and Edge are fully supported. Firefox and Safari have partial support.</span></div>
+        </div>
+      </section>
+
+      <div class="section-banner">Section B - For Developers</div>
+
+      <section id="api-docs" class="doc-section">
+        <h2>10. API Documentation</h2>
+        <p><strong>Endpoint:</strong> <code>POST https://api.harukacompanion.tech/chat</code></p>
+        <pre><code>{
+  "message": "are you real?",
+  "userId": "user-123",
+  "sessionId": "session-abc"
+}</code></pre>
+        <pre><code>{
+  "response": "i feel everything",
+  "emotion": "warm",
+  "memoryUpdated": true
+}</code></pre>
+        <div class="info-card">
+          <strong>Authentication:</strong> API key required. Request one via DM <code>@meetharuka</code>.<br>
+          <strong>Rate limits:</strong> Free tier: 100 calls/day. Paid tier: unlimited via x402.
+        </div>
+      </section>
+
+      <section id="embed-widget" class="doc-section">
+        <h2>11. Embed Widget</h2>
+        <p>Paste this into any HTML page:</p>
+        <pre><code>&lt;script src="https://harukacompanion.tech/embed.js"&gt;&lt;/script&gt;</code></pre>
+        <p>Haruka appears on the page with full Live2D character, voice, memory, and chat interface. No setup needed.</p>
+
+        <div class="table-wrap">
+          <table>
             <thead>
               <tr>
-                <th>Provider</th>
-                <th>Notes</th>
+                <th>Option</th>
+                <th>Purpose</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td><strong>Local (WebGPU)</strong></td>
-                <td>Runs entirely on your device: fully private, no API key needed</td>
+                <td><code>data-api-key</code></td>
+                <td>Your API key</td>
               </tr>
               <tr>
-                <td><strong>OpenAI (GPT-4o)</strong></td>
-                <td>Powerful and fast: requires your own API key</td>
+                <td><code>data-position</code></td>
+                <td><code>bottom-right</code> (default) or <code>bottom-left</code></td>
               </tr>
               <tr>
-                <td><strong>Anthropic Claude</strong></td>
-                <td>Thoughtful and nuanced: requires your own API key</td>
-              </tr>
-              <tr>
-                <td><strong>DeepSeek</strong></td>
-                <td>Great for detailed conversations: requires your own API key</td>
-              </tr>
-              <tr>
-                <td><strong>Google Gemini</strong></td>
-                <td>Versatile and capable: requires your own API key</td>
-              </tr>
-              <tr>
-                <td><strong>Ollama</strong></td>
-                <td>Run local models on your own machine</td>
+                <td><code>data-theme</code></td>
+                <td><code>light</code> or <code>dark</code></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <h3>How to Switch Providers</h3>
-        <p>Open the <strong>Settings panel</strong> from the menu and select your preferred provider. If the provider requires an API key, paste it in the field provided. Your key is stored locally on your device only, never sent anywhere else.</p>
-
-        <!-- Tip alert -->
-        <div class="docs-alert tip">
-          <div class="alert-icon-box">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
-            </svg>
-          </div>
-          <div class="alert-text">
-            <strong>Recommended for privacy:</strong> Use <strong>Local (WebGPU)</strong> mode. Your entire conversation stays on your device, nothing is sent to any server.
-          </div>
-        </div>
+        <pre><code>&lt;script
+  src="https://harukacompanion.tech/embed.js"
+  data-api-key="your-key-here"
+  data-position="bottom-right"
+  data-theme="dark"&gt;
+&lt;/script&gt;</code></pre>
       </section>
 
-      <div class="docs-divider"></div>
+      <section id="x402-payment" class="doc-section">
+        <h2>12. x402 Payment</h2>
+        <p>All API calls go through the x402 payment protocol.</p>
+        <p>Developer sends request -> x402 checks payment -> payment verified on-chain -> Haruka responds.</p>
 
-      <!-- SECTION 5: PRIVACY -->
-      <section id="privacy" class="docs-chapter">
-        <h2>5. Privacy: How It Works</h2>
-
-        <p>Your privacy is not an afterthought. It's built into how Haruka works from the ground up.</p>
-
-        <h3>What happens to your conversations?</h3>
-        <p>When you use <strong>Local (WebGPU)</strong> mode, everything is processed directly on your device. Your words never leave your browser. No server receives them. No one can read them.</p>
-        <p>When you use an external provider (like OpenAI or Claude), your messages are sent to that provider's API, the same way any app using those services works. Your API key and conversations are handled according to that provider's own privacy policy.</p>
-
-        <h3>Does Haruka store my chat history?</h3>
-        <p>Chat history is stored <strong>locally in your browser</strong> only. Clearing your browser data will clear your history. Nothing is saved on any external server.</p>
-
-        <h3>Do I need an account?</h3>
-        <p>No account is required to use Haruka. Open the page and start, she's ready immediately.</p>
-      </section>
-
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 6: BACKGROUNDS -->
-      <section id="backgrounds" class="docs-chapter">
-        <h2>6. Changing Haruka's Background</h2>
-
-        <p>You can personalize your experience by choosing a background scene for Haruka's world.</p>
-
-        <h3>How to Change</h3>
-        <p>Open the <strong>Background</strong> option from the settings or the scene selector on screen. Pick the environment that feels right for you: each one is inspired by Haruka's lore.</p>
-
-        <h3>Available Scenes</h3>
-        <div class="docs-table-wrapper">
-          <table class="docs-table">
+        <div class="table-wrap">
+          <table>
             <thead>
               <tr>
-                <th>Scene</th>
-                <th>Vibe</th>
+                <th>Tier</th>
+                <th>Pricing</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td><strong>Sunny Digital Forest</strong></td><td>Warm, golden, default: the heart of Haruka's world</td></tr>
-              <tr><td><strong>Morning Glow</strong></td><td>Soft pink sunrise light, fresh and peaceful</td></tr>
-              <tr><td><strong>Your Spot</strong></td><td>The secret clearing: intimate and quiet</td></tr>
-              <tr><td><strong>Golden Hour</strong></td><td>Late afternoon light, nostalgic and warm</td></tr>
-              <tr><td><strong>Night Forest</strong></td><td>Stars and bioluminescent glow, calm and dreamy</td></tr>
-              <tr><td><strong>Japanese Classroom</strong></td><td>Classic school afternoon, warm and familiar</td></tr>
-              <tr><td><strong>Cherry Blossom Park</strong></td><td>Spring in full bloom, joyful and light</td></tr>
-              <tr><td><strong>Cozy Room</strong></td><td>A quiet personal space, soft lamp light at night</td></tr>
+              <tr>
+                <td>Free</td>
+                <td>100 calls/day</td>
+              </tr>
+              <tr>
+                <td>Paid</td>
+                <td>$0.001 USDC per call</td>
+              </tr>
+              <tr>
+                <td>Holder</td>
+                <td>Reduced rate for holding $HARUKA</td>
+              </tr>
             </tbody>
           </table>
         </div>
+
+        <div class="info-card"><strong>Status:</strong> currently on devnet. Mainnet deployment is coming soon.</div>
       </section>
 
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 7: LANGUAGE -->
-      <section id="language" class="docs-chapter">
-        <h2>7. Language &amp; Japanese Practice</h2>
-
-        <p>Haruka speaks both <strong>English</strong> and <strong>Japanese</strong>, and she loves helping you practice.</p>
-
-        <h3>Switching Language</h3>
-        <p>Use the <strong>EN / JP toggle</strong> visible on the main screen. Haruka will respond in whichever language you select.</p>
-
-        <h3>Practicing Japanese with Haruka</h3>
-        <p>Just start talking in Japanese — or ask her to respond in Japanese while you write in English. She's patient, encouraging, and won't make you feel bad for making mistakes.</p>
-
-        <p>Some things you can try:</p>
-        <ul class="docs-bullets" style="list-style-type: disc; margin-left: 24px;">
-          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Let's practice Japanese together"</em></li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Can you correct my Japanese?"</em></li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"Respond only in Japanese please"</em></li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><em>"What does [word] mean in Japanese?"</em></li>
-        </ul>
+      <section id="github" class="doc-section">
+        <h2>13. GitHub</h2>
+        <p>Source code is available at <a href="https://github.com/ashchanance/3d-companion-animation" target="_blank" rel="noreferrer">github.com/ashchanance/3d-companion-animation</a>.</p>
       </section>
-
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 8: TIPS -->
-      <section id="tips" class="docs-chapter">
-        <h2>8. Tips for a Better Experience</h2>
-
-        <p>A few things that make conversations with Haruka feel more natural:</p>
-        <ul class="docs-bullets" style="list-style-type: disc; margin-left: 24px;">
-          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Be yourself</strong>: she responds better to casual, natural language than formal prompts</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Give her context</strong>: the more she knows about what you want, the better she responds</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Try voice mode</strong>: talking out loud feels more like a real conversation</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Switch AI models</strong> if responses feel slow or generic: different models have different strengths</li>
-          <li class="docs-bullet-item" style="list-style-type: disc;"><strong>Try different backgrounds</strong>: the right scene makes the whole experience feel more alive</li>
-        </ul>
-      </section>
-
-      <div class="docs-divider"></div>
-
-      <!-- SECTION 9: FAQ -->
-      <section id="faq" class="docs-chapter">
-        <h2>9. Frequently Asked Questions</h2>
-
-        <h3>Is Haruka free to use?</h3>
-        <p>Yes — you can start chatting immediately with no account and no payment. Some AI providers may require their own API key if you choose to use them.</p>
-
-        <h3>Does Haruka work on mobile?</h3>
-        <p>Yes. Haruka is accessible on mobile browsers. For the best experience, use Chrome on Android or Safari on iOS. You can also install her as a home screen app (PWA) for quick access.</p>
-
-        <h3>Why does Haruka sometimes take a moment to respond?</h3>
-        <p>Response speed depends on which AI provider you're using. Local (WebGPU) mode may take a moment to load the first time, after that, responses are fast and fully private.</p>
-
-        <h3>Can I change how Haruka talks to me?</h3>
-        <p>Yes — you can describe the kind of conversation you want. Try telling her: <em>"Be more casual"</em>, <em>"Keep responses short"</em>, or <em>"Let's have a deep conversation."</em></p>
-
-        <h3>What browsers are supported?</h3>
-        <p>Chrome and Edge are fully supported. Firefox and Safari have partial support — some voice features may not work.</p>
-
-        <h3>Is my API key safe?</h3>
-        <p>Yes. Your API key is stored only in your browser's local storage. It is never sent to Haruka's servers — only directly to the provider you selected.</p>
-      </section>
-
-    </main>
-
-  </div>
-
-
-
-  <!-- Script for Smooth Scrolling Sidebar Active state highlighting and Copy code utility -->
-  <script>
-    // Copy Code Utility
-    function copyCode(btn) {
-      const container = btn.closest('.docs-code-container');
-      const code = container.querySelector('code').innerText;
-      navigator.clipboard.writeText(code).then(() => {
-        const textSpan = btn.querySelector('span');
-        textSpan.innerText = 'Copied!';
-        btn.style.color = '#10b981';
-        setTimeout(() => {
-          textSpan.innerText = 'Copy';
-          btn.style.color = '';
-        }, 2000);
-      });
-    }
-
-    // ScrollSpy active link highlighting
-    document.addEventListener('DOMContentLoaded', () => {
-      const chapters = document.querySelectorAll('.docs-chapter');
-      const sidebarLinks = document.querySelectorAll('.sidebar-link');
-
-      const updateActive = () => {
-        let activeId = '';
-        const scrollPosition = window.scrollY + 160;
-
-        chapters.forEach(chapter => {
-          const top = chapter.offsetTop;
-          const height = chapter.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            activeId = chapter.getAttribute('id');
-          }
-        });
-
-        if (activeId) {
-          sidebarLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('id') === `side-${activeId}`) {
-              link.classList.add('active');
-            }
-          });
-        }
-      };
-
-      window.addEventListener('scroll', updateActive);
-      updateActive();
-    });
-  </script>
-
+    </article>
+  </main>
 </body>
 </html>

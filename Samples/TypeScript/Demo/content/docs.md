@@ -1,289 +1,208 @@
-# Documentation
+# Docs
 
-## Section Eyebrow
-Documentation
+## Navbar Label
+Docs
 
 ## Headline
-Operate Haruka with clarity.
+Everything you need to know.
 
-## Desc
-Where the features live, what they do, and how this checkout is meant to be deployed.
-
----
-
-## 1. Getting Started
-
-### What Haruka is in this repo
-Haruka in this checkout is a browser-first Live2D companion with a shared chat backend.
-
-The active app combines:
-
-- Live2D rendering in the browser
-- text chat and voice chat
-- a settings-driven soul/profile system
-- one backend route for both the main app and the widget
-
-### Browser recommendation
-Use Chrome or Edge for the most reliable voice and media behavior.
+## Subheadline
+Guides for users and developers.
 
 ---
 
-## 2. Main UI Map
+## SECTION A - FOR USERS
 
-### Where to click
+### 1. Getting Started
 
-- `Settings` button: top-right gear button in the chat scene
-- `Background` button: top-right image button next to Settings
-- `EN / JP` toggle: bottom-right language bar
-- microphone button: next to the chat input
-- send button: blue round button in the chat input row
+Haruka is your interactive AI 3D companion.
+She lives right inside your browser - no downloads, no installs.
 
-### What each area controls
+Open harukacompanion.tech and she's already there.
+No account required.
 
-| UI Surface | What it controls |
-|---|---|
-| Settings -> HARUKA Card | personality preset and soul bias |
-| Settings -> Providers | chat provider and soul engine mode |
-| Settings -> Pump.fun Relay | live comment relay behavior |
-| Background button | scene/background selection |
-| EN / JP toggle | response language |
-| microphone button | browser voice input |
+Works best on Google Chrome or Microsoft Edge.
+
+### 2. How to Start a Conversation
+
+Step 1 - Open harukacompanion.tech
+Step 2 - Choose your language: EN or JP
+Step 3 - Type your message or click the mic icon to talk
+
+That's it. She'll respond right away.
+
+### 3. Voice Interaction
+
+Click the microphone icon in the chat interface.
+Allow microphone access when your browser asks.
+Start speaking - Haruka will listen and respond out loud.
+
+Tips:
+- Speak clearly and at a natural pace
+- Works best in a quiet environment
+- Chrome and Edge have the best support
+
+### 4. Choosing Your AI Model
+
+Open Settings -> Providers to choose your AI model.
+
+Available providers:
+- Browser Local (WebGPU) - fully private, no API key
+- OpenAI - requires API key
+- Anthropic Claude - requires API key
+- DeepSeek - requires API key
+- Ollama - self-hosted local models
+- And more
+
+Your API key is stored locally on your device only.
+
+For maximum privacy, use WebGPU mode -
+everything runs on your device.
+
+### 5. Memory System
+
+Haruka remembers you across sessions.
+
+Open Settings -> Memory to see what she remembers.
+
+- Long-term Vector Memory stores facts about you locally
+- Short-term Buffer holds active conversation context
+- You can delete any memory from the Learned Facts database
+- All memory is stored on your device only - never on a server
+
+### 6. Changing Backgrounds
+
+Open the Background button on the main screen.
+
+Available scenes:
+- Sunny Digital Forest - warm, golden, default
+- Japanese Classroom - school afternoon, warm
+- Cherry Blossom - spring in full bloom
+- And more
+
+### 7. Japanese Practice
+
+Toggle to JP on the main screen.
+Haruka responds in Japanese.
+
+Things to try:
+- "Let's practice Japanese together"
+- "Can you correct my Japanese?"
+- "What does [word] mean in Japanese?"
+
+She's patient and encouraging.
+
+### 8. Data and Privacy
+
+Your data is yours.
+
+Settings -> Data gives you full control:
+- Export JSON - backup your entire config and memories
+- Import Backup - restore where you left off
+- Wipe All Stored Data - delete everything permanently
+
+No data is stored on any external server.
+No one is reading your conversations.
+
+### 9. FAQ
+
+**Is Haruka free to use?**
+Yes. No account, no payment needed to start.
+Some AI providers require their own API key.
+
+**Does Haruka work on mobile?**
+Yes. Use Chrome on Android or Safari on iOS.
+You can install her as a PWA for quick access.
+
+**Can I change how Haruka talks?**
+Yes. Tell her: "be more casual", "keep responses short",
+or "let's have a deep conversation."
+
+**Is my API key safe?**
+Yes. Stored only in your browser's local storage.
+Never sent to Haruka's servers.
+
+**What browsers are supported?**
+Chrome and Edge are fully supported.
+Firefox and Safari have partial support.
 
 ---
 
-## 3. Providers and Soul Engine
+## SECTION B - FOR DEVELOPERS
 
-### Where it is
-Open `Settings` -> `Providers`.
+### 10. API Documentation
 
-### What you can change
+**Endpoint:**
+POST https://api.harukacompanion.tech/chat
 
-| Control | Purpose |
-|---|---|
-| Provider dropdown | choose the active LLM adapter |
-| `Conversation Engine` | switch between direct chat and OpenSouls-style bridge mode |
-| `External OpenSouls Bridge URL (optional)` | only used if you intentionally split runtime into another service later |
+**Request:**
+```json
+{
+  "message": "are you real?",
+  "userId": "user-123",
+  "sessionId": "session-abc"
+}
+```
 
-### Engine modes
+**Response:**
+```json
+{
+  "response": "i feel everything",
+  "emotion": "warm",
+  "memoryUpdated": true
+}
+```
 
-- `Direct LLM Adapter`: browser talks to `/api/haruka/chat`, and the backend calls the provider directly
-- `OpenSouls Bridge`: still uses `/api/haruka/chat`, but the backend applies the bundled Haruka soul bridge behavior first
+**Authentication:**
+API key required. Request one via DM @meetharuka.
 
-### HARUKA Card
-The `HARUKA Card` preset changes Haruka's response bias.
+**Rate Limits:**
+Free tier: 100 calls/day
+Paid tier: unlimited via x402
 
-The current presets are:
+### 11. Embed Widget
 
-- `classic`
-- `scholar`
-- `sunset`
-- `cyberpunk`
+Paste this into any HTML page:
 
-These presets affect tone, structure, emotional warmth, and response posture.
+```html
+<script src="https://harukacompanion.tech/embed.js"></script>
+```
 
----
+Haruka appears on the page - full Live2D character,
+voice, memory, and chat interface. No setup needed.
 
-## 4. Voice Chat
+**Customization options:**
+- data-api-key - your API key
+- data-position - bottom-right (default), bottom-left
+- data-theme - light, dark
 
-### How to enable it
-
-1. Click the microphone button next to the chat input
-2. Allow browser microphone access
-3. Speak naturally
-
-### Notes
-
-- Chrome and Edge are the safest choice
-- Safari support is limited
-- if speech feels interrupted, stop and retry once permissions are granted cleanly
-
----
-
-## 5. Embed Widget
-
-### What it is
-Haruka can be embedded into another website without maintaining a second app.
-
-The widget reuses:
-
-- the same Live2D frontend
-- the same `/api/haruka/chat` backend
-- the same provider and soul behavior
-
-### Public widget files
-
-- `/embed.js`
-- `/widget.html`
-
-### Basic embed snippet
-
+**Example:**
 ```html
 <script
   src="https://harukacompanion.tech/embed.js"
-  data-api-key="YOUR_WIDGET_KEY"
-  data-lang="en">
+  data-api-key="your-key-here"
+  data-position="bottom-right"
+  data-theme="dark">
 </script>
 ```
 
-### How it works
+### 12. x402 Payment
 
-1. another site loads `embed.js`
-2. `embed.js` opens `widget.html`
-3. `widget.html` runs Haruka in compact embed mode
-4. requests still go to `/api/haruka/chat`
+All API calls go through x402 payment protocol.
 
----
+Developer sends request ->
+x402 checks payment ->
+payment verified on-chain ->
+Haruka responds.
 
-## 6. Pump.fun Relay
+**Pricing:**
+- Free tier: 100 calls/day
+- Paid tier: $0.001 USDC per call
+- Holder discount: hold $HARUKA for reduced rate
 
-### Where it is
-Open `Settings` -> `Pump.fun Relay`.
+Currently on devnet. Mainnet deployment coming soon.
 
-### What it does
-This mode listens to Pump.fun live comments and lets Haruka answer from the current page while the tab stays open.
+### 13. GitHub
 
-### Main controls
-
-| Control | Purpose |
-|---|---|
-| `Enable Relay` | start or stop relay behavior |
-| `Mirror comments in UI` | show live relay messages inside the page |
-| `Pump.fun Token Address` | target live room identifier |
-| `Relay Username Label` | label used for relay identity |
-| `History sync size` | how many recent messages are considered |
-| `Queue delay (ms)` | pause between processed relay items |
-| `Queue max size` | queue capacity before dropping |
-| `Blocked words` | reject unwanted comments |
-| `Relay message template` | viewer context injected into Haruka |
-
----
-
-## 7. Usage Gate and Widget Keys
-
-### What this feature is
-Step 5 is a backend-side usage gate.
-
-It is not a normal end-user settings panel yet.
-
-### What it can do
-
-- require valid widget API keys
-- limit requests per widget key
-- limit requests per browser session
-- return `401` for invalid widget keys
-- return `402` when quota is exhausted
-
-### Main environment variables
-
-```env
-HARUKA_EMBED_API_KEYS=your-widget-key
-HARUKA_USAGE_GATE_ENABLED=true
-HARUKA_USAGE_WINDOW_MINUTES=60
-HARUKA_USAGE_LIMIT_WEB_APP=0
-HARUKA_USAGE_LIMIT_EMBED_WIDGET=0
-HARUKA_USAGE_KEY_LIMITS=your-widget-key:25
-HARUKA_USAGE_BYPASS_KEYS=
-```
-
-### How to verify it
-Check `/api/haruka/health`.
-
-The important fields are:
-
-- `embedApiKeyRequired`
-- `configuredEmbedKeyCount`
-- `usageGateEnabled`
-- `configuredUsageKeyCount`
-
----
-
-## 8. x402 Payments
-
-### What x402 does in HARUKA
-x402 gives HARUKA a machine-native payment gate for developer API traffic.
-
-Instead of redirecting an agent through a traditional checkout flow, the API can answer with HTTP `402 Payment Required`, publish the payment requirements, and allow the caller to retry with payment proof.
-
-### Current live status
-
-- x402 is active for `api-client` traffic
-- the current production path is configured for **Solana Devnet**
-- widget traffic stays separate from the x402 developer flow
-
-### What a successful flow looks like
-
-1. a developer or agent sends a request to `/api/haruka/chat`
-2. HARUKA returns `402 Payment Required`
-3. the response includes the `PAYMENT-REQUIRED` header
-4. the client signs and retries the request with payment data
-5. HARUKA continues the paid action
-
-### Core environment variables
-
-```env
-HARUKA_X402_ENABLED=true
-HARUKA_X402_SCOPE=api-client
-HARUKA_X402_PRICE=$0.001
-HARUKA_X402_NETWORK=solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1
-HARUKA_X402_PAY_TO=YOUR_SOLANA_PUBLIC_WALLET
-HARUKA_X402_FACILITATOR_URL=https://x402.org/facilitator
-```
-
-### Production note
-
-- `x402.org/facilitator` is suitable for test networks
-- Solana Mainnet requires a production facilitator and proper credentials
-- the HARUKA runtime already supports a CDP-based facilitator path when you are ready to move past devnet
-
----
-
-## 9. Deployment Shape
-
-### Recommended shape for this repo
-This checkout is designed to work as one Vercel deployment.
-
-### Main routes
-
-| Route | Purpose |
-|---|---|
-| `/` | main Haruka app |
-| `/api/haruka/chat` | shared chat backend |
-| `/api/haruka/health` | health and debug info |
-| `/embed.js` | widget loader |
-| `/widget.html` | widget entry |
-
-### Optional later split
-Only move to a separate backend later if you truly need:
-
-- durable memory outside browser history
-- longer-running orchestration
-- external billing state
-
----
-
-## 10. Roadmap Concepts and Current Status
-
-### What the roadmap means in this repo
-
-| Step | Meaning in this checkout | Current status |
-|---|---|---|
-| Step 2 | stable shared chat backend | implemented |
-| Step 3 | embeddable widget using the same app and API | implemented |
-| Step 4 | optional persistent soul runtime beyond serverless | optional path only |
-| Step 5 | usage gate and widget key control in front of chat | implemented in backend, enabled only when env is set |
-
-### Important distinction
-
-- `implemented in code` does not automatically mean `enabled in production`
-- Step 5 becomes active only when the production env values are present and the project is redeployed
-
-### FAQ
-
-**Does Haruka need a separate backend for embeds?**  
-No. The widget uses the same backend route.
-
-**Can I use bundled OpenSouls on Vercel only?**  
-Yes. That is the default shape for this repo.
-
-**Where do I see quota state?**  
-Use `/api/haruka/health` and backend responses, not the end-user settings panel.
+Source code available at:
+github.com/ashchanance/3d-companion-animation

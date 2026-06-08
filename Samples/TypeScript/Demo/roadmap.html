@@ -4,51 +4,36 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HARUKA - Interactive AI 3D Companion | Roadmap</title>
-  
-  <meta name="description" content="Explore Haruka's development roadmap, from 3D rendering to long-term memory, emotional intelligence, and the modding ecosystem.">
-  
-  <!-- Modern Google Fonts for Premium Aesthetics -->
+  <meta name="description" content="Track HARUKA's journey from foundational rendering and voice systems to Open Souls, API infrastructure, x402 token utility, and expansion plans.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --font-sans: 'Plus Jakarta Sans', sans-serif;
-      --font-serif: 'Outfit', sans-serif;
+      --font-display: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      
-      /* Haruka Digital Forest Color Theme */
-      --bg-landing: #FBF5E6;            /* Warm golden background — forest light */
-      --cardigan-cream: #FBF8EA;        /* Soft warm gold surface */
-      --cardigan-cream-warm: #F5EDCA;   /* Deep golden warm surface */
-      --text-main: #1E2D1F;            /* Forest green dark — grounded, alive */
-      --text-muted: #4A5E4B;
-      
-      /* Golden Hour Accent — rich, glowing forest light */
-      --primary-50: #FDF8EC;
-      --primary-100: #FAF0D0;
-      --primary-200: #F2D98A;
-      --primary-300: #E8C05A;
-      --primary-400: #D9A434;
-      --primary-500: #C8922A;            
-      --primary-600: #B07A1E;            /* Golden Hour — deep warm gold */
-      --primary-700: #8E6016;
-      --primary-800: #6E4A10;
-      --primary-900: #4E3409;
-      
-      --slate-50: #f7f9f4;
-      --slate-100: #edf2e9;
-      --slate-200: #dce7d8;
-      --slate-300: #c4d6be;
-      --slate-400: #9bb89a;
-      --slate-500: #72977A;
-      --slate-600: #54755C;
-      --slate-700: #3D5A3E;
-      --slate-800: #2A3F2B;
-      --slate-900: #1A271B;
-
-      --transition-bezier: cubic-bezier(0.16, 1, 0.3, 1);
+      --bg: #fbf5e6;
+      --panel: rgba(251, 248, 234, 0.86);
+      --panel-solid: #fbf8ea;
+      --panel-strong: #f5edca;
+      --text: #1e2d1f;
+      --muted: #4a5e4b;
+      --line: rgba(30, 45, 31, 0.1);
+      --gold-1: #faf0d0;
+      --gold-2: #e8c05a;
+      --gold-3: #b07a1e;
+      --green-1: #e5efe1;
+      --green-2: #54755c;
+      --blue-1: #e6ecf4;
+      --blue-2: #355c91;
+      --amber-1: #faf2ec;
+      --amber-2: #8e6016;
+      --shadow: 0 20px 48px rgba(70, 57, 21, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --transition: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -57,517 +42,418 @@
       padding: 0;
     }
 
-    body {
-      background-color: var(--bg-landing);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      min-height: 100dvh;
-      overflow-x: clip;
-      display: flex;
-      flex-direction: column;
+    html {
+      scroll-behavior: smooth;
     }
 
-    /* =======================================================
-       STICKY GLOBAL NAVBAR
-       ======================================================= */
+    body {
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at top left, rgba(232, 192, 90, 0.2), transparent 34%),
+        linear-gradient(180deg, #fff9ef 0%, var(--bg) 24%, #f7edd8 100%);
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+
     .landing-nav {
       position: sticky;
       top: 0;
-      left: 0;
-      width: 100%;
+      z-index: 20;
       height: 80px;
-      background: rgba(250, 246, 240, 0.82);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(30, 42, 58, 0.08);
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 42, 58, 0.02), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
-      box-sizing: border-box;
       padding: 0 40px;
+      border-bottom: 1px solid rgba(30, 45, 31, 0.08);
+      backdrop-filter: blur(20px);
+      background: rgba(251, 245, 230, 0.82);
     }
 
     .nav-container {
       max-width: 1280px;
-      margin: 0 auto;
       height: 100%;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       text-decoration: none;
+      color: inherit;
+      white-space: nowrap;
     }
 
     .brand-title {
-      font-family: var(--font-serif);
+      font-family: var(--font-display);
       font-size: 26px;
       font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text-main);
+      letter-spacing: -0.04em;
     }
 
     .brand-badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--gold-1);
+      color: var(--amber-2);
       font-size: 11px;
       font-weight: 700;
-      color: var(--primary-700);
-      background: var(--primary-100);
-      padding: 3px 12px;
-      border-radius: 12px;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
     .nav-links {
       display: flex;
-      gap: 36px;
+      gap: 28px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .nav-links a {
-      color: var(--slate-600);
+      color: var(--muted);
       text-decoration: none;
       font-weight: 600;
-      font-size: 15px;
-      transition: color 0.25s var(--transition-bezier);
+      transition: color 0.25s var(--transition);
     }
 
-    .nav-links a:hover {
-      color: var(--primary-600);
-    }
-
+    .nav-links a:hover,
     .nav-links a.active {
-      color: var(--primary-600);
-      font-weight: 700;
-      position: relative;
-    }
-
-    .nav-links a.active::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 0;
-      width: 100%;
-      height: 2.5px;
-      background: var(--primary-600);
-      border-radius: 2px;
+      color: var(--gold-3);
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      white-space: nowrap;
+    }
+
+    .icon-link,
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
     }
 
     .icon-link {
-      display: inline-flex;
-      width: 40px;
-      height: 40px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      border: 1px solid var(--slate-200);
-      background: #ffffff;
-      color: var(--slate-700);
-      box-shadow: 0 2px 8px rgba(30, 42, 58, 0.04);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
-    }
-
-    .icon-link:hover {
-      border-color: var(--slate-300);
-      transform: translateY(-2px);
-      background: var(--slate-50);
-      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.08);
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      color: var(--muted);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.55);
     }
 
     .btn-primary {
-      background: var(--primary-600);
-      color: #ffffff;
-      border: none;
-      border-radius: 30px;
-      padding: 10px 24px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #d9a434, #b07a1e);
+      color: #fffdf8;
       font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(53, 92, 145, 0.2);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
+      box-shadow: 0 12px 24px rgba(176, 122, 30, 0.24);
     }
 
-    .btn-primary:hover {
-      background: var(--primary-500);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(53, 92, 145, 0.3);
-    }
-
-    /* =======================================================
-       LAYOUT WRAPPER & ROADMAP TIMELINE
-       ======================================================= */
-    .roadmap-wrapper {
-      max-width: 1280px;
+    .page-shell {
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 60px 40px 100px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-      width: 100%;
+      padding: 48px 24px 80px;
     }
 
-    /* Intro */
     .page-intro {
-      margin-bottom: 72px;
       max-width: 760px;
+      margin-bottom: 32px;
     }
 
     .page-tag {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(232, 192, 90, 0.16);
+      color: var(--amber-2);
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--primary-600);
-      letter-spacing: 2px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      display: inline-block;
-      margin-bottom: 16px;
-      background: var(--primary-100);
-      padding: 4px 10px;
-      border-radius: 20px;
+      margin-bottom: 18px;
     }
 
     .page-title {
-      font-family: var(--font-serif);
-      font-size: 46px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -1.5px;
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 6vw, 4.6rem);
+      line-height: 0.98;
+      letter-spacing: -0.05em;
       margin-bottom: 18px;
-      line-height: 1.15;
-      text-balance: balance;
     }
 
     .page-desc {
-      font-size: 16px;
-      color: var(--slate-600);
-      line-height: 1.65;
+      max-width: 640px;
+      font-size: 1.04rem;
+      line-height: 1.8;
+      color: var(--muted);
     }
 
-    /* Vertical Timeline Container */
-    .timeline-container {
-      position: relative;
-      max-width: 880px;
-      margin: 0 auto;
-      padding: 20px 0;
+    .summary-panel {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 22px;
+      margin-bottom: 34px;
+      padding: 28px;
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(245, 237, 202, 0.72));
+      box-shadow: var(--shadow);
     }
 
-    /* Vertical Line */
-    .timeline-track-line {
-      position: absolute;
-      left: 36px;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: rgba(127, 85, 57, 0.12);
-      z-index: 1;
+    .summary-panel h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      margin-bottom: 12px;
     }
 
-    /* Timeline Section Item */
-    .timeline-item {
-      position: relative;
-      margin-bottom: 60px;
-      padding-left: 92px;
-      z-index: 2;
+    .summary-panel p {
+      color: var(--muted);
+      line-height: 1.8;
     }
 
-    .timeline-item:last-child {
-      margin-bottom: 0;
-    }
-
-    /* Dynamic Junction Node */
-    .timeline-node {
-      position: absolute;
-      left: 24px;
-      top: 24px;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: var(--bg-landing);
-      border: 3px solid var(--slate-300);
-      transition: all 0.4s var(--transition-bezier);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3;
-      box-shadow: 0 0 0 6px var(--bg-landing);
-    }
-
-    .timeline-item:hover .timeline-node {
-      border-color: var(--primary-500);
-      transform: scale(1.15);
-      box-shadow: 
-        0 0 0 8px var(--bg-landing), 
-        0 4px 15px rgba(127, 85, 57, 0.25);
-    }
-
-    .timeline-node-inner {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: transparent;
-      transition: all 0.4s var(--transition-bezier);
-    }
-
-    .timeline-item.active .timeline-node {
-      border-color: var(--primary-600);
-      background: var(--bg-landing);
-    }
-
-    .timeline-item.active .timeline-node-inner {
-      background: var(--primary-600);
-      width: 10px;
-      height: 10px;
-    }
-
-    /* Active Pulse Animation for In Progress */
-    .timeline-item.in-progress .timeline-node {
-      animation: pulseJunction 2s infinite ease-in-out;
-      border-color: #b91c1c; /* Desaturated red/amber pulse */
-    }
-
-    .timeline-item.in-progress .timeline-node-inner {
-      background: #b91c1c;
-      width: 10px;
-      height: 10px;
-    }
-
-    @keyframes pulseJunction {
-      0%, 100% { box-shadow: 0 0 0 6px var(--bg-landing), 0 0 0 0 rgba(185, 28, 28, 0.3); }
-      50% { box-shadow: 0 0 0 6px var(--bg-landing), 0 0 15px 6px rgba(185, 28, 28, 0.4); }
-    }
-
-    /* Premium Timeline Glass Card */
-    .roadmap-card {
-      background: rgba(255, 255, 255, 0.58);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: 32px;
-      padding: 40px;
-      box-shadow: 
-        0 20px 40px rgba(30, 42, 58, 0.03), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      transition: all 0.4s var(--transition-bezier);
-    }
-
-    .timeline-item:hover .roadmap-card {
-      background: #ffffff;
-      border-color: var(--primary-300);
-      transform: translateY(-4px);
-      box-shadow: 
-        0 30px 60px rgba(127, 85, 57, 0.08), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-
-    /* Header elements */
-    .card-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
+    .summary-grid {
+      display: grid;
       gap: 12px;
     }
 
-    .period-text {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--slate-500);
+    .summary-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      color: var(--muted);
+      line-height: 1.6;
     }
 
-    /* Premium custom status pill badges */
-    .status-badge {
+    .summary-item strong {
+      color: var(--text);
+    }
+
+    .summary-dot {
+      width: 10px;
+      height: 10px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: var(--gold-2);
+      flex: 0 0 auto;
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 24px;
+      padding-left: 34px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(176, 122, 30, 0.8), rgba(176, 122, 30, 0.08));
+    }
+
+    .phase-card {
+      position: relative;
+      padding: 28px;
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      background: rgba(255, 255, 255, 0.68);
+      box-shadow: var(--shadow);
+    }
+
+    .phase-card::before {
+      content: '';
+      position: absolute;
+      left: -34px;
+      top: 30px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      border: 4px solid var(--gold-3);
+      box-shadow: 0 0 0 6px rgba(217, 164, 52, 0.14);
+    }
+
+    .phase-card.in-progress::before {
+      border-color: var(--blue-2);
+      box-shadow: 0 0 0 6px rgba(53, 92, 145, 0.14);
+    }
+
+    .phase-card.planned::before {
+      border-color: var(--amber-2);
+      box-shadow: 0 0 0 6px rgba(176, 122, 30, 0.1);
+    }
+
+    .phase-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .period {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
       font-weight: 700;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 4px 14px;
-      border-radius: 16px;
     }
 
-    .status-badge.completed {
-      background: #E8F0E8;
-      color: #3E603E;
-    }
-
-    .status-badge.in-progress {
-      background: #FAF2EC;
-      color: #7F5539;
-    }
-
-    .status-badge.planned {
-      background: #F4F2EB;
-      color: var(--slate-600);
-    }
-
-    .status-badge.vision {
-      background: #EAE6DC;
-      color: var(--slate-700);
-    }
-
-    .status-badge .badge-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+    .status::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
       background: currentColor;
     }
 
-    .status-badge.in-progress .badge-dot {
-      animation: pulseDot 1.5s infinite ease-in-out;
+    .status.completed {
+      background: var(--green-1);
+      color: var(--green-2);
     }
 
-    @keyframes pulseDot {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.4); opacity: 0.5; }
+    .status.in-progress {
+      background: var(--blue-1);
+      color: var(--blue-2);
     }
 
-    .roadmap-card h3 {
-      font-family: var(--font-serif);
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
+    .status.planned {
+      background: var(--amber-1);
+      color: var(--amber-2);
     }
 
-    .roadmap-card .phase-desc {
-      font-size: 15px;
-      line-height: 1.65;
-      color: var(--slate-600);
-      margin-bottom: 28px;
+    .phase-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      margin-bottom: 10px;
     }
 
-    /* Staggered Bullet List */
-    .roadmap-bullets-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+    .phase-card p {
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 18px;
     }
 
-    .roadmap-bullet-item {
-      display: flex;
-      align-items: flex-start;
+    .bullet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
-      font-size: 14.5px;
-      line-height: 1.5;
-      color: var(--slate-700);
     }
 
-    .roadmap-bullet-check {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: rgba(127, 85, 57, 0.06);
-      color: var(--primary-600);
+    .bullet {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(251, 248, 234, 0.74);
+      border: 1px solid rgba(30, 45, 31, 0.08);
+      line-height: 1.6;
+      color: var(--text);
     }
 
-    .roadmap-bullet-item.completed .roadmap-bullet-check {
-      background: #E8F0E8;
-      color: #3E603E;
+    .bullet span:first-child {
+      color: var(--gold-3);
+      font-weight: 800;
+      flex: 0 0 auto;
     }
 
-    .roadmap-bullet-item.planned .roadmap-bullet-check {
-      background: #FAF2EC;
-      color: var(--primary-500);
+    .phase-card.in-progress .bullet span:first-child {
+      color: var(--blue-2);
     }
 
-    .roadmap-bullet-check svg {
-      width: 12px;
-      height: 12px;
+    .phase-card.planned .bullet span:first-child {
+      color: var(--amber-2);
     }
 
-    /* =======================================================
-       GLOBAL FOOTER
-       ======================================================= */
-    .roadmap-footer {
-      margin-top: 100px;
-      padding: 40px 0 0;
-      border-top: 1px solid rgba(30, 42, 58, 0.04);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--slate-500);
-      font-family: var(--font-mono);
+    @media (max-width: 1080px) {
+      .summary-panel,
+      .bullet-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .roadmap-footer a {
-      color: var(--slate-600);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .roadmap-footer a:hover {
-      color: var(--primary-600);
-    }
-
-    /* =======================================================
-       RESPONSIVE DESIGN (Tablets & Mobile)
-       ======================================================= */
-    @media (max-width: 768px) {
+    @media (max-width: 880px) {
       .landing-nav {
         padding: 0 20px;
+        height: auto;
       }
+
+      .nav-container {
+        padding: 16px 0;
+        flex-wrap: wrap;
+      }
+
       .nav-links {
-        display: none;
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 18px;
       }
-      .roadmap-wrapper {
-        padding: 40px 20px 60px;
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
+        padding: 32px 16px 64px;
       }
+
+      .timeline {
+        padding-left: 24px;
+      }
+
+      .timeline::before {
+        left: 7px;
+      }
+
+      .phase-card {
+        padding: 22px;
+      }
+
+      .phase-card::before {
+        left: -24px;
+        width: 14px;
+        height: 14px;
+      }
+
       .page-title {
-        font-size: 32px;
+        font-size: 2.5rem;
       }
-      .timeline-track-line {
-        left: 18px;
-      }
-      .timeline-item {
-        padding-left: 48px;
-        margin-bottom: 40px;
-      }
-      .timeline-node {
-        left: 6px;
-        top: 20px;
-      }
-      .roadmap-card {
-        padding: 24px;
-        border-radius: 24px;
-      }
-      .roadmap-card h3 {
-        font-size: 22px;
-      }
-      .roadmap-footer {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
+
+      .brand-badge,
+      .icon-link {
+        display: none;
       }
     }
   </style>
 </head>
 <body>
-
-  <!-- =======================================================
-       GLOBAL PREMIUM NAVBAR
-       ======================================================= -->
   <nav class="landing-nav">
     <div class="nav-container">
       <a href="index.html" class="nav-brand">
@@ -580,355 +466,124 @@
         <a href="lore.html">Lore</a>
         <a href="roadmap.html" class="active">Roadmap</a>
         <a href="docs.html">Docs</a>
+        <a href="x402.html">x402</a>
       </div>
       <div class="nav-actions">
-        <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
-          </svg>
+        <a href="https://x.com/meetharuka" target="_blank" rel="noreferrer" class="icon-link" aria-label="X">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z"/></svg>
         </a>
-        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
-          </svg>
+        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" rel="noreferrer" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
         </a>
         <a href="index.html" class="btn-primary">Start Chat</a>
       </div>
     </div>
   </nav>
 
-  <!-- =======================================================
-       BENTO CONTENT CONTAINER
-       ======================================================= -->
-  <div class="roadmap-wrapper">
-    
-    <!-- Left-aligned Editorial Intro -->
+  <main class="page-shell">
     <header class="page-intro">
       <span class="page-tag">Roadmap</span>
-      <h1 class="page-title">What is live now, and what comes next.</h1>
-      <p class="page-desc">This roadmap should be read against the real HARUKA implementation in this checkout, not a generic multi-app template.</p>
+      <h1 class="page-title">The journey so far.</h1>
+      <p class="page-desc">Everything we said we'd build - is built.</p>
     </header>
 
-    <div class="roadmap-card" style="margin-bottom: 28px;">
-      <div class="card-meta-row">
-        <span class="period-text">Current shipping shape</span>
-        <span class="status-badge in-progress">
-          <span class="badge-dot"></span>
-          <span>Repo Reality</span>
-        </span>
+    <section class="summary-panel">
+      <div>
+        <h2>From companion demo to platform</h2>
+        <p>HARUKA now spans real-time rendering, voice, Open Souls behavior, API access, embedding, and token-linked payment utility. The current roadmap is less about proving the concept and more about expanding where the companion can live.</p>
       </div>
-      <h3>Step 2 to Step 5 in this repo</h3>
-      <p class="phase-desc">The active HARUKA stack already has a shared chat backend, embed widget path, bundled soul engine mode, and an env-driven usage gate.</p>
-
-      <div class="roadmap-bullets-grid">
-        <div class="roadmap-bullet-item completed">
-          <div class="roadmap-bullet-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <span>Step 2: shared `/api/haruka/chat` backend is implemented</span>
-        </div>
-
-        <div class="roadmap-bullet-item completed">
-          <div class="roadmap-bullet-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <span>Step 3: widget path through `embed.js` and `widget.html` is implemented</span>
-        </div>
-
-        <div class="roadmap-bullet-item planned">
-          <div class="roadmap-bullet-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-            </svg>
-          </div>
-          <span>Step 4: persistent soul runtime is still optional, not required for Vercel-only deploys</span>
-        </div>
-
-        <div class="roadmap-bullet-item planned">
-          <div class="roadmap-bullet-check">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-            </svg>
-          </div>
-          <span>Step 5: usage gate is implemented in backend and becomes active only when env is enabled</span>
-        </div>
+      <div class="summary-grid">
+        <div class="summary-item"><span class="summary-dot"></span><div><strong>Completed:</strong> Foundation, companion intelligence, and infrastructure are shipped.</div></div>
+        <div class="summary-item"><span class="summary-dot"></span><div><strong>In Progress:</strong> x402, buyback mechanics, and token utility are the active commercial layer.</div></div>
+        <div class="summary-item"><span class="summary-dot"></span><div><strong>Planned:</strong> Gaming, screen awareness, desktop presence, and broader distribution define the next expansion wave.</div></div>
       </div>
-    </div>
+    </section>
 
-    <!-- Timeline Grid -->
-    <div class="timeline-container">
-      
-      <!-- Track Line -->
-      <div class="timeline-track-line"></div>
-
-      <!-- PHASE 1: FOUNDATION -->
-      <div class="timeline-item active">
-        <!-- Junction Node -->
-        <div class="timeline-node">
-          <div class="timeline-node-inner"></div>
+    <section class="timeline">
+      <article class="phase-card">
+        <div class="phase-meta">
+          <span class="period">Q1 2026</span>
+          <span class="status completed">Completed</span>
         </div>
-        
-        <!-- Card Content -->
-        <div class="roadmap-card">
-          <div class="card-meta-row">
-            <span class="period-text">Q1 2026</span>
-            <span class="status-badge completed">
-              <span class="badge-dot"></span>
-              <span>Completed</span>
-            </span>
-          </div>
-          <h3>Phase 1: Foundation</h3>
-          <p class="phase-desc">Haruka's first chapter: laying the groundwork for everything that comes after.</p>
-          
-          <div class="roadmap-bullets-grid">
-            <div class="roadmap-bullet-item completed">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span>Core 3D character rendering with VRM support</span>
-            </div>
-
-            <div class="roadmap-bullet-item completed">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span>WebGPU local AI inference integration</span>
-            </div>
-
-            <div class="roadmap-bullet-item completed">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span>Real-time voice input & TTS output</span>
-            </div>
-
-            <div class="roadmap-bullet-item completed">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span>Web app (PWA), accessible directly from browser</span>
-            </div>
-
-            <div class="roadmap-bullet-item completed">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
-              <span>20+ LLM provider support</span>
-            </div>
-          </div>
+        <h3>Phase 1 - Foundation</h3>
+        <p>The groundwork for everything that came after.</p>
+        <div class="bullet-grid">
+          <div class="bullet"><span>01</span><span>Live2D real-time character rendering</span></div>
+          <div class="bullet"><span>02</span><span>WebGPU local AI inference</span></div>
+          <div class="bullet"><span>03</span><span>Real-time voice input and output</span></div>
+          <div class="bullet"><span>04</span><span>Web app (PWA) accessible from browser</span></div>
+          <div class="bullet"><span>05</span><span>20+ LLM provider support</span></div>
+          <div class="bullet"><span>06</span><span>Customizable backgrounds and scenes</span></div>
+          <div class="bullet"><span>07</span><span>EN and JP language toggle</span></div>
         </div>
-      </div>
+      </article>
 
-      <!-- PHASE 2: COMPANION INTELLIGENCE -->
-      <div class="timeline-item in-progress">
-        <!-- Junction Node -->
-        <div class="timeline-node">
-          <div class="timeline-node-inner"></div>
+      <article class="phase-card">
+        <div class="phase-meta">
+          <span class="period">Q2 2026</span>
+          <span class="status completed">Completed</span>
         </div>
-        
-        <!-- Card Content -->
-        <div class="roadmap-card">
-          <div class="card-meta-row">
-            <span class="period-text">Q2 2026</span>
-            <span class="status-badge in-progress">
-              <span class="badge-dot"></span>
-              <span>In Progress</span>
-            </span>
-          </div>
-          <h3>Phase 2: Companion Intelligence</h3>
-          <p class="phase-desc">Making Haruka smarter, more aware, and more emotionally expressive.</p>
-          
-          <div class="roadmap-bullets-grid">
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <!-- Half filled / ongoing circle -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke-width="3.5" stroke="var(--primary-600)"></path>
-                </svg>
-              </div>
-              <span>Persistent memory & long-term conversation context</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke-width="3.5" stroke="var(--primary-600)"></path>
-                </svg>
-              </div>
-              <span>Emotion-aware response system</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke-width="3.5" stroke="var(--primary-600)"></path>
-                </svg>
-              </div>
-              <span>Gaming companion mode (real-time game context detection)</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <!-- Unfilled planned circle -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Character personality customization & settings</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Expanded multilingual support</span>
-            </div>
-          </div>
+        <h3>Phase 2 - Companion Intelligence</h3>
+        <p>Making Haruka smarter, more aware, and more consistent.</p>
+        <div class="bullet-grid">
+          <div class="bullet"><span>01</span><span>Open Souls Soul Engine integration</span></div>
+          <div class="bullet"><span>02</span><span>Persistent memory via SQLite vector store</span></div>
+          <div class="bullet"><span>03</span><span>Mental processes before every response</span></div>
+          <div class="bullet"><span>04</span><span>Consistent personality across all sessions</span></div>
+          <div class="bullet"><span>05</span><span>Long-term vector memory storage</span></div>
+          <div class="bullet"><span>06</span><span>Character Card system with presets</span></div>
         </div>
-      </div>
+      </article>
 
-      <!-- PHASE 3: PLATFORM & ECOSYSTEM -->
-      <div class="timeline-item">
-        <!-- Junction Node -->
-        <div class="timeline-node">
-          <div class="timeline-node-inner"></div>
+      <article class="phase-card">
+        <div class="phase-meta">
+          <span class="period">Q2 2026</span>
+          <span class="status completed">Completed</span>
         </div>
-        
-        <!-- Card Content -->
-        <div class="roadmap-card">
-          <div class="card-meta-row">
-            <span class="period-text">Q3 2026</span>
-            <span class="status-badge planned">
-              <span class="badge-dot"></span>
-              <span>Planned</span>
-            </span>
-          </div>
-          <h3>Phase 3: Platform & Ecosystem</h3>
-          <p class="phase-desc">Opening Haruka to the world: more platforms, more freedom, more creators.</p>
-          
-          <div class="roadmap-bullets-grid">
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Plugin marketplace for community-built extensions</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Custom VRM character import support</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Desktop app (Electron), full official release</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>iOS & Android official release</span>
-            </div>
-          </div>
+        <h3>Phase 3 - Infrastructure</h3>
+        <p>Turning Haruka from a website into a platform.</p>
+        <div class="bullet-grid">
+          <div class="bullet"><span>01</span><span>API Server - any app can call Haruka</span></div>
+          <div class="bullet"><span>02</span><span>Embed Widget - one line of code, she shows up anywhere</span></div>
+          <div class="bullet"><span>03</span><span>First external integration live on Atelier (atelierai.xyz)</span></div>
+          <div class="bullet"><span>04</span><span>GitHub repo public</span></div>
         </div>
-      </div>
+      </article>
 
-      <!-- PHASE 4: THE LIVING WORLD -->
-      <div class="timeline-item">
-        <!-- Junction Node -->
-        <div class="timeline-node">
-          <div class="timeline-node-inner"></div>
+      <article class="phase-card in-progress">
+        <div class="phase-meta">
+          <span class="period">Q2-Q3 2026</span>
+          <span class="status in-progress">In Progress</span>
         </div>
-        
-        <!-- Card Content -->
-        <div class="roadmap-card">
-          <div class="card-meta-row">
-            <span class="period-text">Q4 2026 and beyond</span>
-            <span class="status-badge vision">
-              <span class="badge-dot"></span>
-              <span>Vision</span>
-            </span>
-          </div>
-          <h3>Phase 4: The Living World</h3>
-          <p class="phase-desc">The bigger dream: a world where companions truly live alongside you.</p>
-          
-          <div class="roadmap-bullets-grid">
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Multi-character shared scenes</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Companion lore & world-building tools</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Creator tools for custom stories & scenarios</span>
-            </div>
-
-            <div class="roadmap-bullet-item planned">
-              <div class="roadmap-bullet-check">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10" stroke-dasharray="4 4"></circle>
-                </svg>
-              </div>
-              <span>Community character gallery & sharing platform</span>
-            </div>
-          </div>
+        <h3>Phase 4 - Payment and Tokenomics</h3>
+        <p>Tying everything together with real token utility.</p>
+        <div class="bullet-grid">
+          <div class="bullet"><span>01</span><span>x402 payment gate integrated (devnet)</span></div>
+          <div class="bullet"><span>02</span><span>x402 mainnet deployment</span></div>
+          <div class="bullet"><span>03</span><span>Buyback bot - 100% API revenue -> buyback and burn $HARUKA via Jupiter</span></div>
+          <div class="bullet"><span>04</span><span>Token-gated features - hold $HARUKA to unlock premium</span></div>
+          <div class="bullet"><span>05</span><span>Swap utility - "swap USDC to $HARUKA" inside chat</span></div>
         </div>
-      </div>
+      </article>
 
-    </div>
-
-
-
-  </div>
-
+      <article class="phase-card planned">
+        <div class="phase-meta">
+          <span class="period">Q3-Q4 2026</span>
+          <span class="status planned">Planned</span>
+        </div>
+        <h3>Phase 5 - Expansion</h3>
+        <p>Growing Haruka's capabilities and reach.</p>
+        <div class="bullet-grid">
+          <div class="bullet"><span>01</span><span>Gaming companion mode - real-time game context</span></div>
+          <div class="bullet"><span>02</span><span>Screen awareness - desktop app sees your screen</span></div>
+          <div class="bullet"><span>03</span><span>Desktop app (Electron) - floating overlay</span></div>
+          <div class="bullet"><span>04</span><span>Pump.fun live chat integration - Haruka reads and responds to comments</span></div>
+          <div class="bullet"><span>05</span><span>Chrome extension - Haruka on every page</span></div>
+          <div class="bullet"><span>06</span><span>Multi-language expansion</span></div>
+          <div class="bullet"><span>07</span><span>Companion passport - on-chain profile</span></div>
+        </div>
+      </article>
+    </section>
+  </main>
 </body>
 </html>
