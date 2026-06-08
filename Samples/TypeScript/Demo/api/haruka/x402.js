@@ -1,5 +1,4 @@
 const { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } = require('@x402/core/server');
-const { generateJwt } = require('@coinbase/cdp-sdk/auth');
 const { SOLANA_DEVNET_CAIP2 } = require('@x402/svm');
 const { registerExactSvmScheme } = require('@x402/svm/exact/server');
 
@@ -39,7 +38,12 @@ function buildCdpFacilitatorPath(baseUrl, endpoint) {
   return `${basePath}/${endpoint}`;
 }
 
+function loadCdpGenerateJwt() {
+  return require('@coinbase/cdp-sdk/auth').generateJwt;
+}
+
 async function createCdpAuthHeaders(config) {
+  const generateJwt = loadCdpGenerateJwt();
   const parsed = new URL(config.facilitatorUrl);
   const createHeaderSet = async (method, endpoint) => {
     const token = await generateJwt({
