@@ -72,10 +72,10 @@ Access your companion anywhere with a responsive web interface and native-like a
 
 ---
 
-### 🔌 Plugin System
-**Tag:** Coming Soon
+### 💳 x402 Payments
+**Tag:** Live on Devnet
 
-An extensible component architecture for custom skills, tools, and integrations. Build and share your own companion enhancements with the community.
+HARUKA now supports an x402 payment challenge for developer API traffic, giving autonomous agents a clean pay-per-request path to premium actions, partner APIs, and paid workflows through the HTTP 402 standard.
 
 ---
 

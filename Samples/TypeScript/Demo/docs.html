@@ -706,9 +706,9 @@
                 <td>Lets Haruka run inside another website without maintaining a second app</td>
               </tr>
               <tr>
-                <td><strong>Usage Gate / Widget Keys</strong></td>
-                <td>Backend env + <code>/api/haruka/health</code></td>
-                <td>Controls widget API keys, quota windows, and over-limit behavior</td>
+                <td><strong>x402 Payments</strong></td>
+                <td><code>/api/haruka/chat</code> + <code>/api/haruka/health</code></td>
+                <td>Enables HTTP 402-native pay-per-request access for developer API traffic</td>
               </tr>
             </tbody>
           </table>
@@ -723,7 +723,20 @@
             </svg>
           </div>
           <div class="alert-text">
-            <strong>Important:</strong> Step 5 usage gate is a backend feature. You will not see a normal user-facing quota panel in Settings yet. Verify it from <code>/api/haruka/health</code> and real chat responses.
+            <strong>Important:</strong> HARUKA now exposes x402 on the backend for developer API traffic. Verify the active state from <code>/api/haruka/health</code> and by testing a real <code>api-client</code> request against <code>/api/haruka/chat</code>.
+          </div>
+        </div>
+
+        <div class="docs-alert tip" id="x402-payments">
+          <div class="alert-icon-box">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 3l7.5 4.5v9L12 21l-7.5-4.5v-9L12 3z"></path>
+              <path d="M8.5 12h7"></path>
+              <path d="M12 8.5v7"></path>
+            </svg>
+          </div>
+          <div class="alert-text">
+            <strong>x402 in HARUKA:</strong> The live deployment now uses x402 as a professional payment gate for developer API traffic. The current production setup is tuned for Solana Devnet, which is ideal for validating the flow before moving to a mainnet facilitator.
           </div>
         </div>
 
@@ -756,7 +769,25 @@
               <tr><td><strong>Step 2</strong></td><td>Stable shared chat backend</td><td>Implemented</td></tr>
               <tr><td><strong>Step 3</strong></td><td>Embeddable widget using the same app and API</td><td>Implemented</td></tr>
               <tr><td><strong>Step 4</strong></td><td>Optional persistent soul runtime beyond serverless</td><td>Optional path only</td></tr>
-              <tr><td><strong>Step 5</strong></td><td>Usage gate and widget key control in front of chat</td><td>Implemented in backend, enabled only when env is set</td></tr>
+              <tr><td><strong>Step 5</strong></td><td>Usage gate, widget key control, and x402 developer payment path in front of chat</td><td>Implemented in backend and currently live on devnet</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>x402 payment flow</h3>
+        <div class="docs-table-wrapper">
+          <table class="docs-table">
+            <thead>
+              <tr>
+                <th>Stage</th>
+                <th>HARUKA behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>1. Request</strong></td><td>An <code>api-client</code> request reaches <code>/api/haruka/chat</code>.</td></tr>
+              <tr><td><strong>2. Challenge</strong></td><td>HARUKA returns <code>402 Payment Required</code> and exposes <code>PAYMENT-REQUIRED</code>.</td></tr>
+              <tr><td><strong>3. Retry</strong></td><td>The client signs the payment flow and retries with proof.</td></tr>
+              <tr><td><strong>4. Access</strong></td><td>HARUKA can continue the paid action through the same API route.</td></tr>
             </tbody>
           </table>
         </div>

@@ -197,7 +197,47 @@ The important fields are:
 
 ---
 
-## 8. Deployment Shape
+## 8. x402 Payments
+
+### What x402 does in HARUKA
+x402 gives HARUKA a machine-native payment gate for developer API traffic.
+
+Instead of redirecting an agent through a traditional checkout flow, the API can answer with HTTP `402 Payment Required`, publish the payment requirements, and allow the caller to retry with payment proof.
+
+### Current live status
+
+- x402 is active for `api-client` traffic
+- the current production path is configured for **Solana Devnet**
+- widget traffic stays separate from the x402 developer flow
+
+### What a successful flow looks like
+
+1. a developer or agent sends a request to `/api/haruka/chat`
+2. HARUKA returns `402 Payment Required`
+3. the response includes the `PAYMENT-REQUIRED` header
+4. the client signs and retries the request with payment data
+5. HARUKA continues the paid action
+
+### Core environment variables
+
+```env
+HARUKA_X402_ENABLED=true
+HARUKA_X402_SCOPE=api-client
+HARUKA_X402_PRICE=$0.001
+HARUKA_X402_NETWORK=solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1
+HARUKA_X402_PAY_TO=YOUR_SOLANA_PUBLIC_WALLET
+HARUKA_X402_FACILITATOR_URL=https://x402.org/facilitator
+```
+
+### Production note
+
+- `x402.org/facilitator` is suitable for test networks
+- Solana Mainnet requires a production facilitator and proper credentials
+- the HARUKA runtime already supports a CDP-based facilitator path when you are ready to move past devnet
+
+---
+
+## 9. Deployment Shape
 
 ### Recommended shape for this repo
 This checkout is designed to work as one Vercel deployment.
@@ -221,7 +261,7 @@ Only move to a separate backend later if you truly need:
 
 ---
 
-## 9. Roadmap Concepts and Current Status
+## 10. Roadmap Concepts and Current Status
 
 ### What the roadmap means in this repo
 
