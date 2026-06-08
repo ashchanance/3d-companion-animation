@@ -6,6 +6,8 @@ const DEFAULT_FACILITATOR_URL = 'https://x402.org/facilitator';
 const DEFAULT_PRICE = '$0.001';
 const DEFAULT_SCOPE = 'api-client';
 const DEFAULT_DESCRIPTION = 'HARUKA paid chat request';
+const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const CDP_FACILITATOR_URL = 'https://api.cdp.coinbase.com/platform/v2/x402';
 
 let cachedRuntimePromise = null;
 let cachedRuntimeKey = '';
@@ -22,6 +24,14 @@ function splitEnvList(value) {
     .filter(Boolean);
 }
 
+function isDefaultTestnetFacilitator(url) {
+  return String(url || '').trim().replace(/\/$/, '') === DEFAULT_FACILITATOR_URL;
+}
+
+function isCdpFacilitator(url) {
+  return String(url || '').trim().replace(/\/$/, '') === CDP_FACILITATOR_URL;
+}
+
 function readX402Config() {
   const enabled = parseBooleanFlag(process.env.HARUKA_X402_ENABLED);
   const config = {
@@ -32,12 +42,27 @@ function readX402Config() {
     payTo: String(process.env.HARUKA_X402_PAY_TO || process.env.HARUKA_TREASURY_WALLET || '').trim(),
     facilitatorUrl: String(process.env.HARUKA_X402_FACILITATOR_URL || DEFAULT_FACILITATOR_URL).trim() || DEFAULT_FACILITATOR_URL,
     description: String(process.env.HARUKA_X402_DESCRIPTION || DEFAULT_DESCRIPTION).trim() || DEFAULT_DESCRIPTION,
-    bypassKeys: new Set(splitEnvList(process.env.HARUKA_X402_BYPASS_KEYS))
+    bypassKeys: new Set(splitEnvList(process.env.HARUKA_X402_BYPASS_KEYS)),
+    facilitatorAuthMode: String(process.env.HARUKA_X402_FACILITATOR_AUTH_MODE || '').trim().toLowerCase(),
+    facilitatorBearerToken: String(process.env.HARUKA_X402_FACILITATOR_BEARER_TOKEN || '').trim(),
+    cdpApiKeyId: String(process.env.HARUKA_X402_CDP_API_KEY_ID || '').trim(),
+    cdpApiKeySecret: String(process.env.HARUKA_X402_CDP_API_KEY_SECRET || '').trim()
   };
 
   const issues = [];
   if (config.enabled && !config.payTo) {
     issues.push('HARUKA_X402_PAY_TO or HARUKA_TREASURY_WALLET is required when HARUKA_X402_ENABLED=true.');
+  }
+  if (config.enabled && isDefaultTestnetFacilitator(config.facilitatorUrl) && config.network === SOLANA_MAINNET_CAIP2) {
+    issues.push('https://x402.org/facilitator only supports testnets. Use Solana devnet or switch HARUKA_X402_FACILITATOR_URL to a production facilitator for mainnet.');
+  }
+  if (
+    config.enabled &&
+    isCdpFacilitator(config.facilitatorUrl) &&
+    !config.facilitatorBearerToken &&
+    (!config.cdpApiKeyId || !config.cdpApiKeySecret)
+  ) {
+    issues.push('CDP facilitator requires either HARUKA_X402_FACILITATOR_BEARER_TOKEN or CDP API credentials.');
   }
 
   return {
@@ -57,6 +82,9 @@ function buildX402Snapshot() {
     x402Network: config.network,
     x402FacilitatorUrl: config.facilitatorUrl,
     x402PayToConfigured: Boolean(config.payTo),
+    x402FacilitatorAuthMode: config.facilitatorAuthMode || (isCdpFacilitator(config.facilitatorUrl) ? 'cdp' : 'none'),
+    x402FacilitatorBearerTokenConfigured: Boolean(config.facilitatorBearerToken),
+    x402CdpApiKeyConfigured: Boolean(config.cdpApiKeyId && config.cdpApiKeySecret),
     x402BypassKeyCount: config.bypassKeys.size,
     ...(config.issues.length > 0 ? { x402Issues: config.issues } : {})
   };
@@ -177,9 +205,21 @@ function shouldRequireX402(config, requestLike, body) {
 }
 
 async function createRuntime(config) {
-  const facilitator = new HTTPFacilitatorClient({
+  const facilitatorConfig = {
     url: config.facilitatorUrl
-  });
+  };
+  if (config.facilitatorBearerToken) {
+    facilitatorConfig.createAuthHeaders = async () => ({
+      verify: { Authorization: `Bearer ${config.facilitatorBearerToken}` },
+      settle: { Authorization: `Bearer ${config.facilitatorBearerToken}` },
+      supported: { Authorization: `Bearer ${config.facilitatorBearerToken}` }
+    });
+  } else if (isCdpFacilitator(config.facilitatorUrl)) {
+    facilitatorConfig.createAuthHeaders = async () => {
+      throw new Error('CDP facilitator authentication is not configured in this HARUKA runtime yet. Provide HARUKA_X402_FACILITATOR_BEARER_TOKEN or add JWT generation support.');
+    };
+  }
+  const facilitator = new HTTPFacilitatorClient(facilitatorConfig);
   const resourceServer = registerExactSvmScheme(new x402ResourceServer(facilitator), {
     networks: [config.network]
   });
