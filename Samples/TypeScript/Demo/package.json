@@ -28,6 +28,7 @@
     "fsevents": "*"
   },
   "dependencies": {
+    "@coinbase/cdp-sdk": "^1.51.0",
     "@x402/core": "^2.14.0",
     "@x402/svm": "^2.14.0",
     "ogl": "^1.0.11",

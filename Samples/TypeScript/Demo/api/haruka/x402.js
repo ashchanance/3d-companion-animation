@@ -1,4 +1,5 @@
 const { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer } = require('@x402/core/server');
+const { generateJwt } = require('@coinbase/cdp-sdk/auth');
 const { SOLANA_DEVNET_CAIP2 } = require('@x402/svm');
 const { registerExactSvmScheme } = require('@x402/svm/exact/server');
 
@@ -30,6 +31,36 @@ function isDefaultTestnetFacilitator(url) {
 
 function isCdpFacilitator(url) {
   return String(url || '').trim().replace(/\/$/, '') === CDP_FACILITATOR_URL;
+}
+
+function buildCdpFacilitatorPath(baseUrl, endpoint) {
+  const parsed = new URL(baseUrl);
+  const basePath = parsed.pathname.replace(/\/$/, '');
+  return `${basePath}/${endpoint}`;
+}
+
+async function createCdpAuthHeaders(config) {
+  const parsed = new URL(config.facilitatorUrl);
+  const createHeaderSet = async (method, endpoint) => {
+    const token = await generateJwt({
+      apiKeyId: config.cdpApiKeyId,
+      apiKeySecret: config.cdpApiKeySecret,
+      requestMethod: method,
+      requestHost: parsed.host,
+      requestPath: buildCdpFacilitatorPath(config.facilitatorUrl, endpoint),
+      expiresIn: 120
+    });
+
+    return {
+      Authorization: `Bearer ${token}`
+    };
+  };
+
+  return {
+    verify: await createHeaderSet('POST', 'verify'),
+    settle: await createHeaderSet('POST', 'settle'),
+    supported: await createHeaderSet('GET', 'supported')
+  };
 }
 
 function readX402Config() {
@@ -82,7 +113,9 @@ function buildX402Snapshot() {
     x402Network: config.network,
     x402FacilitatorUrl: config.facilitatorUrl,
     x402PayToConfigured: Boolean(config.payTo),
-    x402FacilitatorAuthMode: config.facilitatorAuthMode || (isCdpFacilitator(config.facilitatorUrl) ? 'cdp' : 'none'),
+    x402FacilitatorAuthMode:
+      config.facilitatorAuthMode ||
+      (config.facilitatorBearerToken ? 'bearer' : isCdpFacilitator(config.facilitatorUrl) ? 'cdp-jwt' : 'none'),
     x402FacilitatorBearerTokenConfigured: Boolean(config.facilitatorBearerToken),
     x402CdpApiKeyConfigured: Boolean(config.cdpApiKeyId && config.cdpApiKeySecret),
     x402BypassKeyCount: config.bypassKeys.size,
@@ -215,9 +248,7 @@ async function createRuntime(config) {
       supported: { Authorization: `Bearer ${config.facilitatorBearerToken}` }
     });
   } else if (isCdpFacilitator(config.facilitatorUrl)) {
-    facilitatorConfig.createAuthHeaders = async () => {
-      throw new Error('CDP facilitator authentication is not configured in this HARUKA runtime yet. Provide HARUKA_X402_FACILITATOR_BEARER_TOKEN or add JWT generation support.');
-    };
+    facilitatorConfig.createAuthHeaders = async () => createCdpAuthHeaders(config);
   }
   const facilitator = new HTTPFacilitatorClient(facilitatorConfig);
   const resourceServer = registerExactSvmScheme(new x402ResourceServer(facilitator), {
