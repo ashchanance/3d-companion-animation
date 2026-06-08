@@ -8,6 +8,7 @@ const DEFAULT_SCOPE = 'api-client';
 const DEFAULT_DESCRIPTION = 'HARUKA paid chat request';
 const SOLANA_MAINNET_CAIP2 = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 const CDP_FACILITATOR_URL = 'https://api.cdp.coinbase.com/platform/v2/x402';
+const ROUTE_VERSION = 'api-haruka-x402-2026-06-08-v1';
 
 let cachedRuntimePromise = null;
 let cachedRuntimeKey = '';
@@ -333,7 +334,16 @@ async function getRuntime() {
 
   if (!cachedRuntimePromise || cachedRuntimeKey !== cacheKey) {
     cachedRuntimeKey = cacheKey;
-    cachedRuntimePromise = createRuntime(config);
+    const runtimePromise = createRuntime(config).catch((error) => {
+      if (cachedRuntimePromise === runtimePromise) {
+        cachedRuntimePromise = null;
+        cachedRuntimeKey = '';
+      }
+
+      throw error;
+    });
+
+    cachedRuntimePromise = runtimePromise;
   }
 
   return {
@@ -363,20 +373,10 @@ function writeX402Response(response, instructions) {
 }
 
 async function processHarukaX402(request, body) {
-  const { config, runtime } = await getRuntime();
+  try {
+    const { config, runtime } = await getRuntime();
 
-  if (!config.enabled) {
-    return {
-      handled: false,
-      verified: null,
-      settlementContext: null,
-      skipUsageGate: false,
-      x402: buildX402Snapshot()
-    };
-  }
-
-  if (!config.ready) {
-    if (!shouldRequireX402(config, request, body)) {
+    if (!config.enabled) {
       return {
         handled: false,
         verified: null,
@@ -386,58 +386,85 @@ async function processHarukaX402(request, body) {
       };
     }
 
-    return {
-      handled: true,
-      response: {
-        status: 503,
-        headers: {},
-        body: {
-          ok: false,
-          reply: 'HARUKA x402 is enabled but not configured correctly.',
-          statusCode: 503,
-          error: config.issues.join(' ')
-        }
-      },
-      x402: buildX402Snapshot()
-    };
-  }
+    if (!config.ready) {
+      if (!shouldRequireX402(config, request, body)) {
+        return {
+          handled: false,
+          verified: null,
+          settlementContext: null,
+          skipUsageGate: false,
+          x402: buildX402Snapshot()
+        };
+      }
 
-  try {
-    const adapter = createHttpAdapter(request, body);
-    const requestContext = {
-      adapter,
-      path: adapter.getPath(),
-      method: adapter.getMethod()
-    };
-    const processResult = await runtime.httpServer.processHTTPRequest(requestContext);
-
-    if (processResult.type === 'payment-error') {
       return {
         handled: true,
-        response: processResult.response,
+        response: {
+          status: 503,
+          headers: {},
+          body: {
+            ok: false,
+            reply: 'HARUKA x402 is enabled but not configured correctly.',
+            statusCode: 503,
+            error: config.issues.join(' ')
+          }
+        },
         x402: buildX402Snapshot()
       };
     }
 
-    if (processResult.type === 'payment-verified') {
+    try {
+      const adapter = createHttpAdapter(request, body);
+      const requestContext = {
+        adapter,
+        path: adapter.getPath(),
+        method: adapter.getMethod()
+      };
+      const processResult = await runtime.httpServer.processHTTPRequest(requestContext);
+
+      if (processResult.type === 'payment-error') {
+        return {
+          handled: true,
+          response: processResult.response,
+          x402: buildX402Snapshot()
+        };
+      }
+
+      if (processResult.type === 'payment-verified') {
+        return {
+          handled: false,
+          verified: processResult,
+          settlementContext: {
+            request: requestContext
+          },
+          skipUsageGate: true,
+          x402: buildX402Snapshot()
+        };
+      }
+
       return {
         handled: false,
-        verified: processResult,
-        settlementContext: {
-          request: requestContext
+        verified: null,
+        settlementContext: null,
+        skipUsageGate: false,
+        x402: buildX402Snapshot()
+      };
+    } catch (error) {
+      return {
+        handled: true,
+        response: {
+          status: 503,
+          headers: {},
+          body: {
+            ok: false,
+            reply: 'HARUKA x402 could not initialize the payment gateway for this request.',
+            statusCode: 503,
+            error: error instanceof Error ? error.message : String(error)
+          }
         },
-        skipUsageGate: true,
         x402: buildX402Snapshot()
       };
     }
-
-    return {
-      handled: false,
-      verified: null,
-      settlementContext: null,
-      skipUsageGate: false,
-      x402: buildX402Snapshot()
-    };
   } catch (error) {
     return {
       handled: true,
@@ -503,11 +530,23 @@ async function finalizeHarukaX402(processState, responseBody) {
   };
 }
 
-module.exports = {
-  buildX402Snapshot,
-  cancelHarukaX402,
-  finalizeHarukaX402,
-  processHarukaX402,
-  readX402Config,
-  writeX402Response
-};
+function handler(_request, response) {
+  response.setHeader('Content-Type', 'application/json');
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.status(200).json({
+    ok: true,
+    routeVersion: ROUTE_VERSION,
+    deploymentEnv: process.env.VERCEL_ENV || 'local',
+    vercelRegion: process.env.VERCEL_REGION || 'unknown',
+    ...buildX402Snapshot()
+  });
+}
+
+handler.buildX402Snapshot = buildX402Snapshot;
+handler.cancelHarukaX402 = cancelHarukaX402;
+handler.finalizeHarukaX402 = finalizeHarukaX402;
+handler.processHarukaX402 = processHarukaX402;
+handler.readX402Config = readX402Config;
+handler.writeX402Response = writeX402Response;
+
+module.exports = handler;
