@@ -1,31 +1,14 @@
-const bs58 = require('bs58');
-const {
-  Connection,
-  Keypair,
-  PublicKey,
-  Transaction,
-  VersionedTransaction
-} = require('@solana/web3.js');
-const {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-  TOKEN_2022_PROGRAM_ID,
-  createAssociatedTokenAccountInstruction,
-  createBurnInstruction,
-  getAccount,
-  getAssociatedTokenAddress,
-  getMint
-} = require('@solana/spl-token');
-
 const ROUTE_VERSION = 'api-haruka-buyback-2026-06-09-v1';
 const DEFAULT_RPC_URL = 'https://api.mainnet-beta.solana.com';
 const DEFAULT_HARUKA_MINT = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
 const DEFAULT_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 const DEFAULT_MIN_USDC_AMOUNT = 100000;
 const DEFAULT_SLIPPAGE_BPS = 100;
+const DEFAULT_AUTO_TRIGGER = true;
 const PRIVATE_KEY_REQUIRED_ISSUE =
   'HARUKA_BUYBACK_TREASURY_PRIVATE_KEY is required to swap and burn from the treasury wallet.';
 
+let cachedBuybackSdkPromise = null;
 let cachedJupiterApiClientFactoryPromise = null;
 const mintProgramCache = new Map();
 
@@ -46,24 +29,6 @@ function parsePositiveInteger(value, fallback) {
 function readHeaderValue(request, name) {
   const value = request && request.headers ? request.headers[name] || request.headers[name.toLowerCase()] : undefined;
   return Array.isArray(value) ? value[0] : value;
-}
-
-function parseSecretKey(secret) {
-  const raw = String(secret || '').trim();
-  if (!raw) {
-    throw new Error('Treasury private key is missing.');
-  }
-
-  if (raw.startsWith('[')) {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      throw new Error('Treasury private key JSON array is empty.');
-    }
-
-    return Uint8Array.from(parsed);
-  }
-
-  return Uint8Array.from(bs58.decode(raw));
 }
 
 function isTokenAccountMissingError(error) {
@@ -109,7 +74,11 @@ function readBuybackConfig() {
     usdcMint: String(process.env.HARUKA_BUYBACK_USDC_MINT || DEFAULT_USDC_MINT).trim() || DEFAULT_USDC_MINT,
     minUsdcAmountRaw: parsePositiveInteger(process.env.HARUKA_BUYBACK_MIN_USDC_AMOUNT, DEFAULT_MIN_USDC_AMOUNT),
     slippageBps: parsePositiveInteger(process.env.HARUKA_BUYBACK_SLIPPAGE_BPS, DEFAULT_SLIPPAGE_BPS),
-    dryRun: parseBooleanFlag(process.env.HARUKA_BUYBACK_DRY_RUN)
+    dryRun: parseBooleanFlag(process.env.HARUKA_BUYBACK_DRY_RUN),
+    autoTrigger:
+      process.env.HARUKA_BUYBACK_AUTO_TRIGGER === undefined
+        ? DEFAULT_AUTO_TRIGGER
+        : parseBooleanFlag(process.env.HARUKA_BUYBACK_AUTO_TRIGGER)
   };
 
   const issues = [];
@@ -151,17 +120,81 @@ function buildBuybackSnapshot() {
     buybackMinUsdcAmountRaw: config.minUsdcAmountRaw,
     buybackSlippageBps: config.slippageBps,
     buybackDryRun: config.dryRun,
+    buybackAutoTrigger: config.autoTrigger,
     ...(config.issues.length > 0 ? { buybackIssues: config.issues } : {})
   };
 }
 
-function getTreasuryPublicKey(config) {
-  return new PublicKey(config.treasuryPublicKey);
+function loadWaitUntil() {
+  try {
+    const moduleRef = require('@vercel/functions');
+    if (typeof moduleRef.waitUntil === 'function') {
+      return moduleRef.waitUntil;
+    }
+  } catch (_error) {
+    // Best effort only. Local and non-Vercel runtimes may not expose waitUntil.
+  }
+
+  return null;
 }
 
-function getTreasuryKeypair(config) {
-  const secretKey = parseSecretKey(config.treasuryPrivateKey);
-  const keypair = Keypair.fromSecretKey(secretKey);
+async function loadBuybackSdk() {
+  if (!cachedBuybackSdkPromise) {
+    cachedBuybackSdkPromise = Promise.all([
+      import('@solana/web3.js'),
+      import('@solana/spl-token'),
+      import('bs58')
+    ])
+      .then(([web3Module, splTokenModule, bs58Module]) => {
+        const web3 = web3Module.default && web3Module.default.Connection ? web3Module.default : web3Module;
+        const splToken =
+          splTokenModule.default && splTokenModule.default.TOKEN_PROGRAM_ID ? splTokenModule.default : splTokenModule;
+        const bs58 = bs58Module.default || bs58Module;
+
+        if (!web3.Connection || !web3.PublicKey || !splToken.TOKEN_PROGRAM_ID || typeof bs58.decode !== 'function') {
+          throw new Error('HARUKA buyback SDK loader could not resolve required Solana modules.');
+        }
+
+        return {
+          web3,
+          splToken,
+          bs58
+        };
+      })
+      .catch((error) => {
+        cachedBuybackSdkPromise = null;
+        throw error;
+      });
+  }
+
+  return cachedBuybackSdkPromise;
+}
+
+async function parseSecretKey(secret, sdk) {
+  const raw = String(secret || '').trim();
+  if (!raw) {
+    throw new Error('Treasury private key is missing.');
+  }
+
+  if (raw.startsWith('[')) {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error('Treasury private key JSON array is empty.');
+    }
+
+    return Uint8Array.from(parsed);
+  }
+
+  return Uint8Array.from(sdk.bs58.decode(raw));
+}
+
+async function getTreasuryPublicKey(config, sdk) {
+  return new sdk.web3.PublicKey(config.treasuryPublicKey);
+}
+
+async function getTreasuryKeypair(config, sdk) {
+  const secretKey = await parseSecretKey(config.treasuryPrivateKey, sdk);
+  const keypair = sdk.web3.Keypair.fromSecretKey(secretKey);
   if (config.treasuryPublicKey && keypair.publicKey.toString() !== config.treasuryPublicKey) {
     throw new Error('HARUKA_BUYBACK_TREASURY_PUBLIC_KEY does not match HARUKA_BUYBACK_TREASURY_PRIVATE_KEY.');
   }
@@ -169,11 +202,11 @@ function getTreasuryKeypair(config) {
   return keypair;
 }
 
-function createConnection(config) {
-  return new Connection(config.rpcUrl, 'confirmed');
+async function createConnection(config, sdk) {
+  return new sdk.web3.Connection(config.rpcUrl, 'confirmed');
 }
 
-async function getTokenProgramIdForMint(connection, mintPublicKey) {
+async function getTokenProgramIdForMint(connection, mintPublicKey, sdk) {
   const cacheKey = mintPublicKey.toString();
   const cached = mintProgramCache.get(cacheKey);
   if (cached) {
@@ -186,7 +219,7 @@ async function getTokenProgramIdForMint(connection, mintPublicKey) {
   }
 
   const owner = accountInfo.owner;
-  if (!owner.equals(TOKEN_PROGRAM_ID) && !owner.equals(TOKEN_2022_PROGRAM_ID)) {
+  if (!owner.equals(sdk.splToken.TOKEN_PROGRAM_ID) && !owner.equals(sdk.splToken.TOKEN_2022_PROGRAM_ID)) {
     throw new Error(`Mint ${cacheKey} is owned by unsupported token program ${owner.toString()}.`);
   }
 
@@ -196,44 +229,35 @@ async function getTokenProgramIdForMint(connection, mintPublicKey) {
 
 async function loadCreateJupiterApiClient() {
   if (!cachedJupiterApiClientFactoryPromise) {
-    cachedJupiterApiClientFactoryPromise = (async () => {
-      try {
-        const moduleRef = require('@jup-ag/api');
-        if (typeof moduleRef.createJupiterApiClient === 'function') {
-          return moduleRef.createJupiterApiClient;
+    cachedJupiterApiClientFactoryPromise = import('@jup-ag/api')
+      .then((moduleRef) => {
+        const factory = moduleRef.createJupiterApiClient || moduleRef.default?.createJupiterApiClient || moduleRef.default;
+        if (typeof factory === 'function') {
+          return factory;
         }
-      } catch (error) {
-        if (!error || error.code !== 'ERR_REQUIRE_ESM') {
-          throw error;
-        }
-      }
 
-      const moduleRef = await import('@jup-ag/api');
-      const factory = moduleRef.createJupiterApiClient || moduleRef.default?.createJupiterApiClient;
-      if (typeof factory === 'function') {
-        return factory;
-      }
-
-      throw new Error('Could not load Jupiter API client.');
-    })().catch((error) => {
-      cachedJupiterApiClientFactoryPromise = null;
-      throw error;
-    });
+        throw new Error('Could not load Jupiter API client.');
+      })
+      .catch((error) => {
+        cachedJupiterApiClientFactoryPromise = null;
+        throw error;
+      });
   }
 
   return cachedJupiterApiClientFactoryPromise;
 }
 
-async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId) {
-  const ata = await getAssociatedTokenAddress(
+async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk) {
+  const ata = await sdk.splToken.getAssociatedTokenAddress(
     mintPublicKey,
     ownerPublicKey,
     false,
     tokenProgramId,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    sdk.splToken.ASSOCIATED_TOKEN_PROGRAM_ID
   );
+
   try {
-    const account = await getAccount(connection, ata, 'confirmed', tokenProgramId);
+    const account = await sdk.splToken.getAccount(connection, ata, 'confirmed', tokenProgramId);
     return {
       ata,
       exists: true,
@@ -252,8 +276,8 @@ async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, t
   }
 }
 
-async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublicKey, tokenProgramId) {
-  const tokenState = await getTokenAccountState(connection, mintPublicKey, payerKeypair.publicKey, tokenProgramId);
+async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublicKey, tokenProgramId, sdk) {
+  const tokenState = await getTokenAccountState(connection, mintPublicKey, payerKeypair.publicKey, tokenProgramId, sdk);
   if (tokenState.exists) {
     return {
       ata: tokenState.ata,
@@ -262,16 +286,16 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
     };
   }
 
-  const instruction = createAssociatedTokenAccountInstruction(
+  const instruction = sdk.splToken.createAssociatedTokenAccountInstruction(
     payerKeypair.publicKey,
     tokenState.ata,
     payerKeypair.publicKey,
     mintPublicKey,
     tokenProgramId,
-    ASSOCIATED_TOKEN_PROGRAM_ID
+    sdk.splToken.ASSOCIATED_TOKEN_PROGRAM_ID
   );
   const latestBlockhash = await connection.getLatestBlockhash('confirmed');
-  const transaction = new Transaction({
+  const transaction = new sdk.web3.Transaction({
     feePayer: payerKeypair.publicKey,
     blockhash: latestBlockhash.blockhash,
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
@@ -297,9 +321,9 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
   };
 }
 
-async function getMintDetails(connection, mintPublicKey) {
-  const tokenProgramId = await getTokenProgramIdForMint(connection, mintPublicKey);
-  const mint = await getMint(connection, mintPublicKey, 'confirmed', tokenProgramId);
+async function getMintDetails(connection, mintPublicKey, sdk) {
+  const tokenProgramId = await getTokenProgramIdForMint(connection, mintPublicKey, sdk);
+  const mint = await sdk.splToken.getMint(connection, mintPublicKey, 'confirmed', tokenProgramId);
   return {
     decimals: mint.decimals,
     tokenProgramId
@@ -326,7 +350,7 @@ async function createJupiterQuote(config, amountRaw) {
   };
 }
 
-async function executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair) {
+async function executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair, sdk) {
   const swapResult = await jupiterApi.swapPost({
     swapRequest: {
       quoteResponse: quote,
@@ -339,7 +363,7 @@ async function executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair
     throw new Error('Jupiter did not return a swap transaction.');
   }
 
-  const swapTransaction = VersionedTransaction.deserialize(Buffer.from(swapResult.swapTransaction, 'base64'));
+  const swapTransaction = sdk.web3.VersionedTransaction.deserialize(Buffer.from(swapResult.swapTransaction, 'base64'));
   swapTransaction.sign([treasuryKeypair]);
 
   const signature = await connection.sendRawTransaction(swapTransaction.serialize(), {
@@ -353,13 +377,13 @@ async function executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair
   };
 }
 
-async function burnHarukaAmount(connection, treasuryKeypair, mintPublicKey, tokenAccountAddress, amountRaw, tokenProgramId) {
+async function burnHarukaAmount(connection, treasuryKeypair, mintPublicKey, tokenAccountAddress, amountRaw, tokenProgramId, sdk) {
   if (amountRaw <= 0n) {
     throw new Error('Burn amount must be greater than zero.');
   }
 
   const latestBlockhash = await connection.getLatestBlockhash('confirmed');
-  const burnInstruction = createBurnInstruction(
+  const burnInstruction = sdk.splToken.createBurnInstruction(
     tokenAccountAddress,
     mintPublicKey,
     treasuryKeypair.publicKey,
@@ -368,7 +392,7 @@ async function burnHarukaAmount(connection, treasuryKeypair, mintPublicKey, toke
     tokenProgramId
   );
 
-  const transaction = new Transaction({
+  const transaction = new sdk.web3.Transaction({
     feePayer: treasuryKeypair.publicKey,
     blockhash: latestBlockhash.blockhash,
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
@@ -447,15 +471,18 @@ async function runHarukaBuybackCycle(options = {}) {
     };
   }
 
-  const connection = createConnection(config);
-  const treasuryPublicKey = dryRunWithoutPrivateKey ? getTreasuryPublicKey(config) : getTreasuryKeypair(config).publicKey;
-  const usdcMint = new PublicKey(config.usdcMint);
-  const harukaMint = new PublicKey(config.harukaMint);
-  const usdcMintDetails = await getMintDetails(connection, usdcMint);
-  const harukaMintDetails = await getMintDetails(connection, harukaMint);
+  const sdk = await loadBuybackSdk();
+  const connection = await createConnection(config, sdk);
+  const treasuryPublicKey = dryRunWithoutPrivateKey
+    ? await getTreasuryPublicKey(config, sdk)
+    : (await getTreasuryKeypair(config, sdk)).publicKey;
+  const usdcMint = new sdk.web3.PublicKey(config.usdcMint);
+  const harukaMint = new sdk.web3.PublicKey(config.harukaMint);
+  const usdcMintDetails = await getMintDetails(connection, usdcMint, sdk);
+  const harukaMintDetails = await getMintDetails(connection, harukaMint, sdk);
   const usdcDecimals = usdcMintDetails.decimals;
   const harukaDecimals = harukaMintDetails.decimals;
-  const usdcState = await getTokenAccountState(connection, usdcMint, treasuryPublicKey, usdcMintDetails.tokenProgramId);
+  const usdcState = await getTokenAccountState(connection, usdcMint, treasuryPublicKey, usdcMintDetails.tokenProgramId, sdk);
   const minThresholdRaw = BigInt(config.minUsdcAmountRaw);
   const treasurySummary = {
     publicKey: treasuryPublicKey.toString(),
@@ -514,25 +541,28 @@ async function runHarukaBuybackCycle(options = {}) {
     };
   }
 
-  const treasuryKeypair = getTreasuryKeypair(config);
+  const treasuryKeypair = await getTreasuryKeypair(config, sdk);
   const outputAtaResult = await ensureAssociatedTokenAccount(
     connection,
     treasuryKeypair,
     harukaMint,
-    harukaMintDetails.tokenProgramId
+    harukaMintDetails.tokenProgramId,
+    sdk
   );
   const harukaBalanceBefore = await getTokenAccountState(
     connection,
     harukaMint,
     treasuryPublicKey,
-    harukaMintDetails.tokenProgramId
+    harukaMintDetails.tokenProgramId,
+    sdk
   );
-  const swap = await executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair);
+  const swap = await executeJupiterSwap(connection, jupiterApi, quote, treasuryKeypair, sdk);
   const harukaBalanceAfter = await getTokenAccountState(
     connection,
     harukaMint,
     treasuryPublicKey,
-    harukaMintDetails.tokenProgramId
+    harukaMintDetails.tokenProgramId,
+    sdk
   );
   const purchasedHarukaRaw = harukaBalanceAfter.amountRaw - harukaBalanceBefore.amountRaw;
 
@@ -546,19 +576,22 @@ async function runHarukaBuybackCycle(options = {}) {
     harukaMint,
     harukaBalanceAfter.ata,
     purchasedHarukaRaw,
-    harukaMintDetails.tokenProgramId
+    harukaMintDetails.tokenProgramId,
+    sdk
   );
   const finalUsdcState = await getTokenAccountState(
     connection,
     usdcMint,
     treasuryPublicKey,
-    usdcMintDetails.tokenProgramId
+    usdcMintDetails.tokenProgramId,
+    sdk
   );
   const finalHarukaState = await getTokenAccountState(
     connection,
     harukaMint,
     treasuryPublicKey,
-    harukaMintDetails.tokenProgramId
+    harukaMintDetails.tokenProgramId,
+    sdk
   );
 
   return {
@@ -603,11 +636,79 @@ async function runHarukaBuybackCycle(options = {}) {
   };
 }
 
+function triggerHarukaBuybackAfterSettlement(metadata = {}) {
+  const snapshot = buildBuybackSnapshot();
+  const config = readBuybackConfig();
+
+  if (!config.enabled) {
+    return {
+      queued: false,
+      reason: 'HARUKA_BUYBACK_ENABLED is false.',
+      snapshot
+    };
+  }
+
+  if (!config.autoTrigger) {
+    return {
+      queued: false,
+      reason: 'HARUKA_BUYBACK_AUTO_TRIGGER is false.',
+      snapshot
+    };
+  }
+
+  const task = runHarukaBuybackCycle().then(
+    (result) => {
+      console.log(
+        '[haruka-buyback]',
+        JSON.stringify({
+          source: metadata.source || 'x402-settlement',
+          requestId: metadata.requestId || null,
+          ok: result.ok,
+          executed: result.executed,
+          skipped: result.skipped,
+          reason: result.reason || null
+        })
+      );
+      return result;
+    },
+    (error) => {
+      console.error(
+        '[haruka-buyback]',
+        JSON.stringify({
+          source: metadata.source || 'x402-settlement',
+          requestId: metadata.requestId || null,
+          ok: false,
+          error: error instanceof Error ? error.message : String(error)
+        })
+      );
+      return null;
+    }
+  );
+
+  const waitUntil = loadWaitUntil();
+  if (waitUntil) {
+    waitUntil(task);
+    return {
+      queued: true,
+      mode: 'waitUntil',
+      snapshot
+    };
+  }
+
+  void task;
+  return {
+    queued: true,
+    mode: 'fire-and-forget',
+    snapshot
+  };
+}
+
 module.exports = {
   ROUTE_VERSION,
   buildBuybackSnapshot,
   isAuthorizedBuybackRequest,
   parseBuybackQueryOptions,
   readBuybackConfig,
-  runHarukaBuybackCycle
+  runHarukaBuybackCycle,
+  triggerHarukaBuybackAfterSettlement
 };

@@ -5,8 +5,9 @@ const {
   processHarukaX402,
   writeX402Response
 } = require('./x402.js');
+const { triggerHarukaBuybackAfterSettlement } = require('./buyback.js');
 
-const ROUTE_VERSION = 'api-haruka-chat-2026-06-05-v7';
+const ROUTE_VERSION = 'api-haruka-chat-2026-06-09-v8';
 
 const usageBuckets = new Map();
 
@@ -768,6 +769,8 @@ module.exports = async function handler(request, response) {
       });
     }
 
+    let buybackTrigger = null;
+
     if (result.ok && x402State.verified) {
       const settlement = await finalizeHarukaX402(x402State, result);
       if (!settlement.ok) {
@@ -778,6 +781,11 @@ module.exports = async function handler(request, response) {
       for (const [key, value] of Object.entries(settlement.headers || {})) {
         response.setHeader(key, value);
       }
+
+      buybackTrigger = triggerHarukaBuybackAfterSettlement({
+        source: 'x402-settlement',
+        requestId: String(readHeaderValue(request, 'x-vercel-id') || readHeaderValue(request, 'x-request-id') || '').trim() || null
+      });
     }
 
     response.status(statusCode).json({
@@ -787,6 +795,7 @@ module.exports = async function handler(request, response) {
         deploymentEnv: process.env.VERCEL_ENV || 'local',
         vercelRegion: process.env.VERCEL_REGION || 'unknown',
         x402: x402State.x402,
+        ...(buybackTrigger ? { buybackTrigger } : {}),
         ...result.debug
       }
     });

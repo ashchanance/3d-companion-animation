@@ -3,16 +3,13 @@
   "outputDirectory": "dist",
   "framework": null,
   "functions": {
+    "api/haruka/chat.js": {
+      "maxDuration": 300
+    },
     "api/haruka/buyback-cycle.js": {
-      "maxDuration": 120
+      "maxDuration": 300
     }
   },
-  "crons": [
-    {
-      "path": "/api/haruka/buyback-cycle",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/about-us", "destination": "/about-us.html" },
