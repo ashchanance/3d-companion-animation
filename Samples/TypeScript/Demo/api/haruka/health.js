@@ -1,4 +1,4 @@
-const { buildBuybackSnapshot } = require('./buyback.js');
+const { buildBuybackSnapshot } = require('../../lib/haruka/buyback.js');
 const { buildX402Snapshot } = require('./x402.js');
 
 const ROUTE_VERSION = 'api-haruka-health-2026-06-05-v4';

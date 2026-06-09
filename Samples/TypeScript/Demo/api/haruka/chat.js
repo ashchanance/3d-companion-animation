@@ -5,7 +5,7 @@ const {
   processHarukaX402,
   writeX402Response
 } = require('./x402.js');
-const { triggerHarukaBuybackAfterSettlement } = require('./buyback.js');
+const { triggerHarukaBuybackAfterSettlement } = require('../../lib/haruka/buyback.js');
 
 const ROUTE_VERSION = 'api-haruka-chat-2026-06-09-v8';
 

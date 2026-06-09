@@ -4,7 +4,7 @@ const {
   isAuthorizedBuybackRequest,
   parseBuybackQueryOptions,
   runHarukaBuybackCycle
-} = require('./buyback.js');
+} = require('../../lib/haruka/buyback.js');
 
 function applyHeaders(response) {
   response.setHeader('Content-Type', 'application/json');
