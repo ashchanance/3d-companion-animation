@@ -529,7 +529,7 @@
         <h2>What is live today</h2>
         <p>The production deployment already serves x402 payment challenges on Solana mainnet for developer-facing <code>api-client</code> traffic.</p>
         <p>That means HARUKA can now monetize paid API requests one call at a time, without turning the public website chat into a mandatory payment wall.</p>
-        <p>Tokenomics automation such as buyback and burn can still be layered on later, but the mainnet payment gate itself is already live.</p>
+        <p>The deployment model now also includes a treasury-linked buyback runtime, so settlement, treasury intake, and buyback orchestration can live in the same HARUKA surface.</p>
       </article>
 
       <article class="section-card">
@@ -577,7 +577,7 @@
               <li>Mainnet payment flow gives HARUKA a native monetization rail</li>
               <li>Token-gated features - hold to unlock premium</li>
               <li>Holder discount logic can be layered into future pricing policy</li>
-              <li>Tokenomics automation remains a roadmap decision</li>
+              <li>Treasury-funded buyback execution is now part of the deployed runtime model</li>
             </ul>
           </div>
           <div class="token-card">
@@ -602,8 +602,8 @@
       <article class="section-card">
         <h2>Supply Mechanics</h2>
         <div class="mono-block">Total supply   : Fixed - no new minting
-Burn mechanism : Planned tokenomics layer, not active in the x402 runtime
-Deflationary   : Depends on future treasury and burn automation
+Burn mechanism : Treasury-funded buyback and burn path
+Deflationary   : More qualified paid usage can feed on-chain supply reduction
 Lock           : 34M tokens locked via Streamflow</div>
       </article>
 
@@ -611,6 +611,7 @@ Lock           : 34M tokens locked via Streamflow</div>
         <h2>Treasury</h2>
         <p>Treasury wallet is public and verifiable on-chain. Anyone can check the balance and transaction history.</p>
         <p>Incoming x402 payments can be monitored on-chain like any other Solana payment destination.</p>
+        <p>When buyback is enabled, HARUKA can check treasury USDC after successful settlement and use that balance for Jupiter-based buyback execution.</p>
       </article>
 
       <article class="section-card">
@@ -625,6 +626,7 @@ Lock           : 34M tokens locked via Streamflow</div>
       <article class="section-card">
         <h2>Status</h2>
         <p>x402 is live on Solana mainnet in production. The active scope today is developer-facing <code>api-client</code> requests, so partners and agents can pay per call without forcing the public HARUKA website chat into the same payment wall.</p>
+        <p>The buyback runtime is also integrated into the deployment design: paid requests settle to the treasury wallet, treasury checks can run in the same deployment, and a protected manual route supports operator dry runs.</p>
       </article>
     </section>
   </main>

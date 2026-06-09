@@ -674,6 +674,8 @@
         <h2>12. x402 Payment</h2>
         <p>HARUKA uses x402 on Solana mainnet for paid `api-client` requests.</p>
         <p>Developer sends request -> HARUKA returns HTTP 402 with payment requirements -> client pays -> payment is verified on-chain -> HARUKA responds.</p>
+        <p>When buyback is enabled, the same paid runtime can trigger a treasury check after successful settlement.</p>
+        <p>If treasury USDC is available above the configured threshold, HARUKA can route that balance through Jupiter, buy back <code>$HARUKA</code>, and burn the purchased amount.</p>
 
         <div class="table-wrap">
           <table>
@@ -705,6 +707,7 @@
         </div>
 
         <div class="info-card"><strong>Status:</strong> live on mainnet in production. The current payment gate is applied to developer-facing <code>api-client</code> traffic rather than the public website chat widget.</div>
+        <div class="info-card"><strong>Buyback runtime:</strong> built into the same HARUKA deployment, triggered after successful x402 settlement when enabled, uses the treasury wallet as the destination for paid API revenue, and exposes a protected manual route for operator dry runs.</div>
       </section>
 
       <section id="github" class="doc-section">

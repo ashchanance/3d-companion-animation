@@ -196,12 +196,27 @@ client pays on Solana mainnet ->
 payment verified on-chain ->
 Haruka responds.
 
+When buyback is enabled, the same paid runtime can trigger a treasury check
+after successful settlement.
+
+If treasury USDC is available above the configured threshold,
+HARUKA can route that balance through Jupiter,
+buy back $HARUKA,
+and burn the purchased amount.
+
 **Pricing:**
 - Free tier: 100 calls/day
 - Paid tier: $0.001 USDC per call
 - Holder discount: hold $HARUKA for reduced rate
 
 Live on mainnet in production. The current payment gate applies to developer-facing `api-client` traffic rather than the public website chat widget.
+
+**Buyback runtime:**
+- Built into the same HARUKA deployment
+- Triggered after successful x402 settlement when enabled
+- Uses the treasury wallet as the destination for paid API revenue
+- Includes a protected manual route for operator testing and dry runs
+- Designed for transparent, on-chain treasury activity
 
 ### 13. GitHub
 
