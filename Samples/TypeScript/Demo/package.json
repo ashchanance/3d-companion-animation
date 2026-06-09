@@ -29,8 +29,12 @@
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.51.0",
+    "@jup-ag/api": "^6.0.48",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "@x402/core": "^2.14.0",
     "@x402/svm": "^2.14.0",
+    "bs58": "^6.0.0",
     "ogl": "^1.0.11",
     "pump-chat-client": "^1.0.1"
   }

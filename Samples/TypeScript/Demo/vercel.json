@@ -2,6 +2,17 @@
   "buildCommand": "npm run build:prod",
   "outputDirectory": "dist",
   "framework": null,
+  "functions": {
+    "api/haruka/buyback-cycle.js": {
+      "maxDuration": 120
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/haruka/buyback-cycle",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/about-us", "destination": "/about-us.html" },
@@ -12,4 +23,3 @@
     { "source": "/lore",     "destination": "/lore.html"     }
   ]
 }
-
