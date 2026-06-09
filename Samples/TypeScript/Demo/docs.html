@@ -672,35 +672,39 @@
 
       <section id="x402-payment" class="doc-section">
         <h2>12. x402 Payment</h2>
-        <p>All API calls go through the x402 payment protocol.</p>
-        <p>Developer sends request -> x402 checks payment -> payment verified on-chain -> Haruka responds.</p>
+        <p>HARUKA uses x402 on Solana mainnet for paid `api-client` requests.</p>
+        <p>Developer sends request -> HARUKA returns HTTP 402 with payment requirements -> client pays -> payment is verified on-chain -> HARUKA responds.</p>
 
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Tier</th>
-                <th>Pricing</th>
+                <th>Step</th>
+                <th>What happens</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Free</td>
-                <td>100 calls/day</td>
+                <td>1. Request</td>
+                <td>The developer posts to <code>/api/haruka/chat</code> with <code>clientType: "api-client"</code>.</td>
               </tr>
               <tr>
-                <td>Paid</td>
-                <td>$0.001 USDC per call</td>
+                <td>2. Challenge</td>
+                <td>HARUKA returns <code>HTTP 402</code> and a <code>PAYMENT-REQUIRED</code> header describing the price, network, and pay-to wallet.</td>
               </tr>
               <tr>
-                <td>Holder</td>
-                <td>Reduced rate for holding $HARUKA</td>
+                <td>3. Payment</td>
+                <td>The client pays on Solana mainnet using an x402-compatible payment flow and retries the request with payment proof.</td>
+              </tr>
+              <tr>
+                <td>4. Response</td>
+                <td>After payment verification succeeds, HARUKA processes the request and returns the AI response normally.</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="info-card"><strong>Status:</strong> currently on devnet. Mainnet deployment is coming soon.</div>
+        <div class="info-card"><strong>Status:</strong> live on mainnet in production. The current payment gate is applied to developer-facing <code>api-client</code> traffic rather than the public website chat widget.</div>
       </section>
 
       <section id="github" class="doc-section">

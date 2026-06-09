@@ -114,11 +114,11 @@ Already live on @useAtelier (atelierai.xyz).
 ---
 
 ### FEATURE 7 - x402 Payment Gate
-**Status:** Live (Devnet) - Mainnet coming soon
+**Status:** Live (Mainnet)
 
-Every API call and embed session goes through x402.
+HARUKA currently applies x402 to developer-facing `api-client` traffic.
 
-Developers pay per call. Payment settles automatically on-chain.
+Developers pay per call. Payment settles on Solana mainnet.
 No invoices. No manual process.
 
 100% of API revenue goes directly to buyback and burn $HARUKA.

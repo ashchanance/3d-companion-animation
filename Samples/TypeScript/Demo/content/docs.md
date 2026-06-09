@@ -188,10 +188,11 @@ voice, memory, and chat interface. No setup needed.
 
 ### 12. x402 Payment
 
-All API calls go through x402 payment protocol.
+HARUKA uses x402 on Solana mainnet for paid `api-client` requests.
 
 Developer sends request ->
-x402 checks payment ->
+HARUKA returns HTTP 402 with payment requirements ->
+client pays on Solana mainnet ->
 payment verified on-chain ->
 Haruka responds.
 
@@ -200,7 +201,7 @@ Haruka responds.
 - Paid tier: $0.001 USDC per call
 - Holder discount: hold $HARUKA for reduced rate
 
-Currently on devnet. Mainnet deployment coming soon.
+Live on mainnet in production. The current payment gate applies to developer-facing `api-client` traffic rather than the public website chat widget.
 
 ### 13. GitHub
 

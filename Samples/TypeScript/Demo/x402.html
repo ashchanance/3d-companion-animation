@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HARUKA - x402 and Tokenomics</title>
-  <meta name="description" content="Understand HARUKA's x402 payment gate, buyback and burn loop, pricing tiers, token utility, and on-chain treasury story.">
+  <meta name="description" content="Understand HARUKA's x402 payment gate on Solana mainnet, how developers use the paid API flow, and how the on-chain treasury fits the broader token story.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -494,14 +494,14 @@
         </div>
         <div class="status-row">
           <span class="pill">Devnet Live</span>
-          <span class="pill blue">Mainnet Coming Soon</span>
+          <span class="pill blue">Live on Mainnet</span>
         </div>
       </div>
       <div class="hero-card">
         <div class="stat-label">What this page covers</div>
         <div class="stat-grid">
           <div class="stat-item"><strong>x402 protocol</strong><span>Machine-native payment requests through HTTP 402.</span></div>
-          <div class="stat-item"><strong>Buyback loop</strong><span>100% of API revenue routes toward buyback and burn.</span></div>
+          <div class="stat-item"><strong>Mainnet payment gate</strong><span>Production x402 challenges now settle against Solana mainnet.</span></div>
           <div class="stat-item"><strong>Token utility</strong><span>Holders, developers, and users each get a clear role.</span></div>
         </div>
       </div>
@@ -511,53 +511,57 @@
       <article class="section-card">
         <h2>What is x402?</h2>
         <p>x402 is an open payment protocol that embeds payments directly into API requests using HTTP status code 402, "Payment Required."</p>
-        <p>When a developer calls the Haruka API, x402 handles the payment automatically. No invoices. No accounts. No manual process. Everything settles on Solana.</p>
+        <p>When a developer calls the HARUKA API, x402 turns that request into a machine-readable payment challenge. No invoices, no sales call, and no manual approval loop. The payment challenge is settled on Solana mainnet.</p>
       </article>
 
       <article class="section-card">
         <h2>How it works in HARUKA</h2>
         <div class="step-stack">
-          <div class="step"><strong>1</strong><span>Developer calls the Haruka API.</span></div>
-          <div class="step"><strong>2</strong><span>x402 middleware checks whether the request is paid.</span></div>
-          <div class="step"><strong>3</strong><span>If unpaid, HARUKA returns 402 with payment instructions. If paid, the request continues.</span></div>
-          <div class="step"><strong>4</strong><span>USDC lands in the HARUKA treasury wallet.</span></div>
-          <div class="step"><strong>5</strong><span>Buyback logic converts incoming USDC into $HARUKA through Jupiter and the tokens are burned.</span></div>
+          <div class="step"><strong>1</strong><span>A developer or agent sends a request to <code>/api/haruka/chat</code> as <code>api-client</code>.</span></div>
+          <div class="step"><strong>2</strong><span>HARUKA checks whether valid x402 payment proof is attached to the request.</span></div>
+          <div class="step"><strong>3</strong><span>If unpaid, HARUKA returns <code>HTTP 402</code> with a <code>PAYMENT-REQUIRED</code> header that describes the amount, network, asset, and pay-to wallet.</span></div>
+          <div class="step"><strong>4</strong><span>The client pays on Solana mainnet through an x402-compatible flow and retries the request with payment proof.</span></div>
+          <div class="step"><strong>5</strong><span>After verification succeeds, HARUKA processes the request and returns the normal AI response.</span></div>
         </div>
       </article>
 
       <article class="section-card">
-        <h2>Buyback and Burn</h2>
-        <p>100% of every payment from API usage goes directly to buying back and burning $HARUKA.</p>
-        <p>Not 50%. Not 70%. All of it. No team cut. No operational budget. The full amount goes back to the token.</p>
-        <p>The more developers that build with Haruka, the more $HARUKA gets bought and burned. Usage directly benefits holders.</p>
+        <h2>What is live today</h2>
+        <p>The production deployment already serves x402 payment challenges on Solana mainnet for developer-facing <code>api-client</code> traffic.</p>
+        <p>That means HARUKA can now monetize paid API requests one call at a time, without turning the public website chat into a mandatory payment wall.</p>
+        <p>Tokenomics automation such as buyback and burn can still be layered on later, but the mainnet payment gate itself is already live.</p>
       </article>
 
       <article class="section-card">
-        <h2>Pricing Tiers</h2>
+        <h2>How other developers use it</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Tier</th>
-                <th>Rate</th>
-                <th>Access</th>
+                <th>Stage</th>
+                <th>Client behavior</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Free</td>
-                <td>$0</td>
-                <td>100 calls/day (testing)</td>
+                <td>1. Call HARUKA</td>
+                <td>Send a POST request to HARUKA with <code>clientType: "api-client"</code>.</td>
               </tr>
               <tr>
-                <td>Basic</td>
-                <td>$0.001 USDC/call</td>
-                <td>Unlimited</td>
+                <td>2. Read 402</td>
+                <td>If the request is unpaid, read the <code>PAYMENT-REQUIRED</code> header returned by HARUKA.</td>
               </tr>
               <tr>
-                <td>Holder</td>
-                <td>$0.0005 USDC/call</td>
-                <td>Hold $HARUKA for 50% discount</td>
+                <td>3. Pay</td>
+                <td>Use an x402-compatible payment client or wallet flow to satisfy the challenge on Solana mainnet.</td>
+              </tr>
+              <tr>
+                <td>4. Retry</td>
+                <td>Retry the same HARUKA request with the payment proof headers attached.</td>
+              </tr>
+              <tr>
+                <td>5. Receive output</td>
+                <td>HARUKA verifies payment and returns the AI response as a normal API result.</td>
               </tr>
             </tbody>
           </table>
@@ -570,10 +574,10 @@
           <div class="token-card">
             <h3>For Holders</h3>
             <ul class="utility-list">
-              <li>100% API revenue -> buyback and burn</li>
+              <li>Mainnet payment flow gives HARUKA a native monetization rail</li>
               <li>Token-gated features - hold to unlock premium</li>
-              <li>Holder discount on API pricing</li>
-              <li>Supply decreases with every API call</li>
+              <li>Holder discount logic can be layered into future pricing policy</li>
+              <li>Tokenomics automation remains a roadmap decision</li>
             </ul>
           </div>
           <div class="token-card">
@@ -598,15 +602,15 @@
       <article class="section-card">
         <h2>Supply Mechanics</h2>
         <div class="mono-block">Total supply   : Fixed - no new minting
-Burn mechanism : Every API payment = burn
-Deflationary   : More usage = less supply
+Burn mechanism : Planned tokenomics layer, not active in the x402 runtime
+Deflationary   : Depends on future treasury and burn automation
 Lock           : 34M tokens locked via Streamflow</div>
       </article>
 
       <article class="section-card">
         <h2>Treasury</h2>
         <p>Treasury wallet is public and verifiable on-chain. Anyone can check the balance and transaction history.</p>
-        <p>All buybacks and burns are visible on Solana explorer.</p>
+        <p>Incoming x402 payments can be monitored on-chain like any other Solana payment destination.</p>
       </article>
 
       <article class="section-card">
@@ -620,7 +624,7 @@ Lock           : 34M tokens locked via Streamflow</div>
 
       <article class="section-card">
         <h2>Status</h2>
-        <p>x402 is currently running on devnet. Mainnet deployment is coming soon. Buyback bot activation follows once x402 is on mainnet.</p>
+        <p>x402 is live on Solana mainnet in production. The active scope today is developer-facing <code>api-client</code> requests, so partners and agents can pay per call without forcing the public HARUKA website chat into the same payment wall.</p>
       </article>
     </section>
   </main>
