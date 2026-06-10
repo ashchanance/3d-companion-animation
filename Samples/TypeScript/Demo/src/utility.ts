@@ -60,6 +60,9 @@ let activeProvider: BrowserWalletProvider | null = null;
 let activeWalletProvider: HarukaPortfolioWalletProvider = 'unknown';
 let refreshIntervalId: number | null = null;
 let loading = false;
+let activeGreetingAudio: HTMLAudioElement | null = null;
+let activeGreetingAudioUrl: string | null = null;
+let activeGreetingUtterance: SpeechSynthesisUtterance | null = null;
 
 interface PortfolioSnapshotResponse {
   ok: boolean;
@@ -182,6 +185,32 @@ function renderConnectedState(context: HarukaPortfolioContext): void {
   }
 }
 
+function cleanSpeechText(text: string): string {
+  return String(text || '')
+    .replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/g, '')
+    .replace(/[\[\]\(\)\{\}]/g, ' ')
+    .trim();
+}
+
+function stopActiveGreetingPlayback(): void {
+  if (activeGreetingAudio) {
+    activeGreetingAudio.pause();
+    activeGreetingAudio.currentTime = 0;
+    activeGreetingAudio = null;
+  }
+
+  if (activeGreetingAudioUrl) {
+    URL.revokeObjectURL(activeGreetingAudioUrl);
+    activeGreetingAudioUrl = null;
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+
+  activeGreetingUtterance = null;
+}
+
 async function fetchPortfolioSnapshot(walletAddress: string): Promise<PortfolioSnapshotResponse> {
   const response = await fetch(PORTFOLIO_API_URL, {
     method: 'POST',
@@ -199,17 +228,109 @@ async function fetchPortfolioSnapshot(walletAddress: string): Promise<PortfolioS
   return payload;
 }
 
-function speakGreeting(message: string): void {
+function speakGreetingWebSpeech(message: string): void {
   if (!('speechSynthesis' in window)) {
     return;
   }
 
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(message);
+  const cleanText = cleanSpeechText(message);
+  if (!cleanText) {
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  activeGreetingUtterance = utterance;
+  utterance.lang = 'en-US';
   utterance.rate = 1;
   utterance.pitch = 1.08;
   utterance.volume = 1;
+
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find((voice) => voice.lang.toLowerCase().includes('en'));
+  if (englishVoice) {
+    utterance.voice = englishVoice;
+  }
+
+  utterance.onend = () => {
+    if (activeGreetingUtterance === utterance) {
+      activeGreetingUtterance = null;
+    }
+  };
+
+  utterance.onerror = () => {
+    if (activeGreetingUtterance === utterance) {
+      activeGreetingUtterance = null;
+    }
+  };
+
   window.speechSynthesis.speak(utterance);
+}
+
+async function speakGreeting(message: string): Promise<void> {
+  const cleanText = cleanSpeechText(message);
+  if (!cleanText) {
+    return;
+  }
+
+  stopActiveGreetingPlayback();
+
+  const elevenLabsApiKey = (import.meta as any).env.VITE_ELEVENLABS_API_KEY || '';
+  const elevenLabsVoiceId = (import.meta as any).env.VITE_ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+  const elevenLabsModelId = (import.meta as any).env.VITE_ELEVENLABS_MODEL_ID || 'eleven_monolingual_v1';
+
+  if (!elevenLabsApiKey) {
+    speakGreetingWebSpeech(cleanText);
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${elevenLabsVoiceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xi-api-key': elevenLabsApiKey
+      },
+      body: JSON.stringify({
+        text: cleanText,
+        model_id: elevenLabsModelId,
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status}`);
+    }
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    activeGreetingAudio = audio;
+    activeGreetingAudioUrl = audioUrl;
+    audio.preload = 'auto';
+
+    const cleanup = () => {
+      if (activeGreetingAudio === audio) {
+        activeGreetingAudio = null;
+      }
+      if (activeGreetingAudioUrl === audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        activeGreetingAudioUrl = null;
+      }
+    };
+
+    audio.onended = cleanup;
+    audio.onerror = cleanup;
+    audio.onabort = cleanup;
+
+    await audio.play();
+  } catch (error) {
+    console.error('Utility ElevenLabs TTS failed, falling back to Web Speech API:', error);
+    stopActiveGreetingPlayback();
+    speakGreetingWebSpeech(cleanText);
+  }
 }
 
 async function buildPortfolioContext(walletAddress: string): Promise<HarukaPortfolioContext> {
@@ -247,7 +368,7 @@ async function refreshPortfolio(triggerSpeech: boolean, announce = true): Promis
     }
 
     if (triggerSpeech && insightBubble?.textContent) {
-      speakGreeting(insightBubble.textContent);
+      void speakGreeting(insightBubble.textContent);
     }
   } catch (error) {
     console.error('Portfolio refresh failed:', error);
@@ -314,7 +435,7 @@ async function disconnectWallet(): Promise<void> {
   }
 
   try {
-    window.speechSynthesis.cancel();
+    stopActiveGreetingPlayback();
   } catch {
     // Ignore browsers without speech support.
   }
