@@ -55,6 +55,8 @@ const marketCapValue = document.getElementById('haruka-market-cap') as HTMLSpanE
 const volumeValue = document.getElementById('haruka-volume-24h') as HTMLSpanElement | null;
 const insightBubble = document.getElementById('portfolio-insight-text') as HTMLParagraphElement | null;
 const statusNote = document.getElementById('portfolio-status') as HTMLDivElement | null;
+const subtitleSurface = document.getElementById('haruka-subtitle') as HTMLElement | null;
+const subtitleText = document.getElementById('haruka-subtitle-text') as HTMLParagraphElement | null;
 
 let activeProvider: BrowserWalletProvider | null = null;
 let activeWalletProvider: HarukaPortfolioWalletProvider = 'unknown';
@@ -63,6 +65,7 @@ let loading = false;
 let activeGreetingAudio: HTMLAudioElement | null = null;
 let activeGreetingAudioUrl: string | null = null;
 let activeGreetingUtterance: SpeechSynthesisUtterance | null = null;
+let subtitleHideTimeoutId: number | null = null;
 
 interface PortfolioSnapshotResponse {
   ok: boolean;
@@ -192,6 +195,46 @@ function cleanSpeechText(text: string): string {
     .trim();
 }
 
+function showSubtitle(message: string): void {
+  if (!subtitleSurface || !subtitleText) {
+    return;
+  }
+
+  if (subtitleHideTimeoutId) {
+    window.clearTimeout(subtitleHideTimeoutId);
+    subtitleHideTimeoutId = null;
+  }
+
+  subtitleText.textContent = message;
+  subtitleSurface.hidden = false;
+  window.requestAnimationFrame(() => {
+    subtitleSurface.classList.add('active');
+  });
+}
+
+function hideSubtitle(immediate = false): void {
+  if (!subtitleSurface) {
+    return;
+  }
+
+  if (subtitleHideTimeoutId) {
+    window.clearTimeout(subtitleHideTimeoutId);
+    subtitleHideTimeoutId = null;
+  }
+
+  subtitleSurface.classList.remove('active');
+
+  if (immediate) {
+    subtitleSurface.hidden = true;
+    return;
+  }
+
+  subtitleHideTimeoutId = window.setTimeout(() => {
+    subtitleSurface.hidden = true;
+    subtitleHideTimeoutId = null;
+  }, 320);
+}
+
 function stopActiveGreetingPlayback(): void {
   if (activeGreetingAudio) {
     activeGreetingAudio.pause();
@@ -209,6 +252,7 @@ function stopActiveGreetingPlayback(): void {
   }
 
   activeGreetingUtterance = null;
+  hideSubtitle(true);
 }
 
 async function fetchPortfolioSnapshot(walletAddress: string): Promise<PortfolioSnapshotResponse> {
@@ -244,6 +288,7 @@ function speakGreetingWebSpeech(message: string): void {
   utterance.rate = 1;
   utterance.pitch = 1.08;
   utterance.volume = 1;
+  showSubtitle(cleanText);
 
   const voices = window.speechSynthesis.getVoices();
   const englishVoice = voices.find((voice) => voice.lang.toLowerCase().includes('en'));
@@ -255,12 +300,14 @@ function speakGreetingWebSpeech(message: string): void {
     if (activeGreetingUtterance === utterance) {
       activeGreetingUtterance = null;
     }
+    hideSubtitle();
   };
 
   utterance.onerror = () => {
     if (activeGreetingUtterance === utterance) {
       activeGreetingUtterance = null;
     }
+    hideSubtitle();
   };
 
   window.speechSynthesis.speak(utterance);
@@ -310,6 +357,7 @@ async function speakGreeting(message: string): Promise<void> {
     activeGreetingAudio = audio;
     activeGreetingAudioUrl = audioUrl;
     audio.preload = 'auto';
+    showSubtitle(cleanText);
 
     const cleanup = () => {
       if (activeGreetingAudio === audio) {
@@ -319,6 +367,7 @@ async function speakGreeting(message: string): Promise<void> {
         URL.revokeObjectURL(audioUrl);
         activeGreetingAudioUrl = null;
       }
+      hideSubtitle();
     };
 
     audio.onended = cleanup;
