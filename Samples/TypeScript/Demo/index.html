@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HARUKA - Interactive AI 3D Companion</title>
   <link rel="icon" type="image/png" href="/Resources/icon_gear.png">
-  
+
   <!-- Modern Google Fonts for Premium Aesthetics -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  
+
   <style>
     /* Google Fonts - Premium Combination: Outfit for display, Plus Jakarta Sans for body, JetBrains Mono for data/monospace */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -18,27 +19,33 @@
       --font-sans: 'Plus Jakarta Sans', sans-serif;
       --font-serif: 'Outfit', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      
+
       /* Haruka Digital Forest Color Theme */
-      --bg-landing: #FBF5E6;            /* Warm golden background — forest light */
-      --cardigan-cream: #FBF8EA;        /* Soft warm gold surface */
-      --cardigan-cream-warm: #F5EDCA;   /* Deep golden warm surface */
-      --cardigan-yellow-deep: #D9A434;  /* Deep golden warm accent */
-      --text-main: #1E2D1F;            /* Forest green dark — grounded, alive */
+      --bg-landing: #FBF5E6;
+      /* Warm golden background — forest light */
+      --cardigan-cream: #FBF8EA;
+      /* Soft warm gold surface */
+      --cardigan-cream-warm: #F5EDCA;
+      /* Deep golden warm surface */
+      --cardigan-yellow-deep: #D9A434;
+      /* Deep golden warm accent */
+      --text-main: #1E2D1F;
+      /* Forest green dark — grounded, alive */
       --text-muted: #4A5E4B;
-      
+
       /* Golden Hour Accent — rich, glowing forest light */
       --primary-50: #FDF8EC;
       --primary-100: #FAF0D0;
       --primary-200: #F2D98A;
       --primary-300: #E8C05A;
       --primary-400: #D9A434;
-      --primary-500: #C8922A;            
-      --primary-600: #B07A1E;            /* Golden Hour — deep warm gold */
+      --primary-500: #C8922A;
+      --primary-600: #B07A1E;
+      /* Golden Hour — deep warm gold */
       --primary-700: #8E6016;
       --primary-800: #6E4A10;
       --primary-900: #4E3409;
-      
+
       --slate-50: #f7f9f4;
       --slate-100: #edf2e9;
       --slate-200: #dce7d8;
@@ -52,14 +59,15 @@
     }
 
     /* Core Mode Controller */
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100vw;
       height: 100vh;
       font-family: var(--font-sans);
     }
-    
+
     html {
       overscroll-behavior-x: none;
       touch-action: none;
@@ -75,12 +83,14 @@
       height: auto;
       display: block;
     }
-    body.mode-landing > canvas {
+
+    body.mode-landing>canvas {
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
       transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     body.mode-landing #ui-overlay {
       display: none !important;
     }
@@ -105,14 +115,15 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      z-index: 0; /* Behind WebGL canvas (z-index: 1) */
+      z-index: 0;
+      /* Behind WebGL canvas (z-index: 1) */
       display: none;
     }
-    
+
     body.mode-chat #chat-bg-container {
       display: block;
     }
-    
+
     .chat-bg-layer {
       position: absolute;
       top: 0;
@@ -125,12 +136,12 @@
       opacity: 0;
       transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    
+
     .chat-bg-layer.active {
       opacity: 1;
       z-index: 1;
     }
-    
+
     .chat-bg-overlay {
       position: absolute;
       top: 0;
@@ -233,9 +244,11 @@
     .bg-options-list::-webkit-scrollbar {
       width: 4px;
     }
+
     .bg-options-list::-webkit-scrollbar-track {
       background: rgba(30, 42, 58, 0.02);
     }
+
     .bg-options-list::-webkit-scrollbar-thumb {
       background: rgba(30, 42, 58, 0.15);
       border-radius: 4px;
@@ -294,21 +307,24 @@
       font-size: 10px;
       color: var(--slate-500);
     }
+
     body.mode-chat #landing-page {
       display: none !important;
     }
-    body.mode-chat > canvas {
+
+    body.mode-chat>canvas {
       opacity: 1;
       pointer-events: auto;
       visibility: visible;
       transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     body.mode-chat #ui-overlay {
       display: flex !important;
     }
 
     /* Ensure Canvas sits at absolute background */
-    body > canvas {
+    body>canvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -360,14 +376,14 @@
       z-index: 20;
       box-shadow: 0 4px 12px rgba(30, 42, 58, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
     }
-    
+
     #home-btn:hover {
       background: rgba(250, 246, 240, 0.9);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(30, 42, 58, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(30, 42, 58, 0.2);
     }
-    
+
     #home-btn:active {
       transform: translateY(0) scale(0.98);
     }
@@ -393,7 +409,7 @@
       cursor: pointer;
       pointer-events: auto;
     }
-    
+
     .cloud-bubble.hidden {
       opacity: 0;
       transform: translateY(15px) scale(0.92);
@@ -401,8 +417,15 @@
     }
 
     @keyframes floatBubble {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
     }
 
     .bubble-content {
@@ -456,7 +479,7 @@
       gap: 6px;
       padding: 4px 6px;
     }
-    
+
     #typing-indicator span {
       width: 8px;
       height: 8px;
@@ -465,13 +488,28 @@
       animation: bounce 1.2s infinite ease-in-out;
       display: inline-block;
     }
-    
-    #typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-    #typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    #typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    #typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
 
     @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-      40% { transform: scale(1.1); opacity: 1; }
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+      }
+
+      40% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
     }
 
     /* Bottom Chat Bar Container */
@@ -491,7 +529,7 @@
       pointer-events: auto;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    
+
     #chat-input-container:focus-within {
       background: rgba(250, 246, 240, 0.9);
       border-color: rgba(30, 42, 58, 0.25);
@@ -515,7 +553,7 @@
       pointer-events: auto;
       z-index: 15;
     }
-    
+
     .lang-btn {
       background: transparent;
       border: none;
@@ -527,12 +565,12 @@
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    
+
     .lang-btn:hover {
       color: var(--text-main);
       background: rgba(30, 42, 58, 0.05);
     }
-    
+
     .lang-btn.active {
       background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
       color: #ffffff;
@@ -554,13 +592,25 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       flex-shrink: 0;
     }
-    
+
     .chat-action-btn:hover {
       background: rgba(30, 42, 58, 0.1);
       color: var(--text-main);
       transform: scale(1.05);
     }
-    
+
+    .chat-action-btn.camera-active {
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+      color: #ffffff;
+      border-color: rgba(200, 146, 42, 0.38);
+      box-shadow: 0 10px 24px rgba(176, 122, 30, 0.24), 0 0 0 4px rgba(216, 164, 52, 0.14);
+    }
+
+    .chat-action-btn.camera-active:hover {
+      background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
+      color: #ffffff;
+    }
+
     .chat-action-btn:active {
       transform: scale(0.95);
     }
@@ -575,17 +625,26 @@
     }
 
     @keyframes pulseMic {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.08); opacity: 0.85; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.08);
+        opacity: 0.85;
+      }
     }
-    
+
     #chat-form {
       display: flex;
       align-items: center;
       width: 100%;
       gap: 10px;
     }
-    
+
     #chat-input {
       flex: 1;
       background: transparent;
@@ -597,11 +656,160 @@
       font-weight: 500;
       font-family: inherit;
     }
-    
+
     #chat-input::placeholder {
       color: var(--slate-400);
     }
-    
+
+    #camera-preview-shell {
+      position: absolute;
+      left: 24px;
+      bottom: 124px;
+      width: min(22vw, 196px);
+      min-width: 156px;
+      padding: 8px;
+      border-radius: 24px;
+      background: rgba(250, 246, 240, 0.78);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(30, 42, 58, 0.12);
+      box-shadow: 0 18px 38px rgba(30, 42, 58, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.68);
+      box-sizing: border-box;
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 14;
+    }
+
+    #camera-preview-shell.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .camera-preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      padding: 2px 4px 0;
+    }
+
+    .camera-preview-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary-700);
+    }
+
+    .camera-preview-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--slate-600);
+    }
+
+    .camera-preview-chip::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary-500);
+      box-shadow: 0 0 0 5px rgba(216, 164, 52, 0.12);
+      animation: pulseCameraDot 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulseCameraDot {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.15);
+        opacity: 0.75;
+      }
+    }
+
+    #user-camera {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+      object-fit: cover;
+      background: rgba(30, 42, 58, 0.18);
+      transform: scaleX(-1);
+    }
+
+    .camera-preview-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 0 4px 2px;
+      font-size: 10px;
+      color: var(--slate-600);
+    }
+
+    #chat-status-note {
+      position: absolute;
+      left: 50%;
+      bottom: 164px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(calc(100vw - 32px), 460px);
+      padding: 12px 16px;
+      border-radius: 18px;
+      background: rgba(250, 246, 240, 0.84);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(30, 42, 58, 0.12);
+      box-shadow: 0 16px 32px rgba(30, 42, 58, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      box-sizing: border-box;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(10px);
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 16;
+    }
+
+    #chat-status-note.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #chat-status-note::before {
+      content: '';
+      width: 9px;
+      height: 9px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--primary-500);
+      box-shadow: 0 0 0 5px rgba(216, 164, 52, 0.14);
+    }
+
+    #chat-status-note[data-tone="error"] {
+      border-color: rgba(185, 28, 28, 0.18);
+      box-shadow: 0 16px 32px rgba(127, 29, 29, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    #chat-status-note[data-tone="error"]::before {
+      background: #dc2626;
+      box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.12);
+    }
+
     #chat-send-btn {
       width: 46px;
       height: 46px;
@@ -616,13 +824,13 @@
       box-shadow: 0 4px 15px rgba(53, 92, 145, 0.3);
       transition: all 0.2s ease;
     }
-    
+
     #chat-send-btn:hover {
       transform: scale(1.06);
       box-shadow: 0 6px 20px rgba(53, 92, 145, 0.45);
       background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
     }
-    
+
     #chat-send-btn:active {
       transform: scale(0.96);
     }
@@ -632,26 +840,32 @@
       box-shadow: 0 20px 40px rgba(234, 179, 8, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(234, 179, 8, 0.3);
     }
+
     .cloud-bubble.sad {
       box-shadow: 0 20px 40px rgba(71, 118, 179, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(71, 118, 179, 0.3);
     }
+
     .cloud-bubble.angry {
       box-shadow: 0 20px 40px rgba(239, 68, 68, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(239, 68, 68, 0.3);
     }
+
     .cloud-bubble.surprise {
       box-shadow: 0 20px 40px rgba(168, 85, 247, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(168, 85, 247, 0.3);
     }
+
     .cloud-bubble.blush {
       box-shadow: 0 20px 40px rgba(236, 72, 153, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(236, 72, 153, 0.3);
     }
+
     .cloud-bubble.thinking {
       box-shadow: 0 20px 40px rgba(20, 184, 166, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(20, 184, 166, 0.3);
     }
+
     .cloud-bubble.neutral {
       box-shadow: 0 20px 40px rgba(30, 42, 58, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(255, 255, 255, 0.8);
@@ -672,7 +886,7 @@
         max-width: 340px !important;
         box-sizing: border-box !important;
       }
-      
+
       .cloud-bubble.hidden {
         opacity: 0 !important;
         transform: translateX(-50%) translateY(15px) scale(0.92) !important;
@@ -697,8 +911,27 @@
       }
 
       @keyframes floatBubbleMobile {
-        0%, 100% { transform: translateX(-50%) translateY(0); }
-        50% { transform: translateX(-50%) translateY(-6px); }
+
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0);
+        }
+
+        50% {
+          transform: translateX(-50%) translateY(-6px);
+        }
+      }
+
+      #camera-preview-shell {
+        left: 16px;
+        bottom: 142px;
+        width: min(30vw, 168px);
+        min-width: 132px;
+      }
+
+      #chat-status-note {
+        bottom: 170px;
+        max-width: min(calc(100vw - 24px), 360px);
       }
     }
 
@@ -945,7 +1178,8 @@
       object-fit: cover;
       pointer-events: none;
       z-index: 1;
-      transform: scale(1.34) translateY(-5%); /* Crop the dark gray baked-in sidebar columns and shift upwards */
+      transform: scale(1.34) translateY(-5%);
+      /* Crop the dark gray baked-in sidebar columns and shift upwards */
       transform-origin: center center;
     }
 
@@ -1358,25 +1592,37 @@
       border-color: rgba(139, 92, 246, 0.35);
       box-shadow: 0 20px 40px rgba(139, 92, 246, 0.12);
     }
-    .char-card.haru .char-tag { color: #8b5cf6; }
+
+    .char-card.haru .char-tag {
+      color: #8b5cf6;
+    }
 
     .char-card.hiyori:hover {
       border-color: rgba(71, 118, 179, 0.35);
       box-shadow: 0 20px 40px rgba(71, 118, 179, 0.12);
     }
-    .char-card.hiyori .char-tag { color: var(--primary-600); }
+
+    .char-card.hiyori .char-tag {
+      color: var(--primary-600);
+    }
 
     .char-card.mao:hover {
       border-color: rgba(236, 72, 153, 0.35);
       box-shadow: 0 20px 40px rgba(236, 72, 153, 0.12);
     }
-    .char-card.mao .char-tag { color: #ec4899; }
+
+    .char-card.mao .char-tag {
+      color: #ec4899;
+    }
 
     .char-card.wanko:hover {
       border-color: rgba(16, 185, 129, 0.35);
       box-shadow: 0 20px 40px rgba(16, 185, 129, 0.12);
     }
-    .char-card.wanko .char-tag { color: #10b981; }
+
+    .char-card.wanko .char-tag {
+      color: #10b981;
+    }
 
     /* Features Section */
     .features-section {
@@ -1608,32 +1854,40 @@
       .char-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+
       .features-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+
       .feature-card.feature-card-wide {
         grid-template-columns: 1fr;
         padding: 28px;
       }
+
       .feature-inline-actions {
         justify-content: flex-start;
       }
+
       .hero-container {
         grid-template-columns: 1fr;
         text-align: center;
       }
+
       .hero-content {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
       }
+
       .hero-desc {
         max-w: 100%;
       }
+
       .hero-coming-soon {
         width: 100%;
       }
+
       .hero-btns {
         justify-content: center;
       }
@@ -1643,38 +1897,97 @@
       .landing-nav {
         padding: 0 20px;
       }
+
       .nav-links {
         display: none;
       }
+
       .hero-container {
         padding: 0 20px;
       }
+
       .hero-title {
         font-size: 52px;
       }
+
       .hero-subtitle {
         font-size: 38px;
       }
+
       .char-grid {
         grid-template-columns: 1fr;
       }
+
       .features-grid {
         grid-template-columns: 1fr;
       }
+
       .hero-coming-soon {
         padding: 16px;
         border-radius: 24px;
       }
+
       .hero-coming-title {
         font-size: 18px;
       }
+
       .dialogue-quote {
         font-size: 24px;
       }
+
       .footer-container {
         flex-direction: column;
         gap: 20px;
         text-align: center;
+      }
+
+      #chat-input-container {
+        bottom: 18px;
+        width: calc(100% - 24px);
+      }
+
+      #language-toggle-bar {
+        bottom: 92px;
+      }
+
+      #chat-form {
+        gap: 8px;
+      }
+
+      #chat-input {
+        min-width: 0;
+        padding: 12px 8px 12px 10px;
+      }
+
+      #camera-preview-shell {
+        left: 12px;
+        bottom: 132px;
+        width: min(34vw, 144px);
+        min-width: 112px;
+        padding: 6px;
+        border-radius: 20px;
+      }
+
+      #user-camera {
+        border-radius: 14px;
+      }
+
+      .camera-preview-head,
+      .camera-preview-foot {
+        padding-left: 2px;
+        padding-right: 2px;
+      }
+
+      .camera-preview-label,
+      .camera-preview-chip,
+      .camera-preview-foot {
+        font-size: 9px;
+      }
+
+      #chat-status-note {
+        bottom: 150px;
+        padding: 10px 13px;
+        font-size: 12px;
       }
     }
 
@@ -1689,7 +2002,7 @@
       z-index: 20;
       pointer-events: auto;
     }
-    
+
     #chat-top-actions #bg-selector-container {
       position: relative;
       top: auto;
@@ -1699,6 +2012,7 @@
     #settings-selector-container {
       position: relative;
     }
+
     #settings-btn {
       display: flex;
       align-items: center;
@@ -1716,18 +2030,22 @@
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 4px 12px rgba(30, 42, 58, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6);
     }
+
     #settings-btn:hover {
       background: rgba(250, 246, 240, 0.9);
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(30, 42, 58, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       border-color: rgba(30, 42, 58, 0.2);
     }
+
     #settings-btn:hover svg {
       transform: rotate(45deg);
     }
+
     #settings-btn svg {
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     #settings-btn:active {
       transform: translateY(0) scale(0.98);
     }
@@ -1739,7 +2057,8 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(30, 47, 32, 0.25); /* Subtle dark forest tint */
+      background: rgba(30, 47, 32, 0.25);
+      /* Subtle dark forest tint */
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       display: flex;
@@ -1750,16 +2069,19 @@
       transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       z-index: 200;
     }
+
     .settings-modal-backdrop.active {
       opacity: 1;
       pointer-events: auto;
     }
-    
+
     .settings-modal-card {
       width: 900px;
       height: 600px;
-      background: rgba(251, 248, 234, 0.9); /* Cardigan cream translucent */
-      border: 1px solid rgba(217, 164, 52, 0.25); /* Subtle gold border */
+      background: rgba(251, 248, 234, 0.9);
+      /* Cardigan cream translucent */
+      border: 1px solid rgba(217, 164, 52, 0.25);
+      /* Subtle gold border */
       border-radius: 28px;
       box-shadow: 0 30px 70px rgba(30, 42, 58, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.8);
       display: flex;
@@ -1768,10 +2090,11 @@
       transform: translateY(20px) scale(0.96);
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .settings-modal-backdrop.active .settings-modal-card {
       transform: translateY(0) scale(1);
     }
-    
+
     /* Modal Header */
     .settings-header {
       padding: 20px 28px;
@@ -1781,6 +2104,7 @@
       align-items: center;
       background: rgba(251, 245, 230, 0.4);
     }
+
     .settings-header-title {
       font-family: var(--font-serif);
       font-size: 22px;
@@ -1790,10 +2114,11 @@
       align-items: center;
       gap: 10px;
     }
+
     .settings-header-title svg {
       color: var(--primary-600);
     }
-    
+
     .settings-close-btn {
       width: 36px;
       height: 36px;
@@ -1807,33 +2132,37 @@
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .settings-close-btn:hover {
       background: #ffffff;
       border-color: rgba(30, 42, 58, 0.15);
       transform: rotate(90deg);
     }
+
     .settings-close-btn:active {
       transform: scale(0.95);
     }
-    
+
     /* Modal Body */
     .settings-body {
       flex: 1;
       display: flex;
       overflow: hidden;
     }
-    
+
     /* Left Sidebar */
     .settings-sidebar {
       width: 240px;
       border-right: 1px solid rgba(30, 42, 58, 0.08);
-      background: rgba(245, 237, 202, 0.2); /* Tinted surface */
+      background: rgba(245, 237, 202, 0.2);
+      /* Tinted surface */
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 4px;
       overflow-y: auto;
     }
+
     .settings-nav-item {
       display: flex;
       align-items: center;
@@ -1848,28 +2177,32 @@
       border: 1px solid transparent;
       user-select: none;
     }
+
     .settings-nav-item:hover {
       background: rgba(255, 255, 255, 0.5);
       color: var(--text-main);
       transform: translateX(2px);
     }
+
     .settings-nav-item.active {
       background: #ffffff;
       color: var(--primary-700);
       border-color: rgba(217, 164, 52, 0.2);
       box-shadow: 0 4px 12px rgba(217, 164, 52, 0.06);
     }
+
     .settings-nav-item svg {
       width: 18px;
       height: 18px;
       flex-shrink: 0;
       opacity: 0.85;
     }
+
     .settings-nav-item.active svg {
       color: var(--primary-600);
       opacity: 1;
     }
-    
+
     /* Right Content Area */
     .settings-content {
       flex: 1;
@@ -1879,23 +2212,31 @@
       display: flex;
       flex-direction: column;
     }
-    
+
     .settings-section-panel {
       display: none;
       animation: tabFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       height: 100%;
     }
+
     .settings-section-panel.active {
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
-    
+
     @keyframes tabFadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
-    
+
     .settings-section-title {
       font-family: var(--font-serif);
       font-size: 20px;
@@ -1903,19 +2244,21 @@
       color: var(--text-main);
       margin: 0 0 4px 0;
     }
+
     .settings-section-desc {
       font-size: 13px;
       color: var(--slate-500);
       margin: 0 0 16px 0;
       line-height: 1.5;
     }
-    
+
     /* Layout Form Fields */
     .settings-row {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     .settings-row-label {
       font-size: 13px;
       font-weight: 700;
@@ -1924,12 +2267,13 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .settings-row-sub {
       font-size: 11.5px;
       color: var(--slate-500);
       margin-top: -2px;
     }
-    
+
     /* Premium Settings Inputs */
     .settings-select {
       width: 100%;
@@ -1945,16 +2289,18 @@
       font-family: inherit;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .settings-select:hover {
       border-color: rgba(30, 42, 58, 0.2);
       background: #ffffff;
     }
+
     .settings-select:focus {
       border-color: var(--primary-400);
       background: #ffffff;
       box-shadow: 0 0 0 3px rgba(217, 164, 52, 0.12);
     }
-    
+
     .settings-input-text {
       width: 100%;
       padding: 10px 14px;
@@ -1969,15 +2315,17 @@
       box-sizing: border-box;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .settings-input-text:hover {
       border-color: rgba(30, 42, 58, 0.2);
     }
+
     .settings-input-text:focus {
       border-color: var(--primary-400);
       background: #ffffff;
       box-shadow: 0 0 0 3px rgba(217, 164, 52, 0.12);
     }
-    
+
     /* Tactile Toggle Switch */
     .settings-switch-row {
       display: flex;
@@ -1989,44 +2337,54 @@
       border-radius: 12px;
       transition: all 0.2s ease;
     }
+
     .settings-switch-row:hover {
       background: rgba(245, 237, 202, 0.15);
       border-color: rgba(217, 164, 52, 0.12);
     }
+
     .settings-switch-label-group {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
+
     .settings-switch-title {
       font-size: 13.5px;
       font-weight: 700;
       color: var(--text-main);
     }
+
     .settings-switch-desc {
       font-size: 11.5px;
       color: var(--slate-500);
     }
-    
+
     .tactile-switch {
       position: relative;
       display: inline-block;
       width: 46px;
       height: 24px;
     }
+
     .tactile-switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .tactile-slider {
       position: absolute;
       cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-color: rgba(30, 42, 58, 0.15);
       transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
       border-radius: 24px;
     }
+
     .tactile-slider:before {
       position: absolute;
       content: "";
@@ -2037,24 +2395,28 @@
       background-color: white;
       transition: .3s cubic-bezier(0.16, 1, 0.3, 1);
       border-radius: 50%;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-    input:checked + .tactile-slider {
+
+    input:checked+.tactile-slider {
       background-color: var(--primary-500);
     }
-    input:focus-visible + .tactile-slider {
+
+    input:focus-visible+.tactile-slider {
       box-shadow: 0 0 0 3px rgba(217, 164, 52, 0.25);
     }
-    input:checked + .tactile-slider:before {
+
+    input:checked+.tactile-slider:before {
       transform: translateX(22px);
     }
-    
+
     /* Tactile Custom Range Slider */
     .tactile-range-container {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .tactile-range {
       -webkit-appearance: none;
       flex: 1;
@@ -2064,6 +2426,7 @@
       outline: none;
       transition: background 0.3s;
     }
+
     .tactile-range::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
@@ -2073,13 +2436,15 @@
       background: var(--primary-500);
       cursor: pointer;
       border: 2px solid #ffffff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
       transition: transform 0.1s;
     }
+
     .tactile-range::-webkit-slider-thumb:hover {
       transform: scale(1.2);
       background: var(--primary-600);
     }
+
     .tactile-range-val {
       font-family: var(--font-mono);
       font-size: 12px;
@@ -2088,7 +2453,7 @@
       min-width: 44px;
       text-align: right;
     }
-    
+
     /* Bento Preview Card (HARUKA Card Tab) */
     .settings-bento-grid {
       display: grid;
@@ -2096,6 +2461,7 @@
       gap: 20px;
       align-items: stretch;
     }
+
     .settings-preview-card {
       background: linear-gradient(135deg, var(--cardigan-cream), var(--cardigan-cream-warm));
       border: 1px solid rgba(217, 164, 52, 0.2);
@@ -2108,20 +2474,25 @@
       position: relative;
       overflow: hidden;
     }
+
     .settings-preview-card::before {
       content: "";
       position: absolute;
-      top: -50%; right: -50%;
-      width: 150%; height: 150%;
-      background: radial-gradient(circle, rgba(217, 164, 52, 0.1) 0%, rgba(255,255,255,0) 70%);
+      top: -50%;
+      right: -50%;
+      width: 150%;
+      height: 150%;
+      background: radial-gradient(circle, rgba(217, 164, 52, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
       pointer-events: none;
     }
+
     .preview-card-header {
       display: flex;
       align-items: center;
       gap: 12px;
       z-index: 2;
     }
+
     .preview-card-avatar {
       width: 48px;
       height: 48px;
@@ -2129,19 +2500,23 @@
       border: 2px solid var(--primary-400);
       background-size: cover;
       background-position: center;
-      background-image: url('background/Sunny Digital Forest (UTAMA).png'); /* Dummy preview pic */
+      background-image: url('background/Sunny Digital Forest (UTAMA).png');
+      /* Dummy preview pic */
       background-color: var(--primary-100);
     }
+
     .preview-card-title-group {
       display: flex;
       flex-direction: column;
     }
+
     .preview-card-name {
       font-family: var(--font-serif);
       font-size: 16px;
       font-weight: 800;
       color: var(--text-main);
     }
+
     .preview-card-tagline {
       font-size: 11px;
       color: var(--primary-600);
@@ -2149,6 +2524,7 @@
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
+
     .preview-card-bio {
       font-size: 12px;
       color: var(--slate-600);
@@ -2156,6 +2532,7 @@
       margin: 0;
       z-index: 2;
     }
+
     .preview-card-stats {
       display: flex;
       flex-direction: column;
@@ -2163,11 +2540,13 @@
       margin-top: 4px;
       z-index: 2;
     }
+
     .stat-row {
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
+
     .stat-row-label {
       font-size: 10.5px;
       font-weight: 700;
@@ -2175,12 +2554,14 @@
       display: flex;
       justify-content: space-between;
     }
+
     .stat-bar-outer {
       height: 5px;
       background: rgba(30, 42, 58, 0.08);
       border-radius: 3px;
       overflow: hidden;
     }
+
     .stat-bar-inner {
       height: 100%;
       background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
@@ -2188,7 +2569,7 @@
       width: 70%;
       transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    
+
     /* Fact list (Memory Tab) */
     .fact-list {
       display: flex;
@@ -2198,6 +2579,7 @@
       overflow-y: auto;
       padding-right: 4px;
     }
+
     .fact-item {
       display: flex;
       justify-content: space-between;
@@ -2211,14 +2593,18 @@
       font-weight: 500;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .fact-item.removing {
       opacity: 0;
       transform: translateX(15px);
       margin-top: -38px;
-      padding-top: 0; padding-bottom: 0; height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      height: 0;
       border-color: transparent;
       pointer-events: none;
     }
+
     .delete-fact-btn {
       background: transparent;
       border: none;
@@ -2231,11 +2617,12 @@
       border-radius: 6px;
       transition: all 0.2s;
     }
+
     .delete-fact-btn:hover {
       color: #ef4444;
       background: rgba(239, 68, 68, 0.06);
     }
-    
+
     /* Connection Tab diagnostic elements */
     .websocket-diagnostic {
       display: flex;
@@ -2246,21 +2633,25 @@
       background: rgba(16, 185, 129, 0.06);
       border: 1px solid rgba(16, 185, 129, 0.15);
     }
+
     .diagnostic-info {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
+
     .diagnostic-title {
       font-size: 13px;
       font-weight: 700;
       color: #065f46;
     }
+
     .diagnostic-ping {
       font-size: 11px;
       font-family: var(--font-mono);
       color: #047857;
     }
+
     .diagnostic-badge {
       display: flex;
       align-items: center;
@@ -2273,6 +2664,7 @@
       color: #059669;
       box-shadow: 0 2px 6px rgba(16, 185, 129, 0.08);
     }
+
     .diagnostic-badge-dot {
       width: 6px;
       height: 6px;
@@ -2280,17 +2672,28 @@
       border-radius: 50%;
       animation: blinkDot 1.5s infinite;
     }
+
     @keyframes blinkDot {
-      0%, 100% { opacity: 0.3; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.1); }
+
+      0%,
+      100% {
+        opacity: 0.3;
+        transform: scale(0.9);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.1);
+      }
     }
-    
+
     /* Grid system swatches (System Tab) */
     .theme-swatches-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 10px;
     }
+
     .theme-swatch-btn {
       border: 1.5px solid rgba(30, 42, 58, 0.08);
       background: #ffffff;
@@ -2303,37 +2706,43 @@
       gap: 8px;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .theme-swatch-btn:hover {
       transform: translateY(-2px);
       border-color: rgba(30, 42, 58, 0.15);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
     }
+
     .theme-swatch-btn.active {
       border-color: var(--primary-400);
       box-shadow: 0 4px 12px rgba(217, 164, 52, 0.08);
     }
+
     .swatch-color-circles {
       display: flex;
       gap: 4px;
     }
+
     .color-circle {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.05);
     }
+
     .theme-swatch-name {
       font-size: 11.5px;
       font-weight: 700;
       color: var(--text-main);
     }
-    
+
     /* Data Action Buttons */
     .data-buttons-row {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
+
     .btn-secondary-custom {
       display: flex;
       align-items: center;
@@ -2349,6 +2758,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .btn-secondary-custom:hover {
       border-color: var(--slate-300);
       background: var(--slate-50);
@@ -2371,15 +2781,18 @@
       outline: none;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .settings-textarea:hover {
       border-color: rgba(30, 42, 58, 0.2);
       background: #ffffff;
     }
+
     .settings-textarea:focus {
       border-color: var(--primary-400);
       background: #ffffff;
       box-shadow: 0 0 0 3px rgba(217, 164, 52, 0.12);
     }
+
     .settings-textarea-code {
       min-height: 132px;
       font-family: var(--font-mono);
@@ -2405,21 +2818,25 @@
       text-transform: uppercase;
       white-space: nowrap;
     }
+
     .relay-status-pill.ok {
       background: rgba(83, 142, 98, 0.14);
       border-color: rgba(83, 142, 98, 0.18);
       color: #2f6a3d;
     }
+
     .relay-status-pill.warn {
       background: rgba(217, 164, 52, 0.14);
       border-color: rgba(217, 164, 52, 0.18);
       color: #8e6016;
     }
+
     .relay-status-pill.idle {
       background: rgba(30, 42, 58, 0.08);
       border-color: rgba(30, 42, 58, 0.08);
       color: var(--slate-600);
     }
+
     .relay-status-pill.live {
       background: rgba(54, 113, 208, 0.13);
       border-color: rgba(54, 113, 208, 0.18);
@@ -2436,12 +2853,14 @@
       border: 1px solid rgba(217, 164, 52, 0.14);
       box-shadow: 0 14px 32px rgba(217, 164, 52, 0.08);
     }
+
     .relay-summary-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
+
     .relay-summary-label {
       font-size: 12px;
       font-weight: 700;
@@ -2449,12 +2868,14 @@
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
+
     .relay-summary-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
-    .relay-summary-grid > div {
+
+    .relay-summary-grid>div {
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -2463,6 +2884,7 @@
       background: rgba(255, 255, 255, 0.68);
       border: 1px solid rgba(30, 42, 58, 0.06);
     }
+
     .relay-summary-stat {
       font-family: var(--font-serif);
       font-size: 24px;
@@ -2470,6 +2892,7 @@
       color: var(--text-main);
       line-height: 1;
     }
+
     .relay-summary-sub {
       font-size: 11px;
       font-weight: 700;
@@ -2495,12 +2918,14 @@
       flex-direction: column;
       gap: 16px;
     }
+
     .relay-console-head {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 16px;
     }
+
     .relay-console-head h3 {
       margin: 4px 0 0;
       font-family: var(--font-serif);
@@ -2508,6 +2933,7 @@
       line-height: 1;
       color: var(--text-main);
     }
+
     .relay-console-eyebrow {
       display: inline-block;
       font-size: 11px;
@@ -2516,6 +2942,7 @@
       text-transform: uppercase;
       color: var(--primary-600);
     }
+
     .relay-inline-link {
       border: none;
       background: transparent;
@@ -2525,19 +2952,23 @@
       cursor: pointer;
       padding: 6px 0;
     }
+
     .relay-inline-link:hover {
       color: var(--primary-500);
     }
+
     .relay-console-status-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
     }
+
     .relay-console-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
+
     .relay-console-card {
       display: flex;
       flex-direction: column;
@@ -2547,6 +2978,7 @@
       background: rgba(255, 255, 255, 0.7);
       border: 1px solid rgba(30, 42, 58, 0.06);
     }
+
     .relay-console-value {
       font-family: var(--font-serif);
       font-size: 22px;
@@ -2554,6 +2986,7 @@
       color: var(--text-main);
       line-height: 1;
     }
+
     .relay-console-label {
       font-size: 10px;
       font-weight: 800;
@@ -2561,12 +2994,14 @@
       text-transform: uppercase;
       color: var(--slate-500);
     }
+
     .relay-console-token {
       font-family: var(--font-mono);
       font-size: 14px;
       line-height: 1.2;
       word-break: break-all;
     }
+
     .relay-target-card {
       display: flex;
       align-items: flex-start;
@@ -2577,6 +3012,7 @@
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(245, 237, 202, 0.56));
       border: 1px solid rgba(217, 164, 52, 0.14);
     }
+
     .relay-target-title {
       display: block;
       font-size: 12px;
@@ -2585,6 +3021,7 @@
       text-transform: uppercase;
       color: var(--slate-600);
     }
+
     .relay-target-sub {
       display: block;
       margin-top: 6px;
@@ -2593,6 +3030,7 @@
       color: var(--text-main);
       word-break: break-all;
     }
+
     .relay-chip-list {
       display: flex;
       flex-wrap: wrap;
@@ -2600,11 +3038,13 @@
       align-items: center;
       justify-content: flex-end;
     }
+
     .relay-console-actions {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
     }
+
     .relay-console-actions .btn-secondary-custom[disabled] {
       opacity: 0.45;
       cursor: not-allowed;
@@ -2620,9 +3060,11 @@
       background: rgba(255, 255, 255, 0.66);
       border: 1px solid rgba(30, 42, 58, 0.06);
     }
+
     .relay-feed-panel {
       margin-top: 6px;
     }
+
     .relay-feed-head {
       display: flex;
       align-items: center;
@@ -2634,6 +3076,7 @@
       text-transform: uppercase;
       color: var(--slate-500);
     }
+
     .relay-feed-list {
       display: flex;
       flex-direction: column;
@@ -2642,6 +3085,7 @@
       overflow: auto;
       padding-right: 4px;
     }
+
     .relay-feed-item {
       display: flex;
       flex-direction: column;
@@ -2651,15 +3095,19 @@
       background: rgba(250, 246, 240, 0.88);
       border: 1px solid rgba(30, 42, 58, 0.06);
     }
+
     .relay-feed-item.info {
       border-left: 3px solid rgba(54, 113, 208, 0.52);
     }
+
     .relay-feed-item.warn {
       border-left: 3px solid rgba(217, 164, 52, 0.58);
     }
+
     .relay-feed-item.error {
       border-left: 3px solid rgba(186, 74, 74, 0.54);
     }
+
     .relay-feed-item-head {
       display: flex;
       align-items: center;
@@ -2669,12 +3117,14 @@
       font-weight: 800;
       color: var(--text-main);
     }
+
     .relay-feed-item p {
       margin: 0;
       font-size: 12.5px;
       line-height: 1.55;
       color: var(--slate-600);
     }
+
     .relay-feed-quote {
       display: block;
       padding: 10px 12px;
@@ -2686,6 +3136,7 @@
       line-height: 1.5;
       word-break: break-word;
     }
+
     .relay-feed-empty {
       padding: 12px 14px;
       border-radius: 14px;
@@ -2705,17 +3156,20 @@
     }
 
     @media (max-width: 860px) {
+
       .relay-field-grid,
       .relay-console-grid,
       .relay-console-actions,
       .relay-summary-grid {
         grid-template-columns: 1fr;
       }
+
       .relay-target-card,
       .relay-summary-row {
         flex-direction: column;
         align-items: flex-start;
       }
+
       .relay-chip-list {
         justify-content: flex-start;
       }
@@ -2730,15 +3184,17 @@
         padding: 16px;
         border-radius: 20px;
       }
+
       .relay-console-head {
         flex-direction: column;
         align-items: flex-start;
       }
+
       .relay-feed-list {
         max-height: 180px;
       }
     }
-    
+
     .btn-destructive-custom {
       display: flex;
       align-items: center;
@@ -2754,13 +3210,14 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .btn-destructive-custom:hover {
       background: #dc2626;
       color: #ffffff;
       border-color: #dc2626;
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
     }
-    
+
     /* Footer Action Panel */
     .settings-footer {
       padding: 18px 28px;
@@ -2770,7 +3227,7 @@
       align-items: center;
       background: rgba(251, 245, 230, 0.4);
     }
-    
+
     .btn-settings-save {
       background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
       color: #ffffff;
@@ -2788,15 +3245,17 @@
       box-shadow: 0 4px 14px rgba(217, 164, 52, 0.25);
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .btn-settings-save:hover {
       background: linear-gradient(135deg, var(--primary-400), var(--primary-600));
       transform: translateY(-2px);
       box-shadow: 0 6px 18px rgba(217, 164, 52, 0.35);
     }
+
     .btn-settings-save:active {
       transform: translateY(0) scale(0.98);
     }
-    
+
     /* Loading Spinner */
     .save-spinner {
       width: 16px;
@@ -2806,10 +3265,13 @@
       border-top-color: #ffffff;
       animation: spinSpinner 0.8s linear infinite;
     }
+
     @keyframes spinSpinner {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
-    
+
     .btn-settings-reset {
       background: transparent;
       border: none;
@@ -2819,11 +3281,12 @@
       cursor: pointer;
       transition: color 0.2s;
     }
+
     .btn-settings-reset:hover {
       color: var(--text-main);
       text-decoration: underline;
     }
-    
+
     /* Premium Toast Notification */
     .settings-toast {
       position: fixed;
@@ -2844,35 +3307,41 @@
       z-index: 300;
       pointer-events: none;
     }
+
     .settings-toast.active {
       transform: translateX(0);
     }
+
     .toast-icon {
       color: var(--primary-500);
       display: flex;
       align-items: center;
     }
+
     .toast-content {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
+
     .toast-title {
       font-size: 13.5px;
       font-weight: 700;
       color: var(--text-main);
     }
+
     .toast-desc {
       font-size: 11.5px;
       color: var(--slate-500);
     }
-    
+
     /* Responsive Styling for Modal */
     @media (max-width: 960px) {
       .settings-modal-card {
         width: calc(100% - 40px);
         height: 80vh;
       }
+
       .settings-bento-grid {
         grid-template-columns: 1fr;
       }
@@ -2889,6 +3358,7 @@
       flex-direction: column;
       gap: 6px;
     }
+
     .alert-note-header {
       font-size: 13.5px;
       font-weight: 700;
@@ -2897,18 +3367,21 @@
       align-items: center;
       gap: 8px;
     }
+
     .alert-note-body {
       font-size: 12.5px;
       color: var(--slate-600);
       line-height: 1.55;
       margin: 0;
     }
+
     .providers-help-links {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
+
     .providers-help-link {
       display: inline-flex;
       align-items: center;
@@ -2923,6 +3396,7 @@
       border: 1px solid rgba(191, 143, 39, 0.18);
       transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
     }
+
     .providers-help-link:hover {
       background: rgba(191, 143, 39, 0.13);
       border-color: rgba(191, 143, 39, 0.3);
@@ -3048,12 +3522,13 @@
       }
     }
   </style>
-  
+
   <!-- Live2DCubismCore script -->
   <script src="./Core/live2dcubismcore.js"></script>
   <!-- Build script -->
   <script src="./src/main.ts" type="module"></script>
 </head>
+
 <body class="mode-landing">
 
   <!-- Dual-layer dynamic background for chat mode -->
@@ -3085,12 +3560,15 @@
         <div class="nav-actions">
           <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
+              <path
+                d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
             </svg>
           </a>
-          <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link" aria-label="GitHub">
+          <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link"
+            aria-label="GitHub">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
+              <path
+                d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
             </svg>
           </a>
           <button id="nav-start-chat" class="btn-primary">Start Chat</button>
@@ -3119,7 +3597,7 @@
             HARUKA
           </h1>
           <div class="price-card">
-            
+
             <!-- Header -->
             <div class="price-card-header">
               <span class="price-card-title">$HARUKA</span>
@@ -3149,9 +3627,8 @@
             </div>
 
             <!-- Buy Button -->
-            <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" 
-               target="_blank" 
-               class="price-card-buy">
+            <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank"
+              class="price-card-buy">
               Buy on Pump.fun
             </a>
 
@@ -3159,8 +3636,10 @@
           <div class="hero-btns">
             <button id="hero-try-btn" class="btn-hero-primary">Try It Now</button>
             <a href="x402.html" class="btn-hero-secondary">Explore x402</a>
-            <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank" class="btn-hero-secondary">HARUKA on pump.fun</a>
-            <a href="https://x.com/i/communities/2032167658792346014" target="_blank" class="btn-hero-secondary">Join X Community</a>
+            <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank"
+              class="btn-hero-secondary">HARUKA on pump.fun</a>
+            <a href="https://x.com/i/communities/2032167658792346014" target="_blank" class="btn-hero-secondary">Join X
+              Community</a>
           </div>
         </div>
       </div>
@@ -3181,7 +3660,9 @@
             <div>
               <div class="feature-card-kicker">Live on Mainnet</div>
               <h3>x402 payments inside HARUKA</h3>
-              <p>HARUKA now supports x402 on Solana mainnet for developer API traffic, giving agents a native pay-per-action path to premium tools, paid workflows, and external APIs through the HTTP 402 payment standard.</p>
+              <p>HARUKA now supports x402 on Solana mainnet for developer API traffic, giving agents a native
+                pay-per-action path to premium tools, paid workflows, and external APIs through the HTTP 402 payment
+                standard.</p>
               <div class="feature-pill-row">
                 <span class="feature-pill">Pay per action</span>
                 <span class="feature-pill">Agent commerce</span>
@@ -3196,10 +3677,11 @@
           <!-- Real-time Voice -->
           <div class="feature-card">
             <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
-                <line x1="12" x2="12" y1="19" y2="22"/>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+                <line x1="12" x2="12" y1="19" y2="22" />
               </svg>
             </div>
             <h3>Real-time Voice</h3>
@@ -3211,17 +3693,18 @@
           <!-- WebGPU Acceleration -->
           <div class="feature-card">
             <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="4" y="4" width="16" height="16" rx="2"/>
-                <rect x="9" y="9" width="6" height="6"/>
-                <line x1="9" x2="9" y1="1" y2="4"/>
-                <line x1="15" x2="15" y1="1" y2="4"/>
-                <line x1="9" x2="9" y1="20" y2="23"/>
-                <line x1="15" x2="15" y1="20" y2="23"/>
-                <line x1="20" x2="23" y1="9" y2="9"/>
-                <line x1="20" x2="23" y1="15" y2="15"/>
-                <line x1="1" x2="4" y1="9" y2="9"/>
-                <line x1="1" x2="4" y1="15" y2="15"/>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <rect x="9" y="9" width="6" height="6" />
+                <line x1="9" x2="9" y1="1" y2="4" />
+                <line x1="15" x2="15" y1="1" y2="4" />
+                <line x1="9" x2="9" y1="20" y2="23" />
+                <line x1="15" x2="15" y1="20" y2="23" />
+                <line x1="20" x2="23" y1="9" y2="9" />
+                <line x1="20" x2="23" y1="15" y2="15" />
+                <line x1="1" x2="4" y1="9" y2="9" />
+                <line x1="1" x2="4" y1="15" y2="15" />
               </svg>
             </div>
             <h3>WebGPU Acceleration</h3>
@@ -3231,9 +3714,11 @@
           <!-- Live2D Expressions -->
           <div class="feature-card">
             <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                <path d="m5 3 1 2.5L8.5 6 6 7.5 5 10l-1-2.5L1.5 6 4 4.5Z" opacity="0.5"/>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                <path d="m5 3 1 2.5L8.5 6 6 7.5 5 10l-1-2.5L1.5 6 4 4.5Z" opacity="0.5" />
               </svg>
             </div>
             <h3>Live2D Expressions</h3>
@@ -3243,16 +3728,17 @@
           <!-- 20+ LLM Providers -->
           <div class="feature-card">
             <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"/>
-                <circle cx="12" cy="4" r="2"/>
-                <circle cx="12" cy="20" r="2"/>
-                <circle cx="4" cy="12" r="2"/>
-                <circle cx="20" cy="12" r="2"/>
-                <line x1="12" x2="12" y1="6" y2="9"/>
-                <line x1="12" x2="12" y1="15" y2="18"/>
-                <line x1="6" x2="9" y1="12" y2="12"/>
-                <line x1="15" x2="18" y1="12" y2="12"/>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <circle cx="12" cy="4" r="2" />
+                <circle cx="12" cy="20" r="2" />
+                <circle cx="4" cy="12" r="2" />
+                <circle cx="20" cy="12" r="2" />
+                <line x1="12" x2="12" y1="6" y2="9" />
+                <line x1="12" x2="12" y1="15" y2="18" />
+                <line x1="6" x2="9" y1="12" y2="12" />
+                <line x1="15" x2="18" y1="12" y2="12" />
               </svg>
             </div>
             <h3>20+ LLM Providers</h3>
@@ -3262,10 +3748,11 @@
           <!-- PWA & Cross-Platform -->
           <div class="feature-card">
             <div class="feature-icon">
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-                <line x1="8" x2="16" y1="21" y2="21"/>
-                <line x1="12" x2="12" y1="17" y2="21"/>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                <line x1="8" x2="16" y1="21" y2="21" />
+                <line x1="12" x2="12" y1="17" y2="21" />
               </svg>
             </div>
             <h3>PWA & Cross-Platform</h3>
@@ -3296,9 +3783,10 @@
   <div id="ui-overlay">
     <!-- Premium Home Back Button -->
     <button id="home-btn" aria-label="Kembali ke Landing Page">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
       <span>Home</span>
     </button>
@@ -3308,10 +3796,11 @@
       <!-- Premium Floating Background Selector -->
       <div id="bg-selector-container">
         <button id="bg-btn" aria-label="Ganti Background">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
           </svg>
           <span>Background</span>
         </button>
@@ -3326,9 +3815,11 @@
       <!-- Premium Floating Settings Button -->
       <div id="settings-selector-container">
         <button id="settings-btn" aria-label="Open Settings">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
           <span>Settings</span>
         </button>
@@ -3350,6 +3841,21 @@
       <div class="bubble-tail-circle bubble-tail-circle-3"></div>
     </div>
 
+    <div id="camera-preview-shell" aria-hidden="true">
+      <div class="camera-preview-head">
+        <span class="camera-preview-label">Camera</span>
+        <span class="camera-preview-chip">Live</span>
+      </div>
+      <video id="user-camera" autoplay playsinline muted></video>
+      <div class="camera-preview-foot">
+        <span>Face mode</span>
+      </div>
+    </div>
+
+    <div id="chat-status-note" data-tone="info" aria-live="polite">
+      <span id="chat-status-note-text"></span>
+    </div>
+
     <!-- Language Toggle Bar -->
     <div id="language-toggle-bar">
       <button id="lang-en-btn" class="lang-btn active">EN</button>
@@ -3361,10 +3867,20 @@
       <form id="chat-form">
         <!-- Microphone Button -->
         <button type="button" id="mic-btn" class="chat-action-btn" title="Record Voice">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-            <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
-            <line x1="12" x2="12" y1="19" y2="22"/>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+          </svg>
+        </button>
+
+        <button type="button" id="camera-toggle" class="chat-action-btn" title="Enable Camera"
+          aria-label="Enable Camera" aria-pressed="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.3"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7l-7 5 7 5V7z" />
+            <rect x="1" y="5" width="15" height="14" rx="3" ry="3" />
           </svg>
         </button>
 
@@ -3399,12 +3915,12 @@
     function enterChatMode(characterIndex) {
       document.body.classList.remove('mode-landing');
       document.body.classList.add('mode-chat');
-      
+
       // Load selected character via global hook defined in main.ts
       if (characterIndex !== undefined && typeof window.loadLive2DModel === 'function') {
         window.loadLive2DModel(characterIndex);
       }
-      
+
       // Trigger canvas scale update
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
@@ -3554,275 +4070,275 @@
       const settingsManagedExternally = Boolean(window.__harukaSettingsManagerActive);
 
       if (!settingsManagedExternally) {
-      
-      // Settings Modal Toggle Logic
-      const settingsBtn = document.getElementById('settings-btn');
-      const settingsModal = document.getElementById('settings-modal');
-      const settingsCloseBtn = document.getElementById('settings-close-btn');
 
-      if (settingsBtn && settingsModal && settingsCloseBtn) {
-        settingsBtn.addEventListener('click', () => {
-          settingsModal.classList.add('active');
-        });
-        settingsCloseBtn.addEventListener('click', () => {
-          settingsModal.classList.remove('active');
-        });
-        // Close modal on backdrop click
-        settingsModal.addEventListener('click', (e) => {
-          if (e.target === settingsModal) {
+        // Settings Modal Toggle Logic
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsCloseBtn = document.getElementById('settings-close-btn');
+
+        if (settingsBtn && settingsModal && settingsCloseBtn) {
+          settingsBtn.addEventListener('click', () => {
+            settingsModal.classList.add('active');
+          });
+          settingsCloseBtn.addEventListener('click', () => {
             settingsModal.classList.remove('active');
-          }
-        });
-      }
-
-      // Sidebar Tab Switching Logic
-      const navItems = document.querySelectorAll('.settings-nav-item');
-      const panels = document.querySelectorAll('.settings-section-panel');
-
-      navItems.forEach(item => {
-        item.addEventListener('click', () => {
-          // Remove active class from all nav items
-          navItems.forEach(nav => nav.classList.remove('active'));
-          // Add active class to clicked item
-          item.classList.add('active');
-
-          const tabName = item.dataset.tab;
-          // Hide all panels
-          panels.forEach(panel => panel.classList.remove('active'));
-          // Show target panel
-          const targetPanel = document.getElementById(`panel-${tabName}`);
-          if (targetPanel) {
-            targetPanel.classList.add('active');
-          }
-        });
-      });
-
-      // Preset Configuration Engine
-      const presetData = {
-        classic: {
-          name: "Haruka Classic",
-          tag: "Forest Soul",
-          bio: "Cheerful, vibrant digital companion who loves deep forests and engaging conversations.",
-          visual: 85,
-          memory: 70,
-          logic: 75
-        },
-        scholar: {
-          name: "Scholar Haruka",
-          tag: "Intelligent Advisor",
-          bio: "Calculated, precise, and highly analytical advisor with expanded logical context.",
-          visual: 70,
-          memory: 95,
-          logic: 90
-        },
-        sunset: {
-          name: "Sunset Haruka",
-          tag: "Empathetic Soul",
-          bio: "Warm, soft-spoken, and deeply empathetic companion tuned for emotional healing.",
-          visual: 90,
-          memory: 80,
-          logic: 65
-        },
-        cyberpunk: {
-          name: "Cyberpunk Haruka",
-          tag: "Glitch Hologram",
-          bio: "Neon-accented, holographic AI interface utilizing experimental visual engines.",
-          visual: 95,
-          memory: 60,
-          logic: 85
-        }
-      };
-
-      const presetSelect = document.getElementById('card-preset-select');
-      const previewName = document.getElementById('preview-name');
-      const previewTag = document.getElementById('preview-tag');
-      const previewBio = document.getElementById('preview-bio');
-      const statValVisual = document.getElementById('stat-val-visual');
-      const statBarVisual = document.getElementById('stat-bar-visual');
-      const statValMemory = document.getElementById('stat-val-memory');
-      const statBarMemory = document.getElementById('stat-bar-memory');
-      const statValLogic = document.getElementById('stat-val-logic');
-      const statBarLogic = document.getElementById('stat-bar-logic');
-
-      if (presetSelect) {
-        presetSelect.addEventListener('change', (e) => {
-          const config = presetData[e.target.value];
-          if (config) {
-            // Animate card content transition smoothly
-            if (previewName) previewName.textContent = config.name;
-            if (previewTag) previewTag.textContent = config.tag;
-            if (previewBio) previewBio.textContent = config.bio;
-            
-            if (statValVisual) statValVisual.textContent = `${config.visual}%`;
-            if (statBarVisual) statBarVisual.style.width = `${config.visual}%`;
-            
-            if (statValMemory) statValMemory.textContent = `${config.memory}%`;
-            if (statBarMemory) statBarMemory.style.width = `${config.memory}%`;
-            
-            if (statValLogic) statValLogic.textContent = `${config.logic}%`;
-            if (statBarLogic) statBarLogic.style.width = `${config.logic}%`;
-          }
-        });
-      }
-
-      // Real-time Range Sliders display controller
-      const sliderConfigs = [
-        { id: 'scene-bright', valId: 'val-scene-bright', suffix: '%' },
-        { id: 'scene-wind', valId: 'val-scene-wind', suffix: ' m/s', divider: 10 },
-        { id: 'model-eye', valId: 'val-model-eye', suffix: 's', divider: 100 },
-        { id: 'memory-buffer', valId: 'val-memory-buffer', suffix: ' Tokens', locale: true },
-        { id: 'system-scale', valId: 'val-system-scale', suffix: 'x', divider: 100 }
-      ];
-
-      sliderConfigs.forEach(cfg => {
-        const slider = document.getElementById(cfg.id);
-        const valDisplay = document.getElementById(cfg.valId);
-        if (slider && valDisplay) {
-          slider.addEventListener('input', (e) => {
-            let val = parseFloat(e.target.value);
-            if (cfg.divider) {
-              val = (val / cfg.divider).toFixed(cfg.divider === 100 ? 2 : 1);
-            }
-            if (cfg.locale) {
-              valDisplay.textContent = `${val.toLocaleString()}${cfg.suffix}`;
-            } else {
-              valDisplay.textContent = `${val}${cfg.suffix}`;
+          });
+          // Close modal on backdrop click
+          settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+              settingsModal.classList.remove('active');
             }
           });
         }
-      });
 
-      // Vector Memory Fact purger with smooth slide animation
-      const deleteButtons = document.querySelectorAll('.delete-fact-btn');
-      deleteButtons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const item = btn.closest('.fact-item');
-          if (item) {
-            item.classList.add('removing');
-            setTimeout(() => {
-              item.remove();
-            }, 300); // Wait for transition duration
+        // Sidebar Tab Switching Logic
+        const navItems = document.querySelectorAll('.settings-nav-item');
+        const panels = document.querySelectorAll('.settings-section-panel');
+
+        navItems.forEach(item => {
+          item.addEventListener('click', () => {
+            // Remove active class from all nav items
+            navItems.forEach(nav => nav.classList.remove('active'));
+            // Add active class to clicked item
+            item.classList.add('active');
+
+            const tabName = item.dataset.tab;
+            // Hide all panels
+            panels.forEach(panel => panel.classList.remove('active'));
+            // Show target panel
+            const targetPanel = document.getElementById(`panel-${tabName}`);
+            if (targetPanel) {
+              targetPanel.classList.add('active');
+            }
+          });
+        });
+
+        // Preset Configuration Engine
+        const presetData = {
+          classic: {
+            name: "Haruka Classic",
+            tag: "Forest Soul",
+            bio: "Cheerful, vibrant digital companion who loves deep forests and engaging conversations.",
+            visual: 85,
+            memory: 70,
+            logic: 75
+          },
+          scholar: {
+            name: "Scholar Haruka",
+            tag: "Intelligent Advisor",
+            bio: "Calculated, precise, and highly analytical advisor with expanded logical context.",
+            visual: 70,
+            memory: 95,
+            logic: 90
+          },
+          sunset: {
+            name: "Sunset Haruka",
+            tag: "Empathetic Soul",
+            bio: "Warm, soft-spoken, and deeply empathetic companion tuned for emotional healing.",
+            visual: 90,
+            memory: 80,
+            logic: 65
+          },
+          cyberpunk: {
+            name: "Cyberpunk Haruka",
+            tag: "Glitch Hologram",
+            bio: "Neon-accented, holographic AI interface utilizing experimental visual engines.",
+            visual: 95,
+            memory: 60,
+            logic: 85
+          }
+        };
+
+        const presetSelect = document.getElementById('card-preset-select');
+        const previewName = document.getElementById('preview-name');
+        const previewTag = document.getElementById('preview-tag');
+        const previewBio = document.getElementById('preview-bio');
+        const statValVisual = document.getElementById('stat-val-visual');
+        const statBarVisual = document.getElementById('stat-bar-visual');
+        const statValMemory = document.getElementById('stat-val-memory');
+        const statBarMemory = document.getElementById('stat-bar-memory');
+        const statValLogic = document.getElementById('stat-val-logic');
+        const statBarLogic = document.getElementById('stat-bar-logic');
+
+        if (presetSelect) {
+          presetSelect.addEventListener('change', (e) => {
+            const config = presetData[e.target.value];
+            if (config) {
+              // Animate card content transition smoothly
+              if (previewName) previewName.textContent = config.name;
+              if (previewTag) previewTag.textContent = config.tag;
+              if (previewBio) previewBio.textContent = config.bio;
+
+              if (statValVisual) statValVisual.textContent = `${config.visual}%`;
+              if (statBarVisual) statBarVisual.style.width = `${config.visual}%`;
+
+              if (statValMemory) statValMemory.textContent = `${config.memory}%`;
+              if (statBarMemory) statBarMemory.style.width = `${config.memory}%`;
+
+              if (statValLogic) statValLogic.textContent = `${config.logic}%`;
+              if (statBarLogic) statBarLogic.style.width = `${config.logic}%`;
+            }
+          });
+        }
+
+        // Real-time Range Sliders display controller
+        const sliderConfigs = [
+          { id: 'scene-bright', valId: 'val-scene-bright', suffix: '%' },
+          { id: 'scene-wind', valId: 'val-scene-wind', suffix: ' m/s', divider: 10 },
+          { id: 'model-eye', valId: 'val-model-eye', suffix: 's', divider: 100 },
+          { id: 'memory-buffer', valId: 'val-memory-buffer', suffix: ' Tokens', locale: true },
+          { id: 'system-scale', valId: 'val-system-scale', suffix: 'x', divider: 100 }
+        ];
+
+        sliderConfigs.forEach(cfg => {
+          const slider = document.getElementById(cfg.id);
+          const valDisplay = document.getElementById(cfg.valId);
+          if (slider && valDisplay) {
+            slider.addEventListener('input', (e) => {
+              let val = parseFloat(e.target.value);
+              if (cfg.divider) {
+                val = (val / cfg.divider).toFixed(cfg.divider === 100 ? 2 : 1);
+              }
+              if (cfg.locale) {
+                valDisplay.textContent = `${val.toLocaleString()}${cfg.suffix}`;
+              } else {
+                valDisplay.textContent = `${val}${cfg.suffix}`;
+              }
+            });
           }
         });
-      });
 
-      // Theme selection visual feedback hook (gimmick)
-      const themeSwatches = document.querySelectorAll('.theme-swatch-btn');
-      themeSwatches.forEach(swatch => {
-        swatch.addEventListener('click', () => {
-          themeSwatches.forEach(s => s.classList.remove('active'));
-          swatch.classList.add('active');
-        });
-      });
-
-      // Settings Save & Reset controller
-      const btnSave = document.getElementById('btn-settings-save');
-      const toast = document.getElementById('settings-toast');
-
-      if (btnSave && toast) {
-        btnSave.addEventListener('click', () => {
-          // Disable button and trigger loading state
-          btnSave.disabled = true;
-          const originalHTML = btnSave.innerHTML;
-          btnSave.innerHTML = `<span class="save-spinner"></span><span>Saving...</span>`;
-          
-          // Simulate 1.2s lag (gimmick logic saving to localStorage)
-          setTimeout(() => {
-            // Restore button state
-            btnSave.disabled = false;
-            btnSave.innerHTML = originalHTML;
-            
-            // Close settings modal
-            if (settingsModal) {
-              settingsModal.classList.remove('active');
+        // Vector Memory Fact purger with smooth slide animation
+        const deleteButtons = document.querySelectorAll('.delete-fact-btn');
+        deleteButtons.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const item = btn.closest('.fact-item');
+            if (item) {
+              item.classList.add('removing');
+              setTimeout(() => {
+                item.remove();
+              }, 300); // Wait for transition duration
             }
-            
-            // Slide in success toast
-            toast.classList.add('active');
-            
-            // Re-hide toast after 3 seconds
+          });
+        });
+
+        // Theme selection visual feedback hook (gimmick)
+        const themeSwatches = document.querySelectorAll('.theme-swatch-btn');
+        themeSwatches.forEach(swatch => {
+          swatch.addEventListener('click', () => {
+            themeSwatches.forEach(s => s.classList.remove('active'));
+            swatch.classList.add('active');
+          });
+        });
+
+        // Settings Save & Reset controller
+        const btnSave = document.getElementById('btn-settings-save');
+        const toast = document.getElementById('settings-toast');
+
+        if (btnSave && toast) {
+          btnSave.addEventListener('click', () => {
+            // Disable button and trigger loading state
+            btnSave.disabled = true;
+            const originalHTML = btnSave.innerHTML;
+            btnSave.innerHTML = `<span class="save-spinner"></span><span>Saving...</span>`;
+
+            // Simulate 1.2s lag (gimmick logic saving to localStorage)
             setTimeout(() => {
-              toast.classList.remove('active');
-            }, 3000);
-            
-          }, 1200);
-        });
-      }
+              // Restore button state
+              btnSave.disabled = false;
+              btnSave.innerHTML = originalHTML;
 
-      const btnReset = document.getElementById('btn-settings-reset');
-      if (btnReset) {
-        btnReset.addEventListener('click', () => {
-          const confirmReset = window.confirm("Are you sure you want to restore all settings to their original factory values?");
-          if (confirmReset) {
-            // Revert presets select
-            if (presetSelect) {
-              presetSelect.value = 'classic';
-              presetSelect.dispatchEvent(new Event('change'));
+              // Close settings modal
+              if (settingsModal) {
+                settingsModal.classList.remove('active');
+              }
+
+              // Slide in success toast
+              toast.classList.add('active');
+
+              // Re-hide toast after 3 seconds
+              setTimeout(() => {
+                toast.classList.remove('active');
+              }, 3000);
+
+            }, 1200);
+          });
+        }
+
+        const btnReset = document.getElementById('btn-settings-reset');
+        if (btnReset) {
+          btnReset.addEventListener('click', () => {
+            const confirmReset = window.confirm("Are you sure you want to restore all settings to their original factory values?");
+            if (confirmReset) {
+              // Revert presets select
+              if (presetSelect) {
+                presetSelect.value = 'classic';
+                presetSelect.dispatchEvent(new Event('change'));
+              }
+
+              // Revert checkboxes
+              document.querySelectorAll('.tactile-switch input').forEach(input => {
+                if (input.id === 'module-thinking' || input.id === 'module-speech' || input.id === 'memory-db' || input.id === 'conn-autoreconnect' || input.id === 'card-sync') {
+                  input.checked = true;
+                } else {
+                  input.checked = false;
+                }
+              });
+
+              // Revert selectors
+              const selSceneLighting = document.getElementById('scene-lighting');
+              if (selSceneLighting) selSceneLighting.value = 'dynamic';
+
+              const selModelFramework = document.getElementById('model-framework');
+              if (selModelFramework) selModelFramework.value = 'live2d';
+
+              const selModelPhysics = document.getElementById('model-physics');
+              if (selModelPhysics) selModelPhysics.value = 'high';
+
+              const selProviderLlm = document.getElementById('provider-llm');
+              if (selProviderLlm) selProviderLlm.value = 'webgpu';
+
+              const selProviderStt = document.getElementById('provider-stt');
+              if (selProviderStt) selProviderStt.value = 'browser';
+
+              const selProviderTts = document.getElementById('provider-tts');
+              if (selProviderTts) selProviderTts.value = 'haruka-sweet';
+
+              // Revert sliders
+              const defaultSliders = [
+                { id: 'scene-bright', val: 80 },
+                { id: 'scene-wind', val: 18 },
+                { id: 'model-eye', val: 75 },
+                { id: 'memory-buffer', val: 2048 },
+                { id: 'system-scale', val: 100 }
+              ];
+
+              defaultSliders.forEach(s => {
+                const slider = document.getElementById(s.id);
+                if (slider) {
+                  slider.value = s.val;
+                  slider.dispatchEvent(new Event('input'));
+                }
+              });
+
+              // Reset text inputs
+              const textEndpoint = document.getElementById('conn-endpoint');
+              if (textEndpoint) textEndpoint.value = 'wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket';
+
+              // Revert active system theme button to gold
+              document.querySelectorAll('.theme-swatch-btn').forEach(btn => {
+                if (btn.dataset.theme === 'gold') {
+                  btn.classList.add('active');
+                } else {
+                  btn.classList.remove('active');
+                }
+              });
+
+              // Animate confirmation success
+              alert("Settings reset to defaults!");
             }
-            
-            // Revert checkboxes
-            document.querySelectorAll('.tactile-switch input').forEach(input => {
-              if (input.id === 'module-thinking' || input.id === 'module-speech' || input.id === 'memory-db' || input.id === 'conn-autoreconnect' || input.id === 'card-sync') {
-                input.checked = true;
-              } else {
-                input.checked = false;
-              }
-            });
-            
-            // Revert selectors
-            const selSceneLighting = document.getElementById('scene-lighting');
-            if (selSceneLighting) selSceneLighting.value = 'dynamic';
-            
-            const selModelFramework = document.getElementById('model-framework');
-            if (selModelFramework) selModelFramework.value = 'live2d';
-            
-            const selModelPhysics = document.getElementById('model-physics');
-            if (selModelPhysics) selModelPhysics.value = 'high';
-            
-            const selProviderLlm = document.getElementById('provider-llm');
-            if (selProviderLlm) selProviderLlm.value = 'webgpu';
-            
-            const selProviderStt = document.getElementById('provider-stt');
-            if (selProviderStt) selProviderStt.value = 'browser';
-            
-            const selProviderTts = document.getElementById('provider-tts');
-            if (selProviderTts) selProviderTts.value = 'haruka-sweet';
-            
-            // Revert sliders
-            const defaultSliders = [
-              { id: 'scene-bright', val: 80 },
-              { id: 'scene-wind', val: 18 },
-              { id: 'model-eye', val: 75 },
-              { id: 'memory-buffer', val: 2048 },
-              { id: 'system-scale', val: 100 }
-            ];
-            
-            defaultSliders.forEach(s => {
-              const slider = document.getElementById(s.id);
-              if (slider) {
-                slider.value = s.val;
-                slider.dispatchEvent(new Event('input'));
-              }
-            });
-            
-            // Reset text inputs
-            const textEndpoint = document.getElementById('conn-endpoint');
-            if (textEndpoint) textEndpoint.value = 'wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket';
-            
-            // Revert active system theme button to gold
-            document.querySelectorAll('.theme-swatch-btn').forEach(btn => {
-              if (btn.dataset.theme === 'gold') {
-                btn.classList.add('active');
-              } else {
-                btn.classList.remove('active');
-              }
-            });
-            
-            // Animate confirmation success
-            alert("Settings reset to defaults!");
-          }
-        });
-      }
+          });
+        }
       }
     });
   </script>
@@ -3832,109 +4348,124 @@
        ======================================================= -->
   <div id="settings-modal" class="settings-modal-backdrop">
     <div class="settings-modal-card">
-      
+
       <!-- Modal Header -->
       <div class="settings-header">
         <div class="settings-header-title">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
           <span>Control Panel & Settings</span>
         </div>
         <button id="settings-close-btn" class="settings-close-btn" aria-label="Close Settings">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
-      
+
       <!-- Modal Body -->
       <div class="settings-body">
-        
+
         <!-- Sidebar Navigation -->
         <aside class="settings-sidebar">
           <div class="settings-nav-item active" data-tab="haruka-card">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="4"/>
-              <line x1="8" y1="2" x2="8" y2="4"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="4" />
+              <line x1="8" y1="2" x2="8" y2="4" />
+              <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
             <span>HARUKA Card</span>
           </div>
           <div class="settings-nav-item" data-tab="modules">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
             </svg>
             <span>Modules</span>
           </div>
           <div class="settings-nav-item" data-tab="scene">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5 3 19 12 5 21 5 3"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
             <span>Scene</span>
           </div>
           <div class="settings-nav-item" data-tab="models">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4a2 2 0 0 0-1 1.73v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4a2 2 0 0 0-1 1.73v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
             </svg>
             <span>Models</span>
           </div>
           <div class="settings-nav-item" data-tab="memory">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
-              <path d="M12 6v6l4 2"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+              <path d="M12 6v6l4 2" />
             </svg>
             <span>Memory</span>
           </div>
           <div class="settings-nav-item" data-tab="providers">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
-              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
-              <line x1="6" y1="6" x2="6.01" y2="6"/>
-              <line x1="6" y1="18" x2="6.01" y2="18"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+              <line x1="6" y1="6" x2="6.01" y2="6" />
+              <line x1="6" y1="18" x2="6.01" y2="18" />
             </svg>
             <span>Providers</span>
           </div>
           <div class="settings-nav-item" data-tab="data">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
             <span>Data</span>
           </div>
           <div class="settings-nav-item" data-tab="connection">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-              <circle cx="12" cy="20" r="1"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <circle cx="12" cy="20" r="1" />
             </svg>
             <span>Connection</span>
           </div>
           <div class="settings-nav-item" data-tab="system">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <line x1="9" y1="3" x2="9" y2="21"/>
-              <line x1="9" y1="9" x2="21" y2="9"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+              <line x1="9" y1="9" x2="21" y2="9" />
             </svg>
             <span>System</span>
           </div>
         </aside>
-        
+
         <!-- Content Panel -->
         <main class="settings-content">
-          
+
           <!-- Tab 1: HARUKA Card -->
           <div class="settings-section-panel active" id="panel-haruka-card">
             <h3 class="settings-section-title">HARUKA Character Card</h3>
-            <p class="settings-section-desc">Manage character identity configurations, metadata presets, and core behaviors.</p>
-            
+            <p class="settings-section-desc">Manage character identity configurations, metadata presets, and core
+              behaviors.</p>
+
             <div class="settings-bento-grid">
               <div class="settings-row" style="gap: 12px;">
                 <div class="settings-row">
@@ -3957,7 +4488,7 @@
                   </label>
                 </div>
               </div>
-              
+
               <div class="settings-preview-card">
                 <div class="preview-card-header">
                   <div class="preview-card-avatar" id="preview-avatar"></div>
@@ -3966,39 +4497,47 @@
                     <span class="preview-card-tagline" id="preview-tag">Forest Soul</span>
                   </div>
                 </div>
-                <p class="preview-card-bio" id="preview-bio">Cheerful, vibrant digital companion who loves deep forests and engaging conversations.</p>
+                <p class="preview-card-bio" id="preview-bio">Cheerful, vibrant digital companion who loves deep forests
+                  and engaging conversations.</p>
                 <div class="preview-card-stats">
                   <div class="stat-row">
                     <div class="stat-row-label">
                       <span>Visual Fidelity</span>
                       <span id="stat-val-visual">85%</span>
                     </div>
-                    <div class="stat-bar-outer"><div class="stat-bar-inner" id="stat-bar-visual" style="width: 85%;"></div></div>
+                    <div class="stat-bar-outer">
+                      <div class="stat-bar-inner" id="stat-bar-visual" style="width: 85%;"></div>
+                    </div>
                   </div>
                   <div class="stat-row">
                     <div class="stat-row-label">
                       <span>Long-term Memory</span>
                       <span id="stat-val-memory">70%</span>
                     </div>
-                    <div class="stat-bar-outer"><div class="stat-bar-inner" id="stat-bar-memory" style="width: 70%;"></div></div>
+                    <div class="stat-bar-outer">
+                      <div class="stat-bar-inner" id="stat-bar-memory" style="width: 70%;"></div>
+                    </div>
                   </div>
                   <div class="stat-row">
                     <div class="stat-row-label">
                       <span>Logic Depth</span>
                       <span id="stat-val-logic">75%</span>
                     </div>
-                    <div class="stat-bar-outer"><div class="stat-bar-inner" id="stat-bar-logic" style="width: 75%;"></div></div>
+                    <div class="stat-bar-outer">
+                      <div class="stat-bar-inner" id="stat-bar-logic" style="width: 75%;"></div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 2: Modules -->
           <div class="settings-section-panel" id="panel-modules">
             <h3 class="settings-section-title">Cognitive Modules</h3>
-            <p class="settings-section-desc">Toggle the processing systems that drive Haruka's intelligence, sensory systems, and actions.</p>
-            
+            <p class="settings-section-desc">Toggle the processing systems that drive Haruka's intelligence, sensory
+              systems, and actions.</p>
+
             <div style="display: flex; flex-direction: column; gap: 10px;">
               <div class="settings-switch-row">
                 <div class="settings-switch-label-group">
@@ -4023,7 +4562,8 @@
               <div class="settings-switch-row">
                 <div class="settings-switch-label-group">
                   <span class="settings-switch-title">Speech Synthesis (TTS)</span>
-                  <span class="settings-switch-desc">Synchronizes realistic audio voice speech with Live2D lip-sync.</span>
+                  <span class="settings-switch-desc">Synchronizes realistic audio voice speech with Live2D
+                    lip-sync.</span>
                 </div>
                 <label class="tactile-switch">
                   <input type="checkbox" id="module-speech" checked>
@@ -4042,12 +4582,13 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 3: Scene -->
           <div class="settings-section-panel" id="panel-scene">
             <h3 class="settings-section-title">Scene Environment</h3>
-            <p class="settings-section-desc">Customize the stage atmosphere and environmental physics where Haruka lives.</p>
-            
+            <p class="settings-section-desc">Customize the stage atmosphere and environmental physics where Haruka
+              lives.</p>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
               <div class="settings-row">
                 <label class="settings-row-label" for="scene-lighting">Lighting System Sync</label>
@@ -4058,7 +4599,7 @@
                   <option value="studio">Neutral Studio Highlights</option>
                 </select>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label">
                   <span>Scene Brightness</span>
@@ -4068,7 +4609,7 @@
                   <input type="range" id="scene-bright" class="tactile-range" min="20" max="100" value="80">
                 </div>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label">
                   <span>Wind Speed / Hair Physics</span>
@@ -4080,12 +4621,13 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 4: Models -->
           <div class="settings-section-panel" id="panel-models">
             <h3 class="settings-section-title">3D / 2D Model Framework</h3>
-            <p class="settings-section-desc">Manage standard rigging engines, interactive tracking accuracy, and animation physics.</p>
-            
+            <p class="settings-section-desc">Manage standard rigging engines, interactive tracking accuracy, and
+              animation physics.</p>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
               <div class="settings-row">
                 <label class="settings-row-label" for="model-framework">Rigging Architecture</label>
@@ -4095,7 +4637,7 @@
                   <option value="hybrid">Hybrid 2.5D Hologram</option>
                 </select>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label" for="model-physics">Rig Physics Accuracy</label>
                 <select id="model-physics" class="settings-select">
@@ -4104,7 +4646,7 @@
                   <option value="low">Standard Physics (Low CPU)</option>
                 </select>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label">
                   <span>Eye-tracking Smoothness</span>
@@ -4116,12 +4658,13 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 5: Memory -->
           <div class="settings-section-panel" id="panel-memory">
             <h3 class="settings-section-title">Vector Memory Storage</h3>
-            <p class="settings-section-desc">Inspect, structure, and purge information Haruka has committed to long-term memory.</p>
-            
+            <p class="settings-section-desc">Inspect, structure, and purge information Haruka has committed to long-term
+              memory.</p>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
               <div class="settings-switch-row">
                 <div class="settings-switch-label-group">
@@ -4133,54 +4676,76 @@
                   <span class="tactile-slider"></span>
                 </label>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label">
                   <span>Short-term Buffer Allocation</span>
                   <span class="tactile-range-val" id="val-memory-buffer">2,048 Tokens</span>
                 </label>
                 <div class="tactile-range-container">
-                  <input type="range" id="memory-buffer" class="tactile-range" min="512" max="8192" step="512" value="2048">
+                  <input type="range" id="memory-buffer" class="tactile-range" min="512" max="8192" step="512"
+                    value="2048">
                 </div>
               </div>
-              
+
               <div class="settings-row">
                 <span class="settings-row-label">Learned Facts database (Click trash to delete)</span>
                 <div class="fact-list" id="fact-list">
                   <div class="fact-item" data-id="1">
                     <span>User loves digital forest walk exploration.</span>
-                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14"
+                        height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg></button>
                   </div>
                   <div class="fact-item" data-id="2">
                     <span>User's companion token is $HARUKA on Solana.</span>
-                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14"
+                        height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg></button>
                   </div>
                   <div class="fact-item" data-id="3">
                     <span>Haruka was designed to be cheerful and always helpful.</span>
-                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
+                    <button class="delete-fact-btn" aria-label="Delete memory"><svg viewBox="0 0 24 24" width="14"
+                        height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg></button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 6: Providers -->
           <div class="settings-section-panel" id="panel-providers">
             <h3 class="settings-section-title">AI & Voice Providers</h3>
-            <p class="settings-section-desc">Manage endpoints, keys, and cloud architectures driving models & voices.</p>
-            
+            <p class="settings-section-desc">Manage endpoints, keys, and cloud architectures driving models & voices.
+            </p>
+
             <!-- First time here info note card -->
             <div class="providers-alert-note">
               <div class="alert-note-header">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
                 <span>First time here?</span>
               </div>
               <p class="alert-note-body">
-                HARUKA requires at least one <strong>Chat</strong> provider to be configured to think and behave properly. You could think of it as the brain of the characters living in the HARUKA system.
+                HARUKA requires at least one <strong>Chat</strong> provider to be configured to think and behave
+                properly. You could think of it as the brain of the characters living in the HARUKA system.
               </p>
             </div>
 
@@ -4189,7 +4754,8 @@
               <div class="settings-row">
                 <label class="settings-row-label" for="provider-llm">
                   <span>Chat Provider</span>
-                  <span class="settings-row-sub">Text generation model providers. e.g. OpenRouter, OpenAI, Ollama.</span>
+                  <span class="settings-row-sub">Text generation model providers. e.g. OpenRouter, OpenAI,
+                    Ollama.</span>
                 </label>
                 <select id="provider-llm" class="settings-select">
                   <option value="official">Official Provider (Official AI provider by HARUKA)</option>
@@ -4229,7 +4795,8 @@
               <div class="settings-row">
                 <label class="settings-row-label" for="provider-tts">
                   <span>Speech Provider</span>
-                  <span class="settings-row-sub">Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure Speech.</span>
+                  <span class="settings-row-sub">Speech (text-to-speech) model providers. e.g. ElevenLabs, Azure
+                    Speech.</span>
                 </label>
                 <select id="provider-tts" class="settings-select">
                   <option value="none">None (No speech output.)</option>
@@ -4253,73 +4820,92 @@
               <div class="settings-row">
                 <label class="settings-row-label" for="provider-stt">
                   <span>Transcription Provider</span>
-                  <span class="settings-row-sub">Transcription (speech-to-text) model providers. e.g. Whisper.cpp, OpenAI, Azure Speech</span>
+                  <span class="settings-row-sub">Transcription (speech-to-text) model providers. e.g. Whisper.cpp,
+                    OpenAI, Azure Speech</span>
                 </label>
                 <select id="provider-stt" class="settings-select">
                   <option value="browser-local">Browser (Local) (github.com/moeru-ai/xsai-transformers)</option>
                   <option value="openai">OpenAI (openai.com)</option>
                   <option value="openai-compatible">OpenAI Compatible (OpenAI Compatible)</option>
                   <option value="aliyun-nls">Aliyun NLS (Aliyun NLS)</option>
-                  <option value="webspeech" selected>Web Speech API (Browser-native STT (requires Chrome/Edge/Safari))</option>
+                  <option value="webspeech" selected>Web Speech API (Browser-native STT (requires Chrome/Edge/Safari))
+                  </option>
                   <option value="comet">Comet API (CometAPI.com)</option>
                 </select>
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 7: Data -->
           <div class="settings-section-panel" id="panel-data">
             <h3 class="settings-section-title">Data Administration</h3>
             <p class="settings-section-desc">Download, backup, or wipe local application storage databases.</p>
-            
+
             <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 10px;">
               <div class="settings-row">
                 <span class="settings-row-label">Configuration Actions</span>
                 <div class="data-buttons-row">
                   <button type="button" class="btn-secondary-custom" id="btn-export-json">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
                     <span>Export JSON</span>
                   </button>
                   <button type="button" class="btn-secondary-custom" id="btn-import-archive">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
                     <span>Import Backup</span>
                   </button>
                 </div>
               </div>
-              
+
               <div class="settings-row" style="border-top: 1px solid rgba(30, 42, 58, 0.08); padding-top: 20px;">
                 <span class="settings-row-label" style="color: #dc2626;">Destructive Zone</span>
-                <p class="settings-section-desc" style="margin-bottom: 10px;">Purging all databases is irreversible. Haruka will lose all learned context, custom parameters, and memories immediately.</p>
+                <p class="settings-section-desc" style="margin-bottom: 10px;">Purging all databases is irreversible.
+                  Haruka will lose all learned context, custom parameters, and memories immediately.</p>
                 <button type="button" class="btn-destructive-custom" id="btn-wipe-data">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
                   <span>Wipe All Stored Data</span>
                 </button>
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 8: Connection -->
           <div class="settings-section-panel" id="panel-connection">
             <h3 class="settings-section-title">WebSocket Service Interface</h3>
-            <p class="settings-section-desc">Manage standard connection endpoints linking rigs with back-end AI thinking loops.</p>
-            
+            <p class="settings-section-desc">Manage standard connection endpoints linking rigs with back-end AI thinking
+              loops.</p>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
               <div class="websocket-diagnostic">
                 <div class="diagnostic-info">
                   <span class="diagnostic-title">Central Rig Server</span>
-                  <span class="diagnostic-ping">Endpoint: wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket</span>
+                  <span class="diagnostic-ping">Endpoint:
+                    wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket</span>
                 </div>
                 <div class="diagnostic-badge">
                   <span class="diagnostic-badge-dot"></span>
                   <span>CONNECTED</span>
                 </div>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label" for="conn-endpoint">Pump.fun WebSocket URL</label>
-                <input type="text" id="conn-endpoint" class="settings-input-text" value="wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket">
+                <input type="text" id="conn-endpoint" class="settings-input-text"
+                  value="wss://livechat.pump.fun/socket.io/?EIO=4&transport=websocket">
               </div>
-              
+
               <div class="settings-switch-row">
                 <div class="settings-switch-label-group">
                   <span class="settings-switch-title">Auto Reconnect</span>
@@ -4332,12 +4918,13 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Tab 9: System -->
           <div class="settings-section-panel" id="panel-system">
             <h3 class="settings-section-title">System & Stage Settings</h3>
-            <p class="settings-section-desc">Configure overall UI scales, theme selections, and developer performance debug stats.</p>
-            
+            <p class="settings-section-desc">Configure overall UI scales, theme selections, and developer performance
+              debug stats.</p>
+
             <div style="display: flex; flex-direction: column; gap: 16px;">
               <div class="settings-row">
                 <span class="settings-row-label">Theme Palette Picker</span>
@@ -4376,7 +4963,7 @@
                   </button>
                 </div>
               </div>
-              
+
               <div class="settings-row">
                 <label class="settings-row-label">
                   <span>Interface Layout Scale</span>
@@ -4388,10 +4975,10 @@
               </div>
             </div>
           </div>
-          
+
         </main>
       </div>
-      
+
       <!-- Modal Footer -->
       <div class="settings-footer">
         <button type="button" id="btn-settings-reset" class="btn-settings-reset">Reset Defaults</button>
@@ -4399,15 +4986,16 @@
           <span>Save Settings</span>
         </button>
       </div>
-      
+
     </div>
   </div>
-  
+
   <!-- Premium Glass success toast -->
   <div id="settings-toast" class="settings-toast">
     <div class="toast-icon">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" />
       </svg>
     </div>
     <div class="toast-content">
@@ -4418,7 +5006,7 @@
 
   <!-- Price Feed Script -->
   <script>
-    (function() {
+    (function () {
       const HARUKA_CA = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
       const API_URL = `https://api.dexscreener.com/latest/dex/tokens/${HARUKA_CA}`;
 
@@ -4433,8 +5021,8 @@
           const priceEl = document.getElementById('haruka-price');
           const price = parseFloat(pair.priceUsd);
           if (priceEl) {
-            priceEl.textContent = price < 0.01 
-              ? `$${price.toFixed(6)}` 
+            priceEl.textContent = price < 0.01
+              ? `$${price.toFixed(6)}`
               : `$${price.toFixed(4)}`;
           }
 
@@ -4451,9 +5039,9 @@
           const mcapEl = document.getElementById('haruka-mcap');
           const mc = pair.marketCap || 0;
           if (mcapEl) {
-            mcapEl.textContent = mc >= 1_000_000 
+            mcapEl.textContent = mc >= 1_000_000
               ? `$${(mc / 1_000_000).toFixed(2)}M`
-              : mc >= 1_000 
+              : mc >= 1_000
                 ? `$${(mc / 1_000).toFixed(1)}K`
                 : `$${mc.toFixed(0)}`;
           }
@@ -4462,9 +5050,9 @@
           const volEl = document.getElementById('haruka-volume');
           const vol = pair.volume?.h24 || 0;
           if (volEl) {
-            volEl.textContent = vol >= 1_000_000 
+            volEl.textContent = vol >= 1_000_000
               ? `$${(vol / 1_000_000).toFixed(2)}M`
-              : vol >= 1_000 
+              : vol >= 1_000
                 ? `$${(vol / 1_000).toFixed(1)}K`
                 : `$${vol.toFixed(0)}`;
           }
@@ -4473,9 +5061,9 @@
           const liqEl = document.getElementById('haruka-liquidity');
           const liq = pair.liquidity?.usd || 0;
           if (liqEl) {
-            liqEl.textContent = liq >= 1_000_000 
+            liqEl.textContent = liq >= 1_000_000
               ? `$${(liq / 1_000_000).toFixed(2)}M`
-              : liq >= 1_000 
+              : liq >= 1_000
                 ? `$${(liq / 1_000).toFixed(1)}K`
                 : `$${liq.toFixed(0)}`;
           }
@@ -4494,4 +5082,5 @@
   </script>
 
 </body>
+
 </html>

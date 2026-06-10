@@ -45,12 +45,21 @@ export class ChatManager {
   private _activeUtterance: SpeechSynthesisUtterance | null = null;
   private _activeLang: 'en' | 'jp' = 'en';
   private _micBtn: HTMLButtonElement | null = null;
+  private _cameraBtn: HTMLButtonElement | null = null;
+  private _cameraPreview: HTMLDivElement | null = null;
+  private _cameraVideo: HTMLVideoElement | null = null;
+  private _statusNote: HTMLDivElement | null = null;
+  private _statusNoteText: HTMLSpanElement | null = null;
   private _mediaRecorder: MediaRecorder | null = null;
   private _audioChunks: Blob[] = [];
   private _isRecording: boolean = false;
+  private _cameraStream: MediaStream | null = null;
+  private _cameraActive: boolean = false;
+  private _cameraBusy: boolean = false;
   private _history: { role: 'user' | 'assistant'; content: string }[] = [];
   private _speechEnabled: boolean = true;
   private _isProcessingReply: boolean = false;
+  private _statusNoteTimeout: number | null = null;
   private _chatProvider: string = 'openai-compatible';
   private _chatEngineMode: HarukaEngineMode = 'direct';
   private _presetCard: HarukaSoulProfileId = 'classic';
@@ -72,6 +81,10 @@ export class ChatManager {
         window.speechSynthesis.getVoices();
       };
     }
+
+    window.addEventListener('beforeunload', () => {
+      this.stopCamera({ silent: true });
+    });
   }
 
   private readEmbedContext(): void {
@@ -108,6 +121,11 @@ export class ChatManager {
     this._bubble = document.getElementById('chat-bubble') as HTMLDivElement;
     this._bubbleText = document.getElementById('bubble-text') as HTMLSpanElement;
     this._typingIndicator = document.getElementById('typing-indicator') as HTMLDivElement;
+    this._cameraBtn = document.getElementById('camera-toggle') as HTMLButtonElement;
+    this._cameraPreview = document.getElementById('camera-preview-shell') as HTMLDivElement;
+    this._cameraVideo = document.getElementById('user-camera') as HTMLVideoElement;
+    this._statusNote = document.getElementById('chat-status-note') as HTMLDivElement;
+    this._statusNoteText = document.getElementById('chat-status-note-text') as HTMLSpanElement;
 
     if (this._form) {
       this._form.addEventListener('submit', (e) => this.handleFormSubmit(e));
@@ -120,6 +138,19 @@ export class ChatManager {
     this._micBtn = document.getElementById('mic-btn') as HTMLButtonElement;
     if (this._micBtn) {
       this._micBtn.addEventListener('click', () => this.toggleRecording());
+    }
+
+    if (this._cameraBtn) {
+      this._cameraBtn.addEventListener('click', () => {
+        void this.toggleCamera();
+      });
+    }
+
+    const homeBtn = document.getElementById('home-btn') as HTMLButtonElement | null;
+    if (homeBtn) {
+      homeBtn.addEventListener('click', () => {
+        this.stopCamera({ silent: true });
+      });
     }
   }
 
@@ -736,6 +767,135 @@ export class ChatManager {
     }
   }
 
+  private showStatusNote(message: string, tone: 'info' | 'error' = 'info'): void {
+    if (!this._statusNote || !this._statusNoteText) {
+      return;
+    }
+
+    if (this._statusNoteTimeout) {
+      clearTimeout(this._statusNoteTimeout);
+      this._statusNoteTimeout = null;
+    }
+
+    this._statusNoteText.textContent = message;
+    this._statusNote.dataset.tone = tone;
+    this._statusNote.classList.add('active');
+
+    this._statusNoteTimeout = window.setTimeout(() => {
+      this._statusNote?.classList.remove('active');
+      this._statusNoteTimeout = null;
+    }, tone === 'error' ? 5200 : 3200);
+  }
+
+  private updateCameraUi(active: boolean): void {
+    if (this._cameraBtn) {
+      this._cameraBtn.classList.toggle('camera-active', active);
+      this._cameraBtn.setAttribute('aria-pressed', String(active));
+      this._cameraBtn.setAttribute('aria-label', active ? 'Disable Camera' : 'Enable Camera');
+      this._cameraBtn.title = active ? 'Disable Camera' : 'Enable Camera';
+      this._cameraBtn.disabled = this._cameraBusy;
+    }
+
+    if (this._cameraPreview) {
+      this._cameraPreview.classList.toggle('active', active);
+    }
+  }
+
+  private stopCameraTracks(): void {
+    if (!this._cameraStream) {
+      return;
+    }
+
+    this._cameraStream.getTracks().forEach((track) => track.stop());
+    this._cameraStream = null;
+  }
+
+  private stopCamera(options?: { silent?: boolean }): void {
+    const wasActive = this._cameraActive;
+
+    this.stopCameraTracks();
+
+    if (this._cameraVideo) {
+      this._cameraVideo.pause();
+      this._cameraVideo.srcObject = null;
+    }
+
+    this._cameraActive = false;
+    this._cameraBusy = false;
+    this.updateCameraUi(false);
+
+    if (wasActive && !options?.silent) {
+      this.showStatusNote('Camera preview turned off.', 'info');
+    }
+  }
+
+  private async activateCameraStream(stream: MediaStream): Promise<void> {
+    this.stopCameraTracks();
+    this._cameraStream = stream;
+
+    if (this._cameraVideo) {
+      this._cameraVideo.srcObject = stream;
+      try {
+        await this._cameraVideo.play();
+      } catch (error) {
+        console.warn('Camera preview autoplay was interrupted:', error);
+      }
+    }
+
+    this._cameraActive = true;
+    this._cameraBusy = false;
+    this.updateCameraUi(true);
+    this.showStatusNote('Camera preview is live on this device only.', 'info');
+  }
+
+  private async toggleCamera(): Promise<void> {
+    if (this._cameraBusy) {
+      return;
+    }
+
+    if (this._cameraActive) {
+      this.stopCamera();
+      return;
+    }
+
+    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      this.showStatusNote('Camera is not supported in this browser.', 'error');
+      return;
+    }
+
+    this._cameraBusy = true;
+    this.updateCameraUi(false);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user'
+        },
+        audio: false
+      });
+
+      await this.activateCameraStream(stream);
+    } catch (error) {
+      console.error('Camera access failed:', error);
+      this._cameraBusy = false;
+      this.updateCameraUi(false);
+
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        this.showStatusNote('Camera access was blocked. Allow camera permission to see your preview.', 'error');
+        return;
+      }
+
+      if (error instanceof DOMException && error.name === 'NotFoundError') {
+        this.showStatusNote('No camera was found on this device.', 'error');
+        return;
+      }
+
+      this.showStatusNote('Camera could not start right now. Please try again.', 'error');
+    }
+  }
+
   private triggerCharacterAction(emotion: 'joy' | 'sad' | 'angry' | 'surprise' | 'blush' | 'thinking' | 'neutral'): void {
     try {
       const delegate = LAppDelegate.getInstance();
@@ -1001,7 +1161,7 @@ export class ChatManager {
   private startWebSpeechRecognition(): void {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Your browser does not support speech recognition. Please try Chrome or Edge.');
+      this.showStatusNote('Speech recognition is not supported here. Try Chrome or Edge.', 'error');
       return;
     }
 
