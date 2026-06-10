@@ -1,6 +1,11 @@
 import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
-import type { HarukaChatSource, HarukaEngineMode, HarukaSoulProfileId } from './harukaChatContract';
+import type {
+  HarukaChatSource,
+  HarukaEngineMode,
+  HarukaPortfolioContext,
+  HarukaSoulProfileId
+} from './harukaChatContract';
 
 interface RuntimeSettings {
   speechSynthesis?: boolean;
@@ -29,6 +34,7 @@ interface EmbedContext {
 }
 
 const WEB_SESSION_STORAGE_KEY = 'haruka.web.sessionId';
+const DEFAULT_CHAT_PLACEHOLDER = 'Ask the character something...';
 
 export class ChatManager {
   private _form: HTMLFormElement | null = null;
@@ -69,6 +75,7 @@ export class ChatManager {
   private _embedSessionId = '';
   private _webSessionId = '';
   private _clientType: 'web-app' | 'embed-widget' = 'web-app';
+  private _portfolioContext: HarukaPortfolioContext | null = null;
 
   constructor() {
     this.ensureWebSessionId();
@@ -175,6 +182,20 @@ export class ChatManager {
     }
     if (typeof settings.openSoulsBaseUrl === 'string') {
       this._openSoulsBaseUrl = settings.openSoulsBaseUrl.trim();
+    }
+  }
+
+  public applyPortfolioContext(portfolioContext: HarukaPortfolioContext | null): void {
+    this._portfolioContext = portfolioContext;
+
+    if (this._input) {
+      this._input.placeholder = portfolioContext
+        ? 'Ask about your holdings, balances, or $HARUKA...'
+        : DEFAULT_CHAT_PLACEHOLDER;
+    }
+
+    if (portfolioContext) {
+      this.showStatusNote(`Portfolio context loaded for ${portfolioContext.shortAddress}.`, 'info');
     }
   }
 
@@ -309,7 +330,8 @@ export class ChatManager {
           clientType: this._clientType,
           apiKey: this._embedApiKey || undefined,
           userId: this._embedUserId || undefined,
-          sessionId: this._embedSessionId || this._webSessionId || undefined
+          sessionId: this._embedSessionId || this._webSessionId || undefined,
+          portfolioContext: this._portfolioContext || undefined
         })
       });
 

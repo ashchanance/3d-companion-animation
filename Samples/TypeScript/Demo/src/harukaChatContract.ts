@@ -23,6 +23,21 @@ export interface OpenSoulsBridgeConfig {
 
 export type HarukaClientType = 'web-app' | 'embed-widget' | 'api-client';
 
+export interface HarukaPortfolioContext {
+  walletAddress: string;
+  shortAddress: string;
+  walletProvider: 'phantom' | 'solflare' | 'unknown';
+  sol: number;
+  usdc: number;
+  haruka: number;
+  harukaPriceUsd: number | null;
+  harukaChange24h: number | null;
+  harukaMarketCap: number | null;
+  harukaVolume24h: number | null;
+  capturedAt: string;
+  source: 'utility-page';
+}
+
 export interface HarukaChatRequest {
   message: string;
   history: HarukaHistoryItem[];
@@ -38,6 +53,7 @@ export interface HarukaChatRequest {
   apiKey?: string;
   userId?: string;
   sessionId?: string;
+  portfolioContext?: HarukaPortfolioContext;
 }
 
 export interface HarukaChatResponse {

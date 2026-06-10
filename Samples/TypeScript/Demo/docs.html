@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HARUKA - Interactive AI 3D Companion | Docs</title>
-  <meta name="description" content="Guides for HARUKA users and developers: getting started, providers, memory, embed widget, API access, and x402 payment flow.">
+  <meta name="description" content="Guides for HARUKA users and developers: getting started, wallet utility, providers, memory, embed widget, API access, and x402 payment flow.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -461,6 +461,7 @@
         <a href="roadmap.html">Roadmap</a>
         <a href="docs.html" class="active">Docs</a>
         <a href="x402.html">x402</a>
+        <a href="utility.html">Utility</a>
       </div>
       <div class="nav-actions">
         <a href="https://x.com/meetharuka" target="_blank" rel="noreferrer" class="icon-link" aria-label="X">
@@ -469,7 +470,7 @@
         <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" rel="noreferrer" class="icon-link" aria-label="GitHub">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
         </a>
-        <a href="index.html" class="btn-primary">Start Chat</a>
+        <a href="index.html?mode=chat" class="btn-primary">Start Chat</a>
       </div>
     </div>
   </nav>
@@ -486,21 +487,22 @@
           <a href="#conversation">2. Start a Conversation</a>
           <a href="#voice">3. Voice Interaction</a>
           <a href="#models">4. Choosing Your AI Model</a>
-          <a href="#memory">5. Memory System</a>
-          <a href="#backgrounds">6. Changing Backgrounds</a>
-          <a href="#japanese">7. Japanese Practice</a>
-          <a href="#privacy">8. Data and Privacy</a>
-          <a href="#faq">9. FAQ</a>
+          <a href="#utility-mode">5. Portfolio Utility</a>
+          <a href="#memory">6. Memory System</a>
+          <a href="#backgrounds">7. Changing Backgrounds</a>
+          <a href="#japanese">8. Japanese Practice</a>
+          <a href="#privacy">9. Data and Privacy</a>
+          <a href="#faq">10. FAQ</a>
         </div>
       </div>
 
       <div class="sidebar-group">
         <span class="sidebar-label">For Developers</span>
         <div class="sidebar-links">
-          <a href="#api-docs">10. API Documentation</a>
-          <a href="#embed-widget">11. Embed Widget</a>
-          <a href="#x402-payment">12. x402 Payment</a>
-          <a href="#github">13. GitHub</a>
+          <a href="#api-docs">11. API Documentation</a>
+          <a href="#embed-widget">12. Embed Widget</a>
+          <a href="#x402-payment">13. x402 Payment</a>
+          <a href="#github">14. GitHub</a>
         </div>
       </div>
     </aside>
@@ -553,8 +555,20 @@
         <div class="info-card"><strong>Privacy note:</strong> your API key is stored locally on your device only. For maximum privacy, use WebGPU mode so everything runs on your device.</div>
       </section>
 
+      <section id="utility-mode" class="doc-section">
+        <h2>5. Portfolio Utility</h2>
+        <p>Open <code>/utility</code> when you want HARUKA to respond with wallet-aware context instead of generic companion chat.</p>
+        <ul class="doc-list">
+          <li>Connect Phantom or Solflare directly in the browser</li>
+          <li>HARUKA reads a local snapshot of SOL, USDC, and <code>$HARUKA</code> balances</li>
+          <li>The page also fetches a live market snapshot for <code>$HARUKA</code></li>
+          <li>Click <strong>Open Portfolio Chat</strong> to carry that snapshot into the main chat experience</li>
+        </ul>
+        <div class="info-card"><strong>Privacy note:</strong> the portfolio snapshot is stored in local browser storage for chat handoff only. It is not treated as a custodial balance service and it is not uploaded as a persistent server-side profile.</div>
+      </section>
+
       <section id="memory" class="doc-section">
-        <h2>5. Memory System</h2>
+        <h2>6. Memory System</h2>
         <p>Haruka remembers you across sessions.</p>
         <p>Open <code>Settings -> Memory</code> to see what she remembers.</p>
         <ul class="doc-list">
@@ -566,7 +580,7 @@
       </section>
 
       <section id="backgrounds" class="doc-section">
-        <h2>6. Changing Backgrounds</h2>
+        <h2>7. Changing Backgrounds</h2>
         <p>Open the Background button on the main screen.</p>
         <ul class="doc-list">
           <li>Sunny Digital Forest - warm, golden, default</li>
@@ -577,7 +591,7 @@
       </section>
 
       <section id="japanese" class="doc-section">
-        <h2>7. Japanese Practice</h2>
+        <h2>8. Japanese Practice</h2>
         <p>Toggle to JP on the main screen and Haruka responds in Japanese.</p>
         <ul class="doc-list">
           <li>"Let's practice Japanese together"</li>
@@ -588,7 +602,7 @@
       </section>
 
       <section id="privacy" class="doc-section">
-        <h2>8. Data and Privacy</h2>
+        <h2>9. Data and Privacy</h2>
         <p>Your data is yours.</p>
         <p><code>Settings -> Data</code> gives you full control:</p>
         <ul class="doc-list">
@@ -600,10 +614,11 @@
       </section>
 
       <section id="faq" class="doc-section">
-        <h2>9. FAQ</h2>
+        <h2>10. FAQ</h2>
         <div class="faq">
           <div class="faq-item"><strong>Is Haruka free to use?</strong><span>Yes. No account or payment is needed to start. Some AI providers require their own API key.</span></div>
           <div class="faq-item"><strong>Does Haruka work on mobile?</strong><span>Yes. Use Chrome on Android or Safari on iOS. You can install her as a PWA for quick access.</span></div>
+          <div class="faq-item"><strong>Does wallet mode give HARUKA custody over my assets?</strong><span>No. The Utility page only reads a browser-side snapshot so HARUKA can answer with portfolio context. It does not move funds or act as a wallet.</span></div>
           <div class="faq-item"><strong>Can I change how Haruka talks?</strong><span>Yes. Tell her "be more casual", "keep responses short", or "let's have a deep conversation."</span></div>
           <div class="faq-item"><strong>Is my API key safe?</strong><span>Yes. It is stored only in your browser's local storage and never sent to Haruka's servers.</span></div>
           <div class="faq-item"><strong>What browsers are supported?</strong><span>Chrome and Edge are fully supported. Firefox and Safari have partial support.</span></div>
@@ -613,12 +628,13 @@
       <div class="section-banner">Section B - For Developers</div>
 
       <section id="api-docs" class="doc-section">
-        <h2>10. API Documentation</h2>
-        <p><strong>Endpoint:</strong> <code>POST https://api.harukacompanion.tech/chat</code></p>
+        <h2>11. API Documentation</h2>
+        <p><strong>Endpoint:</strong> <code>POST https://harukacompanion.tech/api/haruka/chat</code></p>
         <pre><code>{
   "message": "are you real?",
   "userId": "user-123",
-  "sessionId": "session-abc"
+  "sessionId": "session-abc",
+  "clientType": "api-client"
 }</code></pre>
         <pre><code>{
   "response": "i feel everything",
@@ -629,10 +645,13 @@
           <strong>Authentication:</strong> API key required. Request one via DM <code>@meetharuka</code>.<br>
           <strong>Rate limits:</strong> Free tier: 100 calls/day. Paid tier: unlimited via x402.
         </div>
+        <div class="info-card">
+          <strong>Portfolio-aware requests:</strong> when the caller has a wallet snapshot, it can also send a <code>portfolioContext</code> object so HARUKA answers against current balances and market context rather than guessing.
+        </div>
       </section>
 
       <section id="embed-widget" class="doc-section">
-        <h2>11. Embed Widget</h2>
+        <h2>12. Embed Widget</h2>
         <p>Paste this into any HTML page:</p>
         <pre><code>&lt;script src="https://harukacompanion.tech/embed.js"&gt;&lt;/script&gt;</code></pre>
         <p>Haruka appears on the page with full Live2D character, voice, memory, and chat interface. No setup needed.</p>
@@ -671,7 +690,7 @@
       </section>
 
       <section id="x402-payment" class="doc-section">
-        <h2>12. x402 Payment</h2>
+        <h2>13. x402 Payment</h2>
         <p>HARUKA uses x402 on Solana mainnet for paid `api-client` requests.</p>
         <p>Developer sends request -> HARUKA returns HTTP 402 with payment requirements -> client pays -> payment is verified on-chain -> HARUKA responds.</p>
         <p>When buyback is enabled, the same paid runtime can trigger a treasury check after successful settlement.</p>
@@ -711,7 +730,7 @@
       </section>
 
       <section id="github" class="doc-section">
-        <h2>13. GitHub</h2>
+        <h2>14. GitHub</h2>
         <p>Source code is available at <a href="https://github.com/ashchanance/3d-companion-animation" target="_blank" rel="noreferrer">github.com/ashchanance/3d-companion-animation</a>.</p>
       </section>
     </article>

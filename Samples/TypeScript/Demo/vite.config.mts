@@ -420,7 +420,8 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
           roadmap: path.resolve(__dirname, 'roadmap.html'),
           docs: path.resolve(__dirname, 'docs.html'),
           features: path.resolve(__dirname, 'features.html'),
-          x402: path.resolve(__dirname, 'x402.html')
+          x402: path.resolve(__dirname, 'x402.html'),
+          utility: path.resolve(__dirname, 'utility.html')
         }
       }
     }

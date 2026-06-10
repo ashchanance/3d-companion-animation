@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARUKA - Utility</title>
+  <meta name="description"
+    content="Connect a Solana wallet, let HARUKA read the portfolio snapshot, and hand that context directly into chat.">
+  <link rel="icon" type="image/png" href="/Resources/icon_gear.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg: #f9f1df;
+      --bg-soft: #fffaf0;
+      --panel: rgba(255, 251, 242, 0.82);
+      --panel-strong: rgba(255, 249, 236, 0.95);
+      --text: #213224;
+      --muted: #556955;
+      --border: rgba(56, 77, 56, 0.12);
+      --gold: #c8922a;
+      --gold-deep: #9e6d1f;
+      --gold-soft: rgba(200, 146, 42, 0.12);
+      --shadow: 0 24px 60px rgba(60, 52, 34, 0.12);
+      --shadow-soft: 0 12px 28px rgba(60, 52, 34, 0.08);
+      --success: #2f9f61;
+      --error: #c44747;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(242, 217, 138, 0.4), transparent 34%),
+        radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.72), transparent 22%),
+        linear-gradient(180deg, #fdf7ec 0%, var(--bg) 44%, #f3e6cb 100%);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 80%);
+      opacity: 0.3;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page-shell {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 72px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+      padding: 18px 24px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 251, 244, 0.7);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand span:last-child {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .nav-links a {
+      padding: 9px 14px;
+      border-radius: 999px;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .nav-links a.active {
+      background: linear-gradient(135deg, rgba(200, 146, 42, 0.14), rgba(200, 146, 42, 0.24));
+      color: var(--gold-deep);
+      box-shadow: inset 0 0 0 1px rgba(200, 146, 42, 0.18);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .hero-card,
+    .meta-card,
+    .portfolio-shell {
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 34px 34px 30px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      right: -70px;
+      top: -60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200, 146, 42, 0.26), transparent 70%);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--gold-deep);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      margin-bottom: 18px;
+    }
+
+    .hero-title {
+      margin: 0 0 12px;
+      font-family: var(--font-display);
+      font-size: clamp(2.9rem, 6vw, 4.9rem);
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      max-width: 11ch;
+    }
+
+    .hero-desc {
+      margin: 0;
+      max-width: 56ch;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(200, 146, 42, 0.12);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .meta-card {
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .meta-label {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gold-deep);
+      font-weight: 700;
+    }
+
+    .meta-card h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      line-height: 1.1;
+    }
+
+    .meta-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meta-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-top: 1px solid rgba(56, 77, 56, 0.08);
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .meta-item strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .portfolio-shell {
+      padding: 28px;
+    }
+
+    .portfolio-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .portfolio-header h2 {
+      margin: 0 0 10px;
+      font-size: 1.8rem;
+    }
+
+    .portfolio-header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 60ch;
+    }
+
+    .privacy-badge {
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(200, 146, 42, 0.12);
+      min-width: 220px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .privacy-badge strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .status-note {
+      display: none;
+      padding: 13px 16px;
+      border-radius: 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+      border: 1px solid transparent;
+    }
+
+    .status-note.active {
+      display: block;
+    }
+
+    .status-note[data-tone="info"] {
+      background: rgba(47, 159, 97, 0.08);
+      color: #206f45;
+      border-color: rgba(47, 159, 97, 0.16);
+    }
+
+    .status-note[data-tone="error"] {
+      background: rgba(196, 71, 71, 0.08);
+      color: #993737;
+      border-color: rgba(196, 71, 71, 0.18);
+    }
+
+    .connect-surface,
+    .connected-surface,
+    .loading-surface {
+      border-radius: 28px;
+      background: var(--panel-strong);
+      border: 1px solid rgba(200, 146, 42, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+    }
+
+    .connect-surface {
+      padding: 30px;
+    }
+
+    .connect-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin: 24px 0 16px;
+    }
+
+    .wallet-option {
+      padding: 18px 18px 20px;
+      border-radius: 24px;
+      border: 1px solid rgba(56, 77, 56, 0.1);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(248, 239, 220, 0.84));
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .wallet-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 36px rgba(60, 52, 34, 0.12);
+      border-color: rgba(200, 146, 42, 0.26);
+    }
+
+    .wallet-option:disabled {
+      opacity: 0.64;
+      cursor: wait;
+      transform: none;
+    }
+
+    .wallet-option span {
+      display: block;
+    }
+
+    .wallet-option .wallet-name {
+      font-size: 1.08rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .wallet-option .wallet-desc {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+
+    .connect-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .loading-surface {
+      padding: 24px 26px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .loading-surface[hidden] {
+      display: none;
+    }
+
+    .connected-surface {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .connected-surface[hidden],
+    .connect-surface[hidden] {
+      display: none;
+    }
+
+    .wallet-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .wallet-bar h3 {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .wallet-state {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .wallet-state::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 6px rgba(47, 159, 97, 0.12);
+    }
+
+    .wallet-subline {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .wallet-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn-inline,
+    .open-chat-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .btn-inline {
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, 0.76);
+      border-color: rgba(56, 77, 56, 0.1);
+      color: var(--text);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .btn-inline:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-inline:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .balance-card,
+    .price-card,
+    .bubble-card,
+    .cta-card {
+      border-radius: 24px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .balance-card.featured {
+      background: linear-gradient(180deg, rgba(255, 251, 242, 0.96), rgba(247, 229, 189, 0.9));
+      border-color: rgba(200, 146, 42, 0.22);
+    }
+
+    .balance-label,
+    .price-label,
+    .meta-chip {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .balance-value {
+      font-size: clamp(1.5rem, 2.5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+
+    .price-card {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .price-main {
+      display: grid;
+      gap: 10px;
+    }
+
+    .price-hero {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .price-value {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.05em;
+    }
+
+    .portfolio-price-change {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 800;
+    }
+
+    .portfolio-price-change.up {
+      background: rgba(47, 159, 97, 0.12);
+      color: #207145;
+    }
+
+    .portfolio-price-change.down {
+      background: rgba(196, 71, 71, 0.12);
+      color: #973737;
+    }
+
+    .price-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .price-meta strong {
+      display: block;
+      color: var(--text);
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .bubble-card {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      background: linear-gradient(180deg, rgba(255, 250, 239, 0.96), rgba(249, 236, 203, 0.86));
+      border-color: rgba(200, 146, 42, 0.16);
+    }
+
+    .bubble-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      font-size: 1.35rem;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .bubble-card p {
+      margin: 0;
+      line-height: 1.8;
+      color: var(--text);
+      font-size: 0.96rem;
+    }
+
+    .cta-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(245, 226, 181, 0.82));
+      border-color: rgba(200, 146, 42, 0.18);
+    }
+
+    .cta-copy h3 {
+      margin: 0 0 8px;
+      font-size: 1.14rem;
+    }
+
+    .cta-copy p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 56ch;
+    }
+
+    .open-chat-btn {
+      padding: 14px 22px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+      color: white;
+      box-shadow: 0 18px 34px rgba(158, 109, 31, 0.26);
+      white-space: nowrap;
+    }
+
+    .open-chat-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .open-chat-btn.disabled {
+      background: rgba(85, 105, 85, 0.28);
+      box-shadow: none;
+      pointer-events: auto;
+    }
+
+    .footer-copy {
+      margin-top: 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .cta-card,
+      .wallet-bar,
+      .price-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .wallet-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page-shell {
+        width: min(100vw - 20px, 100%);
+        padding-top: 18px;
+      }
+
+      .topbar {
+        border-radius: 28px;
+        padding: 18px;
+      }
+
+      .balance-grid,
+      .connect-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .portfolio-shell,
+      .hero-card,
+      .meta-card {
+        border-radius: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span>HARUKA</span>
+        <span>Utility Surface</span>
+      </div>
+      <nav class="nav-links">
+        <a href="about-us.html">About Us</a>
+        <a href="features.html">Features</a>
+        <a href="lore.html">Lore</a>
+        <a href="roadmap.html">Roadmap</a>
+        <a href="docs.html">Docs</a>
+        <a href="x402.html">x402</a>
+        <a href="utility.html" class="active">Utility</a>
+      </nav>
+    </header>
+
+    <section class="hero-grid">
+      <article class="hero-card">
+        <div class="eyebrow">Wallet Utility</div>
+        <h1 class="hero-title">Portfolio Management</h1>
+        <p class="hero-desc">
+          Connect a Solana wallet, let HARUKA read the snapshot locally in your browser, then carry that context into
+          chat so the companion can answer questions about balances, holdings, and the visible $HARUKA price.
+        </p>
+        <div class="hero-pills">
+          <span class="hero-pill">Phantom + Solflare</span>
+          <span class="hero-pill">Mainnet SOL / USDC / $HARUKA</span>
+          <span class="hero-pill">Chat handoff ready</span>
+        </div>
+      </article>
+
+      <aside class="meta-card">
+        <span class="meta-label">Concept</span>
+        <h2>A utility page, not a parallel app.</h2>
+        <p>
+          This page fits the current HARUKA architecture: one Vite multi-page deployment, one chat backend, and one
+          clean handoff into the existing Live2D chat shell.
+        </p>
+        <div class="meta-list">
+          <div class="meta-item"><strong>Wallet read</strong><span>SOL, USDC, and $HARUKA snapshot</span></div>
+          <div class="meta-item"><strong>Speech moment</strong><span>HARUKA reacts immediately after the wallet load</span></div>
+          <div class="meta-item"><strong>Chat bridge</strong><span>Stored locally, then passed into HARUKA chat context</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="portfolio-shell">
+      <div class="portfolio-header">
+        <div>
+          <h2>Connect your wallet. HARUKA will read it for you.</h2>
+          <p>
+            The current snapshot stays in your browser first. HARUKA only receives the context you explicitly carry into
+            chat from this page.
+          </p>
+        </div>
+        <div class="privacy-badge">
+          <strong>Local-first handoff</strong>
+          Wallet snapshot is cached in local storage for the chat jump, then can be refreshed or cleared at any time.
+        </div>
+      </div>
+
+      <div id="portfolio-status" class="status-note" data-tone="info" aria-live="polite"></div>
+
+      <div id="wallet-connect-surface" class="connect-surface">
+        <span class="meta-chip">Supported wallets</span>
+        <div class="connect-grid">
+          <button id="connect-phantom-btn" class="wallet-option" type="button">
+            <span class="wallet-name">Connect Phantom</span>
+            <span class="wallet-desc">Use the browser extension and let HARUKA read SOL, USDC, and $HARUKA.</span>
+          </button>
+          <button id="connect-solflare-btn" class="wallet-option" type="button">
+            <span class="wallet-name">Connect Solflare</span>
+            <span class="wallet-desc">Same flow, same snapshot handoff, with the Solflare browser wallet.</span>
+          </button>
+        </div>
+        <p id="connect-hint" class="connect-hint">
+          If a wallet is missing, HARUKA opens the install page instead of pretending the connection succeeded.
+        </p>
+      </div>
+
+      <div id="portfolio-loading" class="loading-surface" hidden>
+        HARUKA is reading your wallet and refreshing the latest $HARUKA market snapshot...
+      </div>
+
+      <div id="wallet-connected-surface" class="connected-surface" hidden>
+        <div class="wallet-bar">
+          <div>
+            <h3>Connected wallet</h3>
+            <div class="wallet-state">
+              <span id="wallet-provider-label">Wallet</span>
+              <span id="wallet-address-label">Abc...xyz</span>
+            </div>
+            <div class="wallet-subline">Last snapshot: <span id="portfolio-captured-at">—</span></div>
+          </div>
+          <div class="wallet-actions">
+            <button id="refresh-portfolio-btn" class="btn-inline" type="button">Refresh snapshot</button>
+            <button id="disconnect-wallet-btn" class="btn-inline" type="button">Disconnect</button>
+          </div>
+        </div>
+
+        <div class="balance-grid">
+          <article class="balance-card">
+            <span class="balance-label">SOL</span>
+            <span id="balance-sol-value" class="balance-value">0.00</span>
+          </article>
+          <article class="balance-card">
+            <span class="balance-label">USDC</span>
+            <span id="balance-usdc-value" class="balance-value">0.00</span>
+          </article>
+          <article class="balance-card featured">
+            <span class="balance-label">$HARUKA</span>
+            <span id="balance-haruka-value" class="balance-value">0</span>
+          </article>
+        </div>
+
+        <article class="price-card">
+          <div class="price-main">
+            <span class="price-label">$HARUKA market snapshot</span>
+            <div class="price-hero">
+              <span id="haruka-price-value" class="price-value">—</span>
+              <span id="haruka-price-change" class="portfolio-price-change up">0.00%</span>
+            </div>
+          </div>
+          <div class="price-meta">
+            <div>
+              <span class="meta-chip">Market Cap</span>
+              <strong id="haruka-market-cap">—</strong>
+            </div>
+            <div>
+              <span class="meta-chip">Volume 24h</span>
+              <strong id="haruka-volume-24h">—</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="bubble-card">
+          <div class="bubble-avatar">🌸</div>
+          <p id="portfolio-insight-text">HARUKA will speak here right after the wallet snapshot is ready.</p>
+        </article>
+
+        <article class="cta-card">
+          <div class="cta-copy">
+            <h3>Ask HARUKA about this portfolio</h3>
+            <p>
+              Jump into the main Live2D chat shell with the latest wallet snapshot already attached, then ask about
+              balances, holdings, or the visible $HARUKA market data.
+            </p>
+          </div>
+          <a id="open-chat-btn" class="open-chat-btn disabled" href="/?mode=chat&portfolio=1" aria-disabled="true">
+            Open HARUKA Chat
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer-copy">
+      HARUKA Utility keeps the portfolio surface close to the existing product instead of forking into a separate app.
+    </p>
+  </div>
+
+  <script src="./src/utility.ts" type="module"></script>
+</body>
+
+</html>

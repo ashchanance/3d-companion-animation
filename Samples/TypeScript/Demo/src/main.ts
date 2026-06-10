@@ -9,6 +9,7 @@ import { LAppDelegate } from './lappdelegate';
 import * as LAppDefine from './lappdefine';
 import { ChatManager } from './chatmanager';
 import { Grainient } from './grainient';
+import { readStoredPortfolioContext } from './harukaPortfolioContext.js';
 import { HarukaSettingsManager } from './harukaSettingsManager';
 import { PumpRelayController } from './pumpRelayController';
 import { initializeHarukaEmbedMode } from './widgetEmbedMode';
@@ -50,6 +51,11 @@ window.addEventListener(
     const chatManager = new ChatManager();
     (window as any).chatManager = chatManager;
     chatManager.setLanguage(embedContext.language);
+
+    const launchParams = new URLSearchParams(window.location.search);
+    if (launchParams.get('portfolio') === '1') {
+      chatManager.applyPortfolioContext(readStoredPortfolioContext());
+    }
 
     const settingsManager = new HarukaSettingsManager();
     (window as any).harukaSettingsManager = settingsManager;

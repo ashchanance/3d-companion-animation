@@ -3605,6 +3605,7 @@
           <a href="roadmap.html">Roadmap</a>
           <a href="docs.html">Docs</a>
           <a href="x402.html">x402</a>
+          <a href="utility.html">Utility</a>
         </div>
         <div class="nav-actions">
           <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
@@ -3982,6 +3983,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const launchParams = new URLSearchParams(window.location.search);
+      if (launchParams.get('mode') === 'chat' || launchParams.get('portfolio') === '1') {
+        enterChatMode(0);
+      }
+
       // Connect buttons
       const homeBtn = document.getElementById('home-btn');
       if (homeBtn) homeBtn.addEventListener('click', enterLandingMode);

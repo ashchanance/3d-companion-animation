@@ -47,6 +47,8 @@ function buildProviderDebug(request: HarukaChatRequest): Record<string, unknown>
     embedApiKeyRequired: embedKeys.length > 0,
     configuredEmbedKeyCount: embedKeys.length,
     hasEmbedApiKey: Boolean(request.apiKey?.trim()),
+    hasPortfolioContext: Boolean(request.portfolioContext),
+    portfolioWalletAddress: request.portfolioContext?.walletAddress || null,
     userId: request.userId || null,
     sessionId: request.sessionId || null
   };

@@ -136,6 +136,60 @@ function trimInline(text, maxLength) {
   return `${normalized.slice(0, maxLength - 3)}...`;
 }
 
+function formatSnapshotNumber(value, maximumFractionDigits = 2) {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits
+  }).format(value);
+}
+
+function formatSnapshotUsd(value) {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return 'Unavailable';
+  }
+
+  if (value >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  }
+
+  if (value >= 1_000) {
+    return `$${(value / 1_000).toFixed(1)}K`;
+  }
+
+  if (value >= 1) {
+    return `$${value.toFixed(2)}`;
+  }
+
+  return `$${value.toFixed(6)}`;
+}
+
+function buildPortfolioContextSection(request) {
+  const context = request.portfolioContext;
+  if (!context) {
+    return '';
+  }
+
+  return `
+## User Portfolio Snapshot
+The user connected a Solana wallet through HARUKA Utility before entering chat.
+- Wallet: ${context.shortAddress} (${context.walletAddress})
+- Wallet provider: ${context.walletProvider}
+- SOL balance: ${formatSnapshotNumber(context.sol, 4)}
+- USDC balance: ${formatSnapshotNumber(context.usdc, 4)}
+- $HARUKA balance: ${formatSnapshotNumber(context.haruka, 4)}
+- $HARUKA price snapshot: ${formatSnapshotUsd(context.harukaPriceUsd)}
+- $HARUKA 24h change: ${context.harukaChange24h === null || context.harukaChange24h === undefined ? 'Unavailable' : `${context.harukaChange24h >= 0 ? '+' : ''}${Number(context.harukaChange24h).toFixed(2)}%`}
+- $HARUKA market cap snapshot: ${formatSnapshotUsd(context.harukaMarketCap)}
+- $HARUKA volume 24h snapshot: ${formatSnapshotUsd(context.harukaVolume24h)}
+- Snapshot captured at: ${context.capturedAt}
+
+## Portfolio Rules
+- If the user asks about holdings, balances, or the visible $HARUKA market snapshot, use this portfolio data as the current source of truth.
+- Do not invent extra wallet assets beyond SOL, USDC, and $HARUKA unless the user gives them explicitly.
+- If the user asks for a fresher reading, explain that this is the last wallet snapshot HARUKA received and that they can refresh the Utility page.
+`.trim();
+}
+
 function summarizeRecentHistory(history) {
   if (!Array.isArray(history) || history.length === 0) {
     return 'Haruka is meeting the user and setting the tone for a fresh conversation.';
@@ -150,6 +204,7 @@ function summarizeRecentHistory(history) {
 function composeHarukaSystemPrompt(request) {
   const profile = HARUKA_SOUL_PROFILES[request.profileId] || HARUKA_SOUL_PROFILES.classic;
   const recentScene = summarizeRecentHistory(request.history || []);
+  const portfolioContext = buildPortfolioContextSection(request);
   const liveMode =
     request.source === 'pumpfun-relay'
       ? `## Live Chat Mode
@@ -185,6 +240,8 @@ ${profile.conversationGoal}
 
 ## Conversational Scene
 ${recentScene}
+
+${portfolioContext}
 
 ${liveMode}
 
@@ -432,6 +489,8 @@ function buildProviderDebug(request) {
     embedApiKeyRequired: embedKeys.length > 0,
     configuredEmbedKeyCount: embedKeys.length,
     hasEmbedApiKey: Boolean(request.apiKey && String(request.apiKey).trim()),
+    hasPortfolioContext: Boolean(request.portfolioContext),
+    portfolioWalletAddress: request.portfolioContext ? request.portfolioContext.walletAddress || null : null,
     userId: request.userId || null,
     sessionId: request.sessionId || null
   };
