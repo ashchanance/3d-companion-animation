@@ -1,4 +1,3 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
 import {
   clearStoredPortfolioContext,
   createPortfolioGreeting,
@@ -27,15 +26,13 @@ declare global {
   }
 }
 
-const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
-const HARUKA_MINT = new PublicKey('9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump');
-const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
 const INSTALL_URLS: Record<HarukaPortfolioWalletProvider, string> = {
   phantom: 'https://phantom.app/',
   solflare: 'https://solflare.com/',
   unknown: 'https://phantom.app/'
 };
 const OPEN_CHAT_URL = '/?mode=chat&portfolio=1';
+const PORTFOLIO_API_URL = '/api/haruka/portfolio-snapshot';
 
 const connectPhantomBtn = document.getElementById('connect-phantom-btn') as HTMLButtonElement | null;
 const connectSolflareBtn = document.getElementById('connect-solflare-btn') as HTMLButtonElement | null;
@@ -63,6 +60,21 @@ let activeProvider: BrowserWalletProvider | null = null;
 let activeWalletProvider: HarukaPortfolioWalletProvider = 'unknown';
 let refreshIntervalId: number | null = null;
 let loading = false;
+
+interface PortfolioSnapshotResponse {
+  ok: boolean;
+  walletAddress: string;
+  sol: number;
+  usdc: number;
+  haruka: number;
+  harukaPriceUsd: number | null;
+  harukaChange24h: number | null;
+  harukaMarketCap: number | null;
+  harukaVolume24h: number | null;
+  capturedAt: string;
+  error?: string;
+  code?: string;
+}
 
 function showStatus(message: string, tone: 'info' | 'error' = 'info'): void {
   if (!statusNote) {
@@ -170,52 +182,21 @@ function renderConnectedState(context: HarukaPortfolioContext): void {
   }
 }
 
-async function getParsedTokenBalance(owner: PublicKey, mint: PublicKey): Promise<number> {
-  const response = await connection.getParsedTokenAccountsByOwner(owner, { mint });
-  const tokenAmount = response.value[0]?.account.data.parsed.info.tokenAmount?.uiAmount;
-  return typeof tokenAmount === 'number' && Number.isFinite(tokenAmount) ? tokenAmount : 0;
-}
+async function fetchPortfolioSnapshot(walletAddress: string): Promise<PortfolioSnapshotResponse> {
+  const response = await fetch(PORTFOLIO_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ walletAddress })
+  });
 
-async function getHarukaPrice(): Promise<Pick<HarukaPortfolioContext, 'harukaPriceUsd' | 'harukaChange24h' | 'harukaMarketCap' | 'harukaVolume24h'>> {
-  const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${HARUKA_MINT.toString()}`);
-  const payload = (await response.json()) as {
-    pairs?: Array<{
-      priceUsd?: string;
-      marketCap?: number;
-      priceChange?: { h24?: number | string };
-      volume?: { h24?: number | string };
-    }>;
-  };
-  const pair = payload.pairs?.[0];
+  const payload = (await response.json()) as PortfolioSnapshotResponse;
+  if (!response.ok || !payload.ok) {
+    throw new Error(payload.error || 'HARUKA could not fetch the wallet snapshot.');
+  }
 
-  return {
-    harukaPriceUsd: pair?.priceUsd ? Number.parseFloat(pair.priceUsd) : null,
-    harukaChange24h:
-      typeof pair?.priceChange?.h24 === 'number'
-        ? pair.priceChange.h24
-        : typeof pair?.priceChange?.h24 === 'string'
-          ? Number.parseFloat(pair.priceChange.h24)
-          : null,
-    harukaMarketCap: typeof pair?.marketCap === 'number' ? pair.marketCap : null,
-    harukaVolume24h:
-      typeof pair?.volume?.h24 === 'number'
-        ? pair.volume.h24
-        : typeof pair?.volume?.h24 === 'string'
-          ? Number.parseFloat(pair.volume.h24)
-          : null
-  };
-}
-
-function createEmptyPriceSnapshot(): Pick<
-  HarukaPortfolioContext,
-  'harukaPriceUsd' | 'harukaChange24h' | 'harukaMarketCap' | 'harukaVolume24h'
-> {
-  return {
-    harukaPriceUsd: null,
-    harukaChange24h: null,
-    harukaMarketCap: null,
-    harukaVolume24h: null
-  };
+  return payload;
 }
 
 function speakGreeting(message: string): void {
@@ -231,26 +212,20 @@ function speakGreeting(message: string): void {
   window.speechSynthesis.speak(utterance);
 }
 
-async function buildPortfolioContext(publicKey: PublicKey): Promise<HarukaPortfolioContext> {
-  const [solLamports, usdcBalance, harukaBalance, priceSnapshot] = await Promise.all([
-    connection.getBalance(publicKey),
-    getParsedTokenBalance(publicKey, USDC_MINT).catch(() => 0),
-    getParsedTokenBalance(publicKey, HARUKA_MINT).catch(() => 0),
-    getHarukaPrice().catch(() => createEmptyPriceSnapshot())
-  ]);
-
+async function buildPortfolioContext(walletAddress: string): Promise<HarukaPortfolioContext> {
+  const snapshot = await fetchPortfolioSnapshot(walletAddress);
   return {
-    walletAddress: publicKey.toString(),
-    shortAddress: formatWalletAddress(publicKey.toString()),
+    walletAddress,
+    shortAddress: formatWalletAddress(walletAddress),
     walletProvider: activeWalletProvider,
-    sol: solLamports / LAMPORTS_PER_SOL,
-    usdc: usdcBalance,
-    haruka: harukaBalance,
-    harukaPriceUsd: priceSnapshot.harukaPriceUsd,
-    harukaChange24h: priceSnapshot.harukaChange24h,
-    harukaMarketCap: priceSnapshot.harukaMarketCap,
-    harukaVolume24h: priceSnapshot.harukaVolume24h,
-    capturedAt: new Date().toISOString(),
+    sol: snapshot.sol,
+    usdc: snapshot.usdc,
+    haruka: snapshot.haruka,
+    harukaPriceUsd: snapshot.harukaPriceUsd,
+    harukaChange24h: snapshot.harukaChange24h,
+    harukaMarketCap: snapshot.harukaMarketCap,
+    harukaVolume24h: snapshot.harukaVolume24h,
+    capturedAt: snapshot.capturedAt,
     source: 'utility-page'
   };
 }
@@ -263,8 +238,8 @@ async function refreshPortfolio(triggerSpeech: boolean, announce = true): Promis
   setLoading(true);
 
   try {
-    const publicKey = new PublicKey(activeProvider.publicKey.toString());
-    const context = await buildPortfolioContext(publicKey);
+    const walletAddress = activeProvider.publicKey.toString();
+    const context = await buildPortfolioContext(walletAddress);
     writeStoredPortfolioContext(context);
     renderConnectedState(context);
     if (announce) {
@@ -276,7 +251,8 @@ async function refreshPortfolio(triggerSpeech: boolean, announce = true): Promis
     }
   } catch (error) {
     console.error('Portfolio refresh failed:', error);
-    showStatus('HARUKA could not read this wallet right now. Please try again.', 'error');
+    const message = error instanceof Error ? error.message : 'HARUKA could not read this wallet right now. Please try again.';
+    showStatus(message, 'error');
   } finally {
     setLoading(false);
   }
