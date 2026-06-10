@@ -2917,11 +2917,60 @@
       display: flex;
       flex-direction: column;
       gap: 16px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .relay-console.minimized {
+      gap: 0;
+      padding: 12px 18px;
+      border-radius: 16px;
+      width: min(320px, calc(100vw - 48px));
+    }
+
+    .relay-console-body {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 1200px;
+      opacity: 1;
+      overflow: hidden;
+    }
+
+    .relay-console.minimized .relay-console-body {
+      max-height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .relay-collapse-btn {
+      background: #ffffff;
+      border: 1px solid rgba(217, 164, 52, 0.25);
+      color: var(--primary-700);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 750;
+      gap: 5px;
+      box-shadow: 0 2px 6px rgba(217, 164, 52, 0.08);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .relay-collapse-btn:hover {
+      background: var(--slate-50);
+      border-color: rgba(217, 164, 52, 0.45);
+      color: var(--primary-600);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(217, 164, 52, 0.15);
     }
 
     .relay-console-head {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 16px;
     }

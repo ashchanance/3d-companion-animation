@@ -38,16 +38,21 @@ function mergeSettings(raw: Partial<HarukaSettings>): HarukaSettings {
     facts: Array.isArray(raw.facts) ? raw.facts : defaultHarukaSettings.facts
   };
 }
-
 export class HarukaSettingsManager {
-  private settings: HarukaSettings;
+  private settings!: HarukaSettings;
   private listeners = new Set<Listener>();
   private importInput: HTMLInputElement | null = null;
   private relayState: RelayBridgeState | null = null;
   private bridgeAvailable = false;
   private bridgeBusy = false;
+  private consoleCollapsed = false;
 
   constructor() {
+    try {
+      this.consoleCollapsed = window.localStorage.getItem('haruka.console.collapsed') === 'true';
+    } catch {
+      this.consoleCollapsed = false;
+    }
     this.settings = this.readStoredSettings();
     this.injectRelayUI();
     this.injectProviderEngineUi();
@@ -457,6 +462,12 @@ export class HarukaSettingsManager {
       return;
     }
 
+    if (this.consoleCollapsed) {
+      root.classList.add('minimized');
+    } else {
+      root.classList.remove('minimized');
+    }
+
     const state = this.relayState;
     root.innerHTML = `
       <div class="relay-console-head">
@@ -464,52 +475,62 @@ export class HarukaSettingsManager {
           <span class="relay-console-eyebrow">Pump.fun</span>
           <h3>Live Relay</h3>
         </div>
-        <button type="button" class="relay-inline-link" id="relay-open-settings">Configure</button>
-      </div>
-      <div class="relay-console-status-row">
-        <span class="relay-status-pill ${this.bridgeAvailable ? 'ok' : 'warn'}">${this.bridgeAvailable ? 'Live stream ready' : 'Live stream unavailable'}</span>
-        <span class="relay-status-pill ${state?.running ? 'live' : 'idle'}">${state?.running ? 'Relay live' : 'Relay idle'}</span>
-      </div>
-      <div class="relay-console-grid">
-        <div class="relay-console-card">
-          <span class="relay-console-value">${state?.forwardedCount ?? 0}</span>
-          <span class="relay-console-label">Forwarded</span>
-        </div>
-        <div class="relay-console-card">
-          <span class="relay-console-value">${state?.droppedCount ?? 0}</span>
-          <span class="relay-console-label">Dropped</span>
-        </div>
-        <div class="relay-console-card">
-          <span class="relay-console-value">${state?.queueLength ?? 0}</span>
-          <span class="relay-console-label">Queue</span>
-        </div>
-        <div class="relay-console-card">
-          <span class="relay-console-value relay-console-token">${this.settings.pumpTokenAddress.slice(0, 6) || '--'}...</span>
-          <span class="relay-console-label">Token</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" class="relay-inline-link" id="relay-open-settings">Configure</button>
+          <button type="button" class="relay-collapse-btn" id="relay-toggle-collapse" aria-label="Toggle collapse">
+            <span>${this.consoleCollapsed ? 'Expand' : 'Minimize'}</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate(${this.consoleCollapsed ? '180deg' : '0deg'}); transition: transform 0.2s;">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
-      <div class="relay-target-card">
-        <div>
-          <span class="relay-target-title">Pump.fun websocket</span>
-          <span class="relay-target-sub">${this.settings.pumpWsUrl}</span>
+      <div class="relay-console-body">
+        <div class="relay-console-status-row">
+          <span class="relay-status-pill ${this.bridgeAvailable ? 'ok' : 'warn'}">${this.bridgeAvailable ? 'Live stream ready' : 'Live stream unavailable'}</span>
+          <span class="relay-status-pill ${state?.running ? 'live' : 'idle'}">${state?.running ? 'Relay live' : 'Relay idle'}</span>
         </div>
-        <div class="relay-chip-list">
-          <span class="relay-status-pill ${state?.harukaConnected ? 'ok' : 'idle'}">${state?.harukaConnected ? 'Browser responder ready' : 'Browser responder idle'}</span>
-          <span class="relay-status-pill ${state?.pumpConnected ? 'ok' : 'idle'}">${state?.pumpConnected ? 'Pump chat connected' : 'Pump chat idle'}</span>
+        <div class="relay-console-grid">
+          <div class="relay-console-card">
+            <span class="relay-console-value">${state?.forwardedCount ?? 0}</span>
+            <span class="relay-console-label">Forwarded</span>
+          </div>
+          <div class="relay-console-card">
+            <span class="relay-console-value">${state?.droppedCount ?? 0}</span>
+            <span class="relay-console-label">Dropped</span>
+          </div>
+          <div class="relay-console-card">
+            <span class="relay-console-value">${state?.queueLength ?? 0}</span>
+            <span class="relay-console-label">Queue</span>
+          </div>
+          <div class="relay-console-card">
+            <span class="relay-console-value relay-console-token">${this.settings.pumpTokenAddress.slice(0, 6) || '--'}...</span>
+            <span class="relay-console-label">Token</span>
+          </div>
         </div>
-      </div>
-      <div class="relay-console-actions">
-        <button type="button" class="btn-secondary-custom" id="relay-console-connect"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Connect</button>
-        <button type="button" class="btn-secondary-custom" id="relay-console-disconnect"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Stop</button>
-        <button type="button" class="btn-secondary-custom" id="relay-console-test"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Test</button>
-      </div>
-      <div class="relay-feed">
-        <div class="relay-feed-head">
-          <span>Recent activity</span>
-          <span>${state?.lastForwardedAt ? new Date(state.lastForwardedAt).toLocaleTimeString() : 'No sends yet'}</span>
+        <div class="relay-target-card">
+          <div>
+            <span class="relay-target-title">Pump.fun websocket</span>
+            <span class="relay-target-sub">${this.settings.pumpWsUrl}</span>
+          </div>
+          <div class="relay-chip-list">
+            <span class="relay-status-pill ${state?.harukaConnected ? 'ok' : 'idle'}">${state?.harukaConnected ? 'Browser responder ready' : 'Browser responder idle'}</span>
+            <span class="relay-status-pill ${state?.pumpConnected ? 'ok' : 'idle'}">${state?.pumpConnected ? 'Pump chat connected' : 'Pump chat idle'}</span>
+          </div>
         </div>
-        <div class="relay-feed-list">
-          ${this.renderActivityItems(state?.recentActivities || [])}
+        <div class="relay-console-actions">
+          <button type="button" class="btn-secondary-custom" id="relay-console-connect"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Connect</button>
+          <button type="button" class="btn-secondary-custom" id="relay-console-disconnect"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Stop</button>
+          <button type="button" class="btn-secondary-custom" id="relay-console-test"${this.bridgeBusy || !this.bridgeAvailable ? ' disabled' : ''}>Test</button>
+        </div>
+        <div class="relay-feed">
+          <div class="relay-feed-head">
+            <span>Recent activity</span>
+            <span>${state?.lastForwardedAt ? new Date(state.lastForwardedAt).toLocaleTimeString() : 'No sends yet'}</span>
+          </div>
+          <div class="relay-feed-list">
+            ${this.renderActivityItems(state?.recentActivities || [])}
+          </div>
         </div>
       </div>
     `;
@@ -517,6 +538,16 @@ export class HarukaSettingsManager {
     root.querySelector('#relay-open-settings')?.addEventListener('click', () => {
       document.getElementById('settings-modal')?.classList.add('active');
       this.setActiveTab('pumpfun');
+    });
+
+    root.querySelector('#relay-toggle-collapse')?.addEventListener('click', () => {
+      this.consoleCollapsed = !this.consoleCollapsed;
+      try {
+        window.localStorage.setItem('haruka.console.collapsed', String(this.consoleCollapsed));
+      } catch (e) {
+        console.error(e);
+      }
+      this.renderRelayConsole();
     });
   }
 
