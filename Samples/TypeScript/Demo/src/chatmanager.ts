@@ -3,9 +3,18 @@ import * as LAppDefine from './lappdefine';
 import type {
   HarukaChatSource,
   HarukaEngineMode,
+  HarukaHistoryItem,
   HarukaPortfolioContext,
   HarukaSoulProfileId
 } from './harukaChatContract';
+import {
+  canUseVectorMemoryTier,
+  clearAllStoredConversationMemories,
+  getVectorMemoryStorageKey,
+  getVectorMemoryTurnLimit,
+  readStoredConversationMemory,
+  writeStoredConversationMemory
+} from './harukaVectorMemory.js';
 
 interface RuntimeSettings {
   speechSynthesis?: boolean;
@@ -13,6 +22,8 @@ interface RuntimeSettings {
   chatEngineMode?: HarukaEngineMode;
   presetCard?: HarukaSoulProfileId;
   openSoulsBaseUrl?: string;
+  vectorMemory?: boolean;
+  bufferAllocation?: number;
 }
 
 interface PromptResult {
@@ -35,6 +46,7 @@ interface EmbedContext {
 
 const WEB_SESSION_STORAGE_KEY = 'haruka.web.sessionId';
 const DEFAULT_CHAT_PLACEHOLDER = 'Ask the character something...';
+const DEFAULT_HISTORY_LIMIT = 10;
 
 export class ChatManager {
   private _form: HTMLFormElement | null = null;
@@ -62,7 +74,7 @@ export class ChatManager {
   private _cameraStream: MediaStream | null = null;
   private _cameraActive: boolean = false;
   private _cameraBusy: boolean = false;
-  private _history: { role: 'user' | 'assistant'; content: string }[] = [];
+  private _history: HarukaHistoryItem[] = [];
   private _speechEnabled: boolean = true;
   private _isProcessingReply: boolean = false;
   private _statusNoteTimeout: number | null = null;
@@ -76,6 +88,10 @@ export class ChatManager {
   private _webSessionId = '';
   private _clientType: 'web-app' | 'embed-widget' = 'web-app';
   private _portfolioContext: HarukaPortfolioContext | null = null;
+  private _vectorMemoryRequested = true;
+  private _vectorMemoryEnabled = false;
+  private _vectorMemoryStorageKey = '';
+  private _bufferAllocation = 2048;
 
   constructor() {
     this.ensureWebSessionId();
@@ -183,10 +199,19 @@ export class ChatManager {
     if (typeof settings.openSoulsBaseUrl === 'string') {
       this._openSoulsBaseUrl = settings.openSoulsBaseUrl.trim();
     }
+    if (typeof settings.vectorMemory === 'boolean') {
+      this._vectorMemoryRequested = settings.vectorMemory;
+    }
+    if (typeof settings.bufferAllocation === 'number' && Number.isFinite(settings.bufferAllocation)) {
+      this._bufferAllocation = settings.bufferAllocation;
+    }
+
+    this.syncVectorMemoryState();
   }
 
   public applyPortfolioContext(portfolioContext: HarukaPortfolioContext | null): void {
     this._portfolioContext = portfolioContext;
+    this.syncVectorMemoryState();
 
     if (this._input) {
       this._input.placeholder = portfolioContext
@@ -195,8 +220,19 @@ export class ChatManager {
     }
 
     if (portfolioContext) {
-      this.showStatusNote(`Portfolio context loaded for ${portfolioContext.shortAddress}.`, 'info');
+      this.showStatusNote(
+        `Portfolio context loaded for ${portfolioContext.shortAddress}. Tier ${portfolioContext.tier} - ${portfolioContext.tierLabel}.`,
+        'info'
+      );
     }
+  }
+
+  public wipePersistentVectorMemory(): void {
+    clearAllStoredConversationMemories();
+    this._history = [];
+    this._vectorMemoryStorageKey = '';
+    this._vectorMemoryEnabled = this._vectorMemoryRequested && canUseVectorMemoryTier(this._portfolioContext);
+    this.showStatusNote('Browser vector memory cleared for every saved HARUKA wallet session.', 'info');
   }
 
   public canAcceptExternalComment(): boolean {
@@ -356,14 +392,11 @@ export class ChatManager {
       }
 
       this._history.push({ role: 'user', content: historyContent });
-      if (this._history.length > 10) {
-        this._history = this._history.slice(-10);
-      }
+      this.trimHistoryToLimit();
 
       this._history.push({ role: 'assistant', content: reply });
-      if (this._history.length > 10) {
-        this._history = this._history.slice(-10);
-      }
+      this.trimHistoryToLimit();
+      this.persistVectorMemory();
 
       const emotion = this.detectEmotion(reply);
       console.log(`[ChatManager] Detected emotion "${emotion}" for reply: "${reply}"`);
@@ -382,6 +415,73 @@ export class ChatManager {
     } finally {
       this._isProcessingReply = false;
     }
+  }
+
+  private getActiveHistoryLimit(): number {
+    const tierLimit = getVectorMemoryTurnLimit(this._portfolioContext);
+    if (!this._vectorMemoryEnabled || tierLimit === 0) {
+      return DEFAULT_HISTORY_LIMIT;
+    }
+
+    if (this._bufferAllocation >= 4096) {
+      return tierLimit + 2;
+    }
+
+    return tierLimit;
+  }
+
+  private trimHistoryToLimit(): void {
+    const limit = this.getActiveHistoryLimit();
+    if (this._history.length > limit) {
+      this._history = this._history.slice(-limit);
+    }
+  }
+
+  private syncVectorMemoryState(): void {
+    const memoryAllowedByTier = canUseVectorMemoryTier(this._portfolioContext);
+    const nextEnabled = this._vectorMemoryRequested && memoryAllowedByTier;
+    const nextStorageKey = nextEnabled ? getVectorMemoryStorageKey(this._portfolioContext) || '' : '';
+
+    if (!nextEnabled) {
+      const shouldClearHistory = Boolean(this._vectorMemoryStorageKey) && !this._vectorMemoryRequested;
+      this._vectorMemoryEnabled = false;
+      this._vectorMemoryStorageKey = '';
+      if (shouldClearHistory) {
+        this._history = [];
+        this.showStatusNote('Browser vector memory paused for this session.', 'info');
+      }
+      this.trimHistoryToLimit();
+      return;
+    }
+
+    this._vectorMemoryEnabled = true;
+
+    if (!nextStorageKey || nextStorageKey === this._vectorMemoryStorageKey) {
+      this.trimHistoryToLimit();
+      return;
+    }
+
+    this._vectorMemoryStorageKey = nextStorageKey;
+    const restored = readStoredConversationMemory(this._portfolioContext);
+    if (!restored || restored.history.length === 0) {
+      return;
+    }
+
+    this._history = restored.history;
+    this.trimHistoryToLimit();
+    this.showStatusNote(
+      `Vector memory restored from this browser for Tier ${restored.tier} - ${restored.tierLabel}.`,
+      'info'
+    );
+  }
+
+  private persistVectorMemory(): void {
+    if (!this._vectorMemoryEnabled || !this._portfolioContext) {
+      return;
+    }
+
+    this.trimHistoryToLimit();
+    writeStoredConversationMemory(this._portfolioContext, this._history);
   }
 
   private detectEmotion(text: string): 'joy' | 'sad' | 'angry' | 'surprise' | 'blush' | 'thinking' | 'neutral' {

@@ -1,6 +1,8 @@
 import type { HarukaEngineMode } from './harukaChatContract';
+import { readStoredPortfolioContext } from './harukaPortfolioContext.js';
 import { defaultHarukaSettings, type FactItem, type HarukaSettings } from './harukaSettingsSchema';
 import { HARUKA_SOUL_PROFILES, getHarukaSoulProfile } from './harukaSoulProfiles';
+import { canUseVectorMemoryTier, clearAllStoredConversationMemories } from './harukaVectorMemory.js';
 
 export interface RelayActivity {
   id: string;
@@ -348,6 +350,11 @@ export class HarukaSettingsManager {
       }
 
       this.settings = { ...defaultHarukaSettings, facts: [] };
+      clearAllStoredConversationMemories();
+      const chatManager = (window as any).chatManager;
+      if (chatManager && typeof chatManager.wipePersistentVectorMemory === 'function') {
+        chatManager.wipePersistentVectorMemory();
+      }
       this.applySettingsToDom();
       this.renderFacts();
       this.persistSettings();
@@ -399,6 +406,7 @@ export class HarukaSettingsManager {
     this.updatePreviewCard();
     this.updateProviderEngineUi();
     this.updateOpenSoulsProfileHint();
+    this.updateVectorMemoryUi();
     this.applyRuntimeSettings();
     this.renderRelayConsole();
     this.renderRelayPanel();
@@ -413,8 +421,54 @@ export class HarukaSettingsManager {
         chatProvider: this.settings.chatProvider,
         chatEngineMode: this.settings.chatEngineMode,
         presetCard: this.settings.presetCard,
-        openSoulsBaseUrl: this.settings.openSoulsBaseUrl
+        openSoulsBaseUrl: this.settings.openSoulsBaseUrl,
+        vectorMemory: this.settings.vectorMemory,
+        bufferAllocation: this.settings.bufferAllocation
       });
+    }
+  }
+
+  private updateVectorMemoryUi(): void {
+    const toggle = document.getElementById('memory-db') as HTMLInputElement | null;
+    const description = document.getElementById('memory-db-desc');
+    const status = document.getElementById('memory-tier-status');
+    const context = readStoredPortfolioContext();
+
+    if (!toggle) {
+      return;
+    }
+
+    if (!context) {
+      toggle.checked = false;
+      toggle.disabled = true;
+      if (description) {
+        description.textContent = 'Connect a wallet through HARUKA Utility first so browser vector memory can bind to a holder tier.';
+      }
+      if (status) {
+        status.textContent = 'Tier required: connect Utility wallet.';
+      }
+      return;
+    }
+
+    if (!canUseVectorMemoryTier(context)) {
+      toggle.checked = false;
+      toggle.disabled = true;
+      if (description) {
+        description.textContent = `Locked on Tier ${context.tier} - ${context.tierLabel}. Reach Companion with 500,000 $HARUKA to persist browser memory across sessions.`;
+      }
+      if (status) {
+        status.textContent = `Current tier: ${context.tierLabel}. Vector memory unlocks at Companion.`;
+      }
+      return;
+    }
+
+    toggle.disabled = false;
+    toggle.checked = this.settings.vectorMemory;
+    if (description) {
+      description.textContent = `Browser vector memory is unlocked for Tier ${context.tier} - ${context.tierLabel}. HARUKA can restore recent conversation turns after the browser closes.`;
+    }
+    if (status) {
+      status.textContent = `Memory depth: ${context.memoryDepth}. Stored locally in this browser for ${context.shortAddress}.`;
     }
   }
 

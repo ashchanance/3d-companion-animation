@@ -457,6 +457,57 @@
       font-size: 0.84rem;
     }
 
+    .wallet-tier-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .tier-0 {
+      background: rgba(85, 105, 85, 0.12);
+      color: #495d49;
+      border-color: rgba(85, 105, 85, 0.16);
+    }
+
+    .tier-1 {
+      background: rgba(232, 183, 94, 0.18);
+      color: #8b5c12;
+      border-color: rgba(200, 146, 42, 0.24);
+    }
+
+    .tier-2 {
+      background: rgba(76, 131, 117, 0.16);
+      color: #23594c;
+      border-color: rgba(76, 131, 117, 0.22);
+    }
+
+    .tier-3 {
+      background: linear-gradient(135deg, rgba(44, 96, 68, 0.18), rgba(200, 146, 42, 0.2));
+      color: #1f4e38;
+      border-color: rgba(44, 96, 68, 0.22);
+    }
+
+    .wallet-tier-support {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
     .wallet-actions {
       display: flex;
       gap: 10px;
@@ -868,6 +919,10 @@
             <div class="wallet-state">
               <span id="wallet-provider-label">Wallet</span>
               <span id="wallet-address-label">Abc...xyz</span>
+            </div>
+            <div class="wallet-tier-row">
+              <span id="wallet-tier-badge" class="tier-badge tier-0">Tier 0 - Free</span>
+              <p id="wallet-tier-support" class="wallet-tier-support">No tier signal yet.</p>
             </div>
             <div class="wallet-subline">Last snapshot: <span id="portfolio-captured-at">—</span></div>
           </div>

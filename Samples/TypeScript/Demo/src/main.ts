@@ -53,8 +53,9 @@ window.addEventListener(
     chatManager.setLanguage(embedContext.language);
 
     const launchParams = new URLSearchParams(window.location.search);
-    if (launchParams.get('portfolio') === '1') {
-      chatManager.applyPortfolioContext(readStoredPortfolioContext());
+    const storedPortfolioContext = readStoredPortfolioContext();
+    if (storedPortfolioContext && (launchParams.get('portfolio') === '1' || launchParams.get('mode') === 'chat')) {
+      chatManager.applyPortfolioContext(storedPortfolioContext);
     }
 
     const settingsManager = new HarukaSettingsManager();

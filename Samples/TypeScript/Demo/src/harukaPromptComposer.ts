@@ -66,6 +66,10 @@ The user connected a Solana wallet through HARUKA Utility before entering chat.
 - SOL balance: ${formatSnapshotNumber(context.sol, 4)}
 - USDC balance: ${formatSnapshotNumber(context.usdc, 4)}
 - $HARUKA balance: ${formatSnapshotNumber(context.haruka, 4)}
+- Holder tier: Tier ${context.tier} - ${context.tierLabel}
+- Tier floor: ${formatSnapshotNumber(context.tierMinHaruka, 0)} $HARUKA
+- Memory depth: ${context.memoryDepth}
+- Unlocked perks: ${context.unlockedPerks.join(', ')}
 - $HARUKA price snapshot: ${formatSnapshotUsd(context.harukaPriceUsd)}
 - $HARUKA 24h change: ${context.harukaChange24h === null ? 'Unavailable' : `${context.harukaChange24h >= 0 ? '+' : ''}${context.harukaChange24h.toFixed(2)}%`}
 - $HARUKA market cap snapshot: ${formatSnapshotUsd(context.harukaMarketCap)}
@@ -76,6 +80,9 @@ The user connected a Solana wallet through HARUKA Utility before entering chat.
 - If the user asks about holdings, balances, or the visible $HARUKA market snapshot, use this portfolio data as the current source of truth.
 - Do not invent extra wallet assets beyond SOL, USDC, and $HARUKA unless the user gives them explicitly.
 - If the user asks for a fresher reading, explain that this is the last wallet snapshot HARUKA received and that they can refresh the Utility page.
+- If prior conversation history is present, treat it as restored browser memory for this same wallet holder instead of a random transcript fragment.
+- Let the detected tier subtly shape warmth, recognition, and memory continuity, but do not recite the tier unless it is relevant to the user's question or the moment naturally calls for it.
+- Never claim a perk is live unless it is already visible in the current product flow. Treat the tier as personalization context first.
 `.trim();
 }
 

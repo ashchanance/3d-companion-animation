@@ -22,6 +22,8 @@ export interface OpenSoulsBridgeConfig {
 }
 
 export type HarukaClientType = 'web-app' | 'embed-widget' | 'api-client';
+export type HarukaHolderTier = 0 | 1 | 2 | 3;
+export type HarukaTierMemoryDepth = 'light' | 'warm' | 'deep' | 'legendary';
 
 export interface HarukaPortfolioContext {
   walletAddress: string;
@@ -34,6 +36,11 @@ export interface HarukaPortfolioContext {
   harukaChange24h: number | null;
   harukaMarketCap: number | null;
   harukaVolume24h: number | null;
+  tier: HarukaHolderTier;
+  tierLabel: 'Free' | 'Companion' | 'Partner' | 'Forest Guard';
+  tierMinHaruka: number;
+  memoryDepth: HarukaTierMemoryDepth;
+  unlockedPerks: string[];
   capturedAt: string;
   source: 'utility-page';
 }

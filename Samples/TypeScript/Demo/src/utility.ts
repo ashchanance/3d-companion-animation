@@ -1,10 +1,12 @@
 import {
   clearStoredPortfolioContext,
   createPortfolioGreeting,
+  enrichPortfolioContextTier,
   formatCompactNumber,
   formatCompactUsd,
   formatPercentChange,
   formatWalletAddress,
+  getHarukaTierProgress,
   type HarukaPortfolioContext,
   type HarukaPortfolioWalletProvider,
   writeStoredPortfolioContext
@@ -45,6 +47,8 @@ const connectedSurface = document.getElementById('wallet-connected-surface') as 
 const loadingSurface = document.getElementById('portfolio-loading') as HTMLDivElement | null;
 const walletProviderLabel = document.getElementById('wallet-provider-label') as HTMLSpanElement | null;
 const walletAddressLabel = document.getElementById('wallet-address-label') as HTMLSpanElement | null;
+const walletTierBadge = document.getElementById('wallet-tier-badge') as HTMLSpanElement | null;
+const walletTierSupport = document.getElementById('wallet-tier-support') as HTMLParagraphElement | null;
 const captureTimeLabel = document.getElementById('portfolio-captured-at') as HTMLSpanElement | null;
 const solValue = document.getElementById('balance-sol-value') as HTMLSpanElement | null;
 const usdcValue = document.getElementById('balance-usdc-value') as HTMLSpanElement | null;
@@ -142,6 +146,15 @@ function renderConnectedState(context: HarukaPortfolioContext): void {
 
   if (walletAddressLabel) {
     walletAddressLabel.textContent = context.shortAddress;
+  }
+
+  if (walletTierBadge) {
+    walletTierBadge.textContent = `Tier ${context.tier} - ${context.tierLabel}`;
+    walletTierBadge.className = `tier-badge tier-${context.tier}`;
+  }
+
+  if (walletTierSupport) {
+    walletTierSupport.textContent = `${context.memoryDepth} memory depth active. ${getHarukaTierProgress(context)}`;
   }
 
   if (captureTimeLabel) {
@@ -384,7 +397,7 @@ async function speakGreeting(message: string): Promise<void> {
 
 async function buildPortfolioContext(walletAddress: string): Promise<HarukaPortfolioContext> {
   const snapshot = await fetchPortfolioSnapshot(walletAddress);
-  return {
+  return enrichPortfolioContextTier({
     walletAddress,
     shortAddress: formatWalletAddress(walletAddress),
     walletProvider: activeWalletProvider,
@@ -397,7 +410,7 @@ async function buildPortfolioContext(walletAddress: string): Promise<HarukaPortf
     harukaVolume24h: snapshot.harukaVolume24h,
     capturedAt: snapshot.capturedAt,
     source: 'utility-page'
-  };
+  });
 }
 
 async function refreshPortfolio(triggerSpeech: boolean, announce = true): Promise<void> {
@@ -413,7 +426,7 @@ async function refreshPortfolio(triggerSpeech: boolean, announce = true): Promis
     writeStoredPortfolioContext(context);
     renderConnectedState(context);
     if (announce) {
-      showStatus(`Portfolio snapshot refreshed for ${context.shortAddress}.`);
+      showStatus(`Portfolio snapshot refreshed for ${context.shortAddress}. Tier ${context.tier} - ${context.tierLabel}.`);
     }
 
     if (triggerSpeech && insightBubble?.textContent) {

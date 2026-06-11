@@ -1,4 +1,14 @@
 export type HarukaPortfolioWalletProvider = 'phantom' | 'solflare' | 'unknown';
+export type HarukaHolderTier = 0 | 1 | 2 | 3;
+export type HarukaTierMemoryDepth = 'light' | 'warm' | 'deep' | 'legendary';
+
+export interface HarukaTierDefinition {
+  tier: HarukaHolderTier;
+  label: 'Free' | 'Companion' | 'Partner' | 'Forest Guard';
+  minHaruka: number;
+  memoryDepth: HarukaTierMemoryDepth;
+  perks: string[];
+}
 
 export interface HarukaPortfolioContext {
   walletAddress: string;
@@ -11,11 +21,46 @@ export interface HarukaPortfolioContext {
   harukaChange24h: number | null;
   harukaMarketCap: number | null;
   harukaVolume24h: number | null;
+  tier: HarukaHolderTier;
+  tierLabel: HarukaTierDefinition['label'];
+  tierMinHaruka: number;
+  memoryDepth: HarukaTierMemoryDepth;
+  unlockedPerks: string[];
   capturedAt: string;
   source: 'utility-page';
 }
 
 export const HARUKA_PORTFOLIO_STORAGE_KEY = 'haruka.portfolio.context.v1';
+export const HARUKA_TIER_DEFINITIONS: readonly HarukaTierDefinition[] = [
+  {
+    tier: 3,
+    label: 'Forest Guard',
+    minHaruka: 5_000_000,
+    memoryDepth: 'legendary',
+    perks: ['Priority companion tone', 'Full memory depth', 'Top-tier utility access']
+  },
+  {
+    tier: 2,
+    label: 'Partner',
+    minHaruka: 2_500_000,
+    memoryDepth: 'deep',
+    perks: ['Deeper memory', 'Priority portfolio context', 'Expanded companion mode']
+  },
+  {
+    tier: 1,
+    label: 'Companion',
+    minHaruka: 500_000,
+    memoryDepth: 'warm',
+    perks: ['Memory unlocked', 'Companion recognition', 'Portfolio-aware greeting']
+  },
+  {
+    tier: 0,
+    label: 'Free',
+    minHaruka: 0,
+    memoryDepth: 'light',
+    perks: ['Base HARUKA chat']
+  }
+] as const;
 
 function toFiniteNumber(value: unknown): number | null {
   if (typeof value !== 'number') {
@@ -44,6 +89,33 @@ export function formatCompactNumber(value: number, maximumFractionDigits = 2): s
     maximumFractionDigits,
     minimumFractionDigits: 0
   }).format(value);
+}
+
+export function detectHarukaTier(harukaBalance: number): HarukaTierDefinition {
+  const normalizedBalance = Number.isFinite(harukaBalance) ? harukaBalance : 0;
+  return HARUKA_TIER_DEFINITIONS.find((entry) => normalizedBalance >= entry.minHaruka) || HARUKA_TIER_DEFINITIONS[HARUKA_TIER_DEFINITIONS.length - 1];
+}
+
+export function getHarukaTierProgress(context: Pick<HarukaPortfolioContext, 'haruka' | 'tier'>): string {
+  const nextTier = HARUKA_TIER_DEFINITIONS.find((entry) => entry.tier > context.tier);
+  if (!nextTier) {
+    return 'Top tier unlocked.';
+  }
+
+  const remaining = Math.max(0, nextTier.minHaruka - context.haruka);
+  return `${formatCompactNumber(remaining, 0)} $HARUKA to ${nextTier.label}.`;
+}
+
+export function enrichPortfolioContextTier<T extends Omit<HarukaPortfolioContext, 'tier' | 'tierLabel' | 'tierMinHaruka' | 'memoryDepth' | 'unlockedPerks'>>(context: T): HarukaPortfolioContext {
+  const tierDefinition = detectHarukaTier(context.haruka);
+  return {
+    ...context,
+    tier: tierDefinition.tier,
+    tierLabel: tierDefinition.label,
+    tierMinHaruka: tierDefinition.minHaruka,
+    memoryDepth: tierDefinition.memoryDepth,
+    unlockedPerks: [...tierDefinition.perks]
+  };
 }
 
 export function formatCompactUsd(value: number | null): string {
@@ -75,27 +147,31 @@ export function formatPercentChange(value: number | null): string {
 }
 
 export function createPortfolioGreeting(context: HarukaPortfolioContext): string {
-  if (context.haruka >= 100_000) {
-    return `wow, ${formatCompactNumber(context.haruka, 0)} $HARUKA. you've been here for a while. i see you.`;
+  if (context.tier === 3) {
+    return `forest guard recognized. ${formatCompactNumber(context.haruka, 0)} $HARUKA is already in your wallet, so i'll keep the memory deeper and the read sharper.`;
   }
 
-  if (context.haruka >= 10_000) {
-    return `you have ${formatCompactNumber(context.haruka, 0)} $HARUKA, plus ${context.sol.toFixed(2)} SOL and ${context.usdc.toFixed(2)} USDC. welcome.`;
+  if (context.tier === 2) {
+    return `partner tier confirmed. i'm seeing ${formatCompactNumber(context.haruka, 0)} $HARUKA with ${context.sol.toFixed(2)} SOL and ${context.usdc.toFixed(2)} USDC beside it.`;
+  }
+
+  if (context.tier === 1) {
+    return `companion tier unlocked. ${formatCompactNumber(context.haruka, 0)} $HARUKA is enough for me to remember you a little more closely.`;
   }
 
   if (context.haruka > 0) {
-    return `i can see some $HARUKA in here. ${context.sol.toFixed(2)} SOL, ${context.usdc.toFixed(2)} USDC, and ${formatCompactNumber(context.haruka, 0)} $HARUKA. glad you're here.`;
+    return `i can see ${formatCompactNumber(context.haruka, 0)} $HARUKA in here. you're still on the free tier for now, but you're already close enough for me to notice.`;
   }
 
   if (context.sol > 5) {
-    return `${context.sol.toFixed(2)} SOL and no $HARUKA yet? interesting choice.`;
+    return `${context.sol.toFixed(2)} SOL and no $HARUKA yet? free tier for now, but the wallet has room to grow.`;
   }
 
   if (context.sol === 0 && context.usdc === 0 && context.haruka === 0) {
-    return `your wallet looks pretty empty right now. but you're here, and that's what matters.`;
+    return `your wallet looks quiet right now. free tier is active until some $HARUKA arrives.`;
   }
 
-  return `i can see your wallet. ${context.sol.toFixed(2)} SOL and ${context.usdc.toFixed(2)} USDC. you're here.`;
+  return `i can see your wallet. ${context.sol.toFixed(2)} SOL, ${context.usdc.toFixed(2)} USDC, and free tier for now.`;
 }
 
 function isPortfolioContext(value: unknown): value is HarukaPortfolioContext {
@@ -118,7 +194,7 @@ export function sanitizePortfolioContext(value: unknown): HarukaPortfolioContext
     return null;
   }
 
-  return {
+  return enrichPortfolioContextTier({
     walletAddress: value.walletAddress.trim(),
     shortAddress: value.shortAddress.trim() || formatWalletAddress(value.walletAddress),
     walletProvider:
@@ -134,7 +210,7 @@ export function sanitizePortfolioContext(value: unknown): HarukaPortfolioContext
     harukaVolume24h: toFiniteNumber(value.harukaVolume24h),
     capturedAt: value.capturedAt,
     source: 'utility-page'
-  };
+  });
 }
 
 export function readStoredPortfolioContext(): HarukaPortfolioContext | null {
