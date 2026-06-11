@@ -68,9 +68,9 @@
     }
 
     .page-shell {
-      width: min(1180px, calc(100vw - 32px));
+      width: min(1240px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 28px 0 72px;
+      padding: 28px 0 80px;
       position: relative;
       z-index: 1;
     }
@@ -133,9 +133,9 @@
 
     .hero-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+      grid-template-columns: minmax(0, 1.26fr) minmax(320px, 0.74fr);
       gap: 24px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
 
     .hero-card,
@@ -191,10 +191,11 @@
 
     .hero-desc {
       margin: 0;
-      max-width: 56ch;
+      max-width: 58ch;
       color: var(--muted);
       line-height: 1.8;
       font-size: 1rem;
+      text-wrap: pretty;
     }
 
     .hero-pills {
@@ -247,6 +248,61 @@
     .meta-list {
       display: grid;
       gap: 10px;
+    }
+
+    .tier-ladder {
+      display: grid;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .tier-ladder-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .tier-ladder-index {
+      width: 32px;
+      height: 32px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(33, 50, 36, 0.06);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tier-ladder-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .tier-ladder-copy strong {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .tier-ladder-copy span {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tier-ladder-threshold {
+      color: var(--gold-deep);
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .meta-item {
@@ -343,11 +399,24 @@
       padding: 30px;
     }
 
+    .connect-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .connect-main {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
     .connect-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 14px;
-      margin: 24px 0 16px;
+      margin: 0;
     }
 
     .wallet-option {
@@ -396,6 +465,76 @@
       line-height: 1.6;
     }
 
+    .tier-preview-card {
+      padding: 22px;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255, 251, 243, 0.96), rgba(244, 232, 205, 0.92)),
+        radial-gradient(circle at top right, rgba(200, 146, 42, 0.2), transparent 48%);
+      border: 1px solid rgba(200, 146, 42, 0.18);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .tier-preview-eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--gold-deep);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    .tier-preview-card h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 2.6rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+    }
+
+    .tier-preview-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tier-preview-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .tier-preview-item {
+      display: grid;
+      gap: 4px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .tier-preview-item strong {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.94rem;
+      color: var(--text);
+    }
+
+    .tier-preview-item span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
     .loading-surface {
       padding: 24px 26px;
       margin-top: 18px;
@@ -409,8 +548,7 @@
 
     .connected-surface {
       padding: 24px;
-      display: grid;
-      gap: 18px;
+      display: block;
     }
 
     .connected-surface[hidden],
@@ -418,12 +556,33 @@
       display: none;
     }
 
+    .utility-dashboard {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(320px, 0.94fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .wallet-overview-card,
+    .tier-spotlight-card {
+      border-radius: 26px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .wallet-overview-card {
+      display: grid;
+      gap: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
     .wallet-bar {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 18px;
-      padding-bottom: 16px;
+      padding-bottom: 18px;
       border-bottom: 1px solid rgba(56, 77, 56, 0.08);
     }
 
@@ -455,6 +614,27 @@
       margin-top: 8px;
       color: var(--muted);
       font-size: 0.84rem;
+    }
+
+    .wallet-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .snapshot-chip {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(251, 247, 237, 0.92);
+      border: 1px solid rgba(200, 146, 42, 0.12);
+    }
+
+    .snapshot-chip strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
     }
 
     .wallet-tier-row {
@@ -508,6 +688,157 @@
       color: var(--muted);
     }
 
+    .tier-spotlight-card {
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top right, rgba(200, 146, 42, 0.24), transparent 38%),
+        linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(245, 234, 209, 0.94));
+      border-color: rgba(200, 146, 42, 0.18);
+      box-shadow: 0 24px 50px rgba(118, 92, 32, 0.12);
+      display: grid;
+      gap: 18px;
+    }
+
+    .tier-spotlight-card.tier-0 {
+      background:
+        radial-gradient(circle at top right, rgba(93, 115, 93, 0.18), transparent 38%),
+        linear-gradient(180deg, rgba(246, 250, 246, 0.98), rgba(232, 239, 232, 0.94));
+      border-color: rgba(85, 105, 85, 0.18);
+      color: var(--text);
+    }
+
+    .tier-spotlight-card.tier-1 {
+      background:
+        radial-gradient(circle at top right, rgba(232, 183, 94, 0.24), transparent 38%),
+        linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(248, 238, 215, 0.94));
+      border-color: rgba(200, 146, 42, 0.18);
+      color: var(--text);
+    }
+
+    .tier-spotlight-card.tier-2 {
+      background:
+        radial-gradient(circle at top right, rgba(76, 131, 117, 0.2), transparent 38%),
+        linear-gradient(180deg, rgba(245, 252, 248, 0.98), rgba(226, 240, 234, 0.94));
+      border-color: rgba(76, 131, 117, 0.2);
+      color: var(--text);
+    }
+
+    .tier-spotlight-card.tier-3 {
+      background:
+        radial-gradient(circle at top right, rgba(200, 146, 42, 0.24), transparent 38%),
+        linear-gradient(145deg, rgba(242, 251, 246, 0.98), rgba(245, 234, 209, 0.94));
+      border-color: rgba(44, 96, 68, 0.2);
+      color: var(--text);
+    }
+
+    .tier-spotlight-card::after {
+      content: '';
+      position: absolute;
+      inset: auto -60px -60px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(200, 146, 42, 0.18), transparent 68%);
+      pointer-events: none;
+    }
+
+    .tier-spotlight-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tier-memory-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(33, 50, 36, 0.06);
+      color: var(--text);
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: lowercase;
+    }
+
+    .tier-spotlight-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
+      max-width: 12ch;
+    }
+
+    .tier-spotlight-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.72;
+      max-width: 40ch;
+    }
+
+    .tier-spotlight-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .tier-metric-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .tier-metric-card strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.02rem;
+      line-height: 1.35;
+      color: var(--text);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tier-perks-card {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(56, 77, 56, 0.08);
+    }
+
+    .tier-perks-list {
+      margin: 10px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tier-perks-list li {
+      position: relative;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.88rem;
+    }
+
+    .tier-perks-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 4px rgba(200, 146, 42, 0.12);
+    }
+
     .wallet-actions {
       display: flex;
       gap: 10px;
@@ -548,6 +879,11 @@
     .balance-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .insight-stack {
+      display: grid;
       gap: 14px;
     }
 
@@ -675,6 +1011,7 @@
       gap: 18px;
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(245, 226, 181, 0.82));
       border-color: rgba(200, 146, 42, 0.18);
+      grid-column: 1 / -1;
     }
 
     .cta-copy h3 {
@@ -779,11 +1116,25 @@
         grid-template-columns: 1fr;
       }
 
+      .connect-layout,
+      .utility-dashboard {
+        grid-template-columns: 1fr;
+      }
+
       .cta-card,
       .wallet-bar,
       .price-card {
         flex-direction: column;
         align-items: flex-start;
+      }
+
+      .tier-spotlight-title {
+        max-width: none;
+      }
+
+      .tier-spotlight-metrics,
+      .wallet-meta-grid {
+        grid-template-columns: 1fr;
       }
 
       .wallet-actions {
@@ -847,29 +1198,58 @@
     <section class="hero-grid">
       <article class="hero-card">
         <div class="eyebrow">Wallet Utility</div>
-        <h1 class="hero-title">Portfolio Management</h1>
+        <h1 class="hero-title">Portfolio access, tiered like a premium companion.</h1>
         <p class="hero-desc">
-          Connect a Solana wallet, let HARUKA read the snapshot locally in your browser, then carry that context into
-          chat so the companion can answer questions about balances, holdings, and the visible $HARUKA price.
+          Connect a Solana wallet, let HARUKA read the snapshot quietly in your browser, then carry that context into
+          chat with a holder tier that feels deliberate, elegant, and easy to read at a glance.
         </p>
         <div class="hero-pills">
           <span class="hero-pill">Phantom + Solflare</span>
           <span class="hero-pill">Mainnet SOL / USDC / $HARUKA</span>
-          <span class="hero-pill">Chat handoff ready</span>
+          <span class="hero-pill">Tier-aware chat handoff</span>
         </div>
       </article>
 
       <aside class="meta-card">
-        <span class="meta-label">Concept</span>
-        <h2>A utility page, not a parallel app.</h2>
+        <span class="meta-label">Tier Structure</span>
+        <h2>Designed to make holder status feel legible, not noisy.</h2>
         <p>
-          This page fits the current HARUKA architecture: one Vite multi-page deployment, one chat backend, and one
-          clean handoff into the existing Live2D chat shell.
+          The Utility surface now frames the wallet as an access layer. The tier becomes part of the HARUKA identity
+          handoff instead of a tiny status badge hidden in the corner.
         </p>
-        <div class="meta-list">
-          <div class="meta-item"><strong>Wallet read</strong><span>SOL, USDC, and $HARUKA snapshot</span></div>
-          <div class="meta-item"><strong>Speech moment</strong><span>HARUKA reacts immediately after the wallet load</span></div>
-          <div class="meta-item"><strong>Chat bridge</strong><span>Stored locally, then passed into HARUKA chat context</span></div>
+        <div class="tier-ladder">
+          <div class="tier-ladder-item">
+            <span class="tier-ladder-index">T0</span>
+            <div class="tier-ladder-copy">
+              <strong>Free</strong>
+              <span>Base HARUKA access, no persistent memory.</span>
+            </div>
+            <span class="tier-ladder-threshold">0</span>
+          </div>
+          <div class="tier-ladder-item">
+            <span class="tier-ladder-index">T1</span>
+            <div class="tier-ladder-copy">
+              <strong>Companion</strong>
+              <span>Browser memory unlocks and tone becomes more personal.</span>
+            </div>
+            <span class="tier-ladder-threshold">500k</span>
+          </div>
+          <div class="tier-ladder-item">
+            <span class="tier-ladder-index">T2</span>
+            <div class="tier-ladder-copy">
+              <strong>Partner</strong>
+              <span>Deeper continuity, clearer recognition, stronger status framing.</span>
+            </div>
+            <span class="tier-ladder-threshold">2.5m</span>
+          </div>
+          <div class="tier-ladder-item">
+            <span class="tier-ladder-index">T3</span>
+            <div class="tier-ladder-copy">
+              <strong>Forest Guard</strong>
+              <span>Top-tier holder treatment with the deepest memory profile.</span>
+            </div>
+            <span class="tier-ladder-threshold">5m</span>
+          </div>
         </div>
       </aside>
     </section>
@@ -892,20 +1272,47 @@
       <div id="portfolio-status" class="status-note" data-tone="info" aria-live="polite"></div>
 
       <div id="wallet-connect-surface" class="connect-surface">
-        <span class="meta-chip">Supported wallets</span>
-        <div class="connect-grid">
-          <button id="connect-phantom-btn" class="wallet-option" type="button">
-            <span class="wallet-name">Connect Phantom</span>
-            <span class="wallet-desc">Use the browser extension and let HARUKA read SOL, USDC, and $HARUKA.</span>
-          </button>
-          <button id="connect-solflare-btn" class="wallet-option" type="button">
-            <span class="wallet-name">Connect Solflare</span>
-            <span class="wallet-desc">Same flow, same snapshot handoff, with the Solflare browser wallet.</span>
-          </button>
+        <div class="connect-layout">
+          <div class="connect-main">
+            <span class="meta-chip">Supported wallets</span>
+            <div class="connect-grid">
+              <button id="connect-phantom-btn" class="wallet-option" type="button">
+                <span class="wallet-name">Connect Phantom</span>
+                <span class="wallet-desc">Use the browser extension and let HARUKA read SOL, USDC, and $HARUKA.</span>
+              </button>
+              <button id="connect-solflare-btn" class="wallet-option" type="button">
+                <span class="wallet-name">Connect Solflare</span>
+                <span class="wallet-desc">Same flow, same snapshot handoff, with the Solflare browser wallet.</span>
+              </button>
+            </div>
+            <p id="connect-hint" class="connect-hint">
+              If a wallet is missing, HARUKA opens the install page instead of pretending the connection succeeded.
+            </p>
+          </div>
+
+          <aside class="tier-preview-card">
+            <span class="tier-preview-eyebrow">Holder program</span>
+            <h3>Tiered access should read like product identity, not debug data.</h3>
+            <p>
+              The wallet snapshot does more than load numbers. It decides how HARUKA recognizes the holder, how memory
+              behaves, and how premium the companion layer feels.
+            </p>
+            <div class="tier-preview-list">
+              <div class="tier-preview-item">
+                <strong><span>Companion</span><span>500,000 $HARUKA</span></strong>
+                <span>Unlock persistent browser memory and a more familiar HARUKA tone.</span>
+              </div>
+              <div class="tier-preview-item">
+                <strong><span>Partner</span><span>2,500,000 $HARUKA</span></strong>
+                <span>Present the account as a recognized holder with deeper continuity.</span>
+              </div>
+              <div class="tier-preview-item">
+                <strong><span>Forest Guard</span><span>5,000,000 $HARUKA</span></strong>
+                <span>Top-tier holder treatment with the strongest memory profile.</span>
+              </div>
+            </div>
+          </aside>
         </div>
-        <p id="connect-hint" class="connect-hint">
-          If a wallet is missing, HARUKA opens the install page instead of pretending the connection succeeded.
-        </p>
       </div>
 
       <div id="portfolio-loading" class="loading-surface" hidden>
@@ -913,8 +1320,10 @@
       </div>
 
       <div id="wallet-connected-surface" class="connected-surface" hidden>
-        <div class="wallet-bar">
-          <div>
+        <div class="utility-dashboard">
+          <section class="wallet-overview-card">
+            <div class="wallet-bar">
+              <div>
             <h3>Connected wallet</h3>
             <div class="wallet-state">
               <span id="wallet-provider-label">Wallet</span>
@@ -925,12 +1334,23 @@
               <p id="wallet-tier-support" class="wallet-tier-support">No tier signal yet.</p>
             </div>
             <div class="wallet-subline">Last snapshot: <span id="portfolio-captured-at">—</span></div>
-          </div>
-          <div class="wallet-actions">
-            <button id="refresh-portfolio-btn" class="btn-inline" type="button">Refresh snapshot</button>
-            <button id="disconnect-wallet-btn" class="btn-inline" type="button">Disconnect</button>
-          </div>
-        </div>
+              </div>
+              <div class="wallet-actions">
+                <button id="refresh-portfolio-btn" class="btn-inline" type="button">Refresh snapshot</button>
+                <button id="disconnect-wallet-btn" class="btn-inline" type="button">Disconnect</button>
+              </div>
+            </div>
+
+            <div class="wallet-meta-grid">
+              <div class="snapshot-chip">
+                <span class="meta-chip">Memory profile</span>
+                <strong id="wallet-memory-summary">No memory profile yet.</strong>
+              </div>
+              <div class="snapshot-chip">
+                <span class="meta-chip">Portfolio handoff</span>
+                <strong>Stored locally and ready for HARUKA chat.</strong>
+              </div>
+            </div>
 
         <div class="balance-grid">
           <article class="balance-card">
