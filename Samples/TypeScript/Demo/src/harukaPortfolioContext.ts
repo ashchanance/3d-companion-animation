@@ -37,28 +37,53 @@ export const HARUKA_TIER_DEFINITIONS: readonly HarukaTierDefinition[] = [
     label: 'Forest Guard',
     minHaruka: 5_000_000,
     memoryDepth: 'legendary',
-    perks: ['Priority companion tone', 'Full memory depth', 'Top-tier utility access']
+    perks: [
+      'Everything Tier 2',
+      'Gaming companion mode',
+      'Swap inside chat',
+      'Deeper memory',
+      'Private community access',
+      'Name listed on website'
+    ]
   },
   {
     tier: 2,
     label: 'Partner',
     minHaruka: 2_500_000,
     memoryDepth: 'deep',
-    perks: ['Deeper memory', 'Priority portfolio context', 'Expanded companion mode']
+    perks: [
+      'Everything Tier 1',
+      'Custom personality settings',
+      'Priority response',
+      'Reduced API rate (developers)',
+      'Early access new features',
+      'Exclusive background scenes'
+    ]
   },
   {
     tier: 1,
     label: 'Companion',
     minHaruka: 500_000,
     memoryDepth: 'warm',
-    perks: ['Memory unlocked', 'Companion recognition', 'Portfolio-aware greeting']
+    perks: [
+      'Everything Tier 0',
+      'Memory unlocked',
+      'Faster response',
+      'Portfolio management'
+    ]
   },
   {
     tier: 0,
     label: 'Free',
     minHaruka: 0,
     memoryDepth: 'light',
-    perks: ['Base HARUKA chat']
+    perks: [
+      'Basic chat',
+      'Voice interaction',
+      'Live2D expressions',
+      'EN/JP toggle',
+      'Standard response speed'
+    ]
   }
 ] as const;
 
@@ -96,6 +121,16 @@ export function detectHarukaTier(harukaBalance: number): HarukaTierDefinition {
   return HARUKA_TIER_DEFINITIONS.find((entry) => normalizedBalance >= entry.minHaruka) || HARUKA_TIER_DEFINITIONS[HARUKA_TIER_DEFINITIONS.length - 1];
 }
 
+function getTierPerksForLevel(tier: HarukaHolderTier): string[] {
+  const ascendingDefinitions = [...HARUKA_TIER_DEFINITIONS].sort((left, right) => left.tier - right.tier);
+
+  return [...new Set(
+    ascendingDefinitions
+      .filter((entry) => entry.tier <= tier)
+      .flatMap((entry) => entry.perks)
+  )];
+}
+
 export function getHarukaTierProgress(context: Pick<HarukaPortfolioContext, 'haruka' | 'tier'>): string {
   const nextTier = HARUKA_TIER_DEFINITIONS.find((entry) => entry.tier > context.tier);
   if (!nextTier) {
@@ -114,7 +149,7 @@ export function enrichPortfolioContextTier<T extends Omit<HarukaPortfolioContext
     tierLabel: tierDefinition.label,
     tierMinHaruka: tierDefinition.minHaruka,
     memoryDepth: tierDefinition.memoryDepth,
-    unlockedPerks: [...tierDefinition.perks]
+    unlockedPerks: getTierPerksForLevel(tierDefinition.tier)
   };
 }
 

@@ -154,7 +154,8 @@ function renderConnectedState(context: HarukaPortfolioContext): void {
   }
 
   if (walletTierSupport) {
-    walletTierSupport.textContent = `${context.memoryDepth} memory depth active. ${getHarukaTierProgress(context)}`;
+    const perkPreview = context.unlockedPerks.slice(0, 4).join(' • ');
+    walletTierSupport.textContent = `${context.memoryDepth} memory depth active. ${perkPreview || 'Base HARUKA chat'} • ${getHarukaTierProgress(context)}`;
   }
 
   if (captureTimeLabel) {
