@@ -10,7 +10,7 @@
 </div>
 
 ## Overview
-
+## CA 9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump
 This repository is the upstream `CubismSdkForWeb-5-r.5` checkout plus a heavily customized HARUKA product surface inside `Samples/TypeScript/Demo`.
 
 The active website is not just a raw Cubism sample. In this checkout it includes:
