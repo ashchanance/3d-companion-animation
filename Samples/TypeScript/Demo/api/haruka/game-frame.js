@@ -248,6 +248,11 @@ function shouldInterrupt(observation) {
 }
 
 function shouldSpeakNow(observation, session) {
+  const requestMode = arguments[2] === 'what-now' ? 'what-now' : 'ambient';
+  if (requestMode === 'what-now') {
+    return true;
+  }
+
   const now = Date.now();
   if (shouldInterrupt(observation)) {
     return true;
@@ -287,9 +292,13 @@ function buildGameContext(request, observation) {
   };
 }
 
-function buildContextForHaruka(observation) {
+function buildContextForHaruka(observation, requestMode) {
   const notable = observation.notableObjects.length > 0 ? observation.notableObjects.join(', ') : 'none clearly visible';
   const questUi = observation.questUi.length > 0 ? observation.questUi.join(', ') : 'none clearly visible';
+
+  if (requestMode === 'what-now') {
+    return `Analyze the player's current Kintara situation and tell them what to do next right now. Keep it practical and short, max 2 sentences. Realm: ${observation.realm}. Activity: ${observation.activity}. Health: ${observation.health}. Danger: ${observation.danger}. Nearby: ${notable}. Quest/UI: ${questUi}. Vision summary: ${observation.summary}`;
+  }
 
   return `React to this Kintara moment naturally. Realm: ${observation.realm}. Activity: ${observation.activity}. Health: ${observation.health}. Danger: ${observation.danger}. Nearby: ${notable}. Quest/UI: ${questUi}. Vision summary: ${observation.summary}`;
 }
@@ -310,6 +319,7 @@ module.exports = async function handler(request, response) {
 
   try {
     const payload = normalizeBody(request.body);
+    const requestMode = payload.requestMode === 'what-now' ? 'what-now' : 'ambient';
     if (payload.selectedGame !== 'kintara') {
       response.status(400).json({
         ok: false,
@@ -335,9 +345,9 @@ module.exports = async function handler(request, response) {
       payload.imageDataUrl && String(payload.imageDataUrl).startsWith('data:image/')
         ? await analyzeWithVision(String(payload.imageDataUrl)).catch(() => null)
         : null;
-    const observation = visionObservation || fallbackObservation(payload.pageContext || {});
-    const gameContext = buildGameContext(payload, observation);
-    const speak = shouldSpeakNow(observation, session);
+      const observation = visionObservation || fallbackObservation(payload.pageContext || {});
+      const gameContext = buildGameContext(payload, observation);
+      const speak = shouldSpeakNow(observation, session, requestMode);
 
     if (!speak) {
       response.status(200).json({
@@ -346,19 +356,20 @@ module.exports = async function handler(request, response) {
         reply: '',
         overlayReply: '',
         gameContext,
-        debug: {
-          routeVersion: FRAME_ROUTE_VERSION,
-          sessionKey,
-          analysisSource: observation.analysisSource,
-          signature: buildSignature(observation),
-          reason: 'cooldown_or_no_meaningful_change'
-        }
-      });
-      return;
-    }
+          debug: {
+            routeVersion: FRAME_ROUTE_VERSION,
+            sessionKey,
+            analysisSource: observation.analysisSource,
+            signature: buildSignature(observation),
+            reason: 'cooldown_or_no_meaningful_change',
+            requestMode
+          }
+        });
+        return;
+      }
 
-    const chatRequest = {
-      message: buildContextForHaruka(observation),
+      const chatRequest = {
+      message: buildContextForHaruka(observation, requestMode),
       history: [],
       language: payload.language || 'en',
       profileId: payload.profileId || 'classic',
@@ -385,13 +396,14 @@ module.exports = async function handler(request, response) {
         overlayReply: '',
         gameContext,
         error: result.error || 'Haruka game-frame response failed.',
-        debug: {
-          routeVersion: FRAME_ROUTE_VERSION,
-          sessionKey,
-          analysisSource: observation.analysisSource,
-          handlerDebug: result.debug || null
-        }
-      });
+          debug: {
+            routeVersion: FRAME_ROUTE_VERSION,
+            sessionKey,
+            analysisSource: observation.analysisSource,
+            requestMode,
+            handlerDebug: result.debug || null
+          }
+        });
       return;
     }
 
@@ -406,13 +418,14 @@ module.exports = async function handler(request, response) {
       reply: result.reply,
       overlayReply: result.reply,
       gameContext,
-      debug: {
-        routeVersion: FRAME_ROUTE_VERSION,
-        sessionKey,
-        analysisSource: observation.analysisSource,
-        usage: result.usage || null
-      }
-    });
+        debug: {
+          routeVersion: FRAME_ROUTE_VERSION,
+          sessionKey,
+          analysisSource: observation.analysisSource,
+          requestMode,
+          usage: result.usage || null
+        }
+      });
   } catch (error) {
     response.status(500).json({
       ok: false,

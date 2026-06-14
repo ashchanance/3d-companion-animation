@@ -1,6 +1,6 @@
 {
   "runtimeOrigin": "https://www.harukacompanion.tech",
-  "captureIntervalSec": 12,
+  "captureIntervalSec": 10,
   "betaLabel": "HARUKA Public Beta",
   "betaNote": "Bundled to the hosted HARUKA runtime at harukacompanion.tech so friends can load the extension without running a local server."
 }

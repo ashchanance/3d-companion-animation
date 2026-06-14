@@ -1,5 +1,5 @@
 const LOCAL_RUNTIME_ORIGIN = 'http://127.0.0.1:5000';
-const DEFAULT_CAPTURE_INTERVAL = 12;
+const DEFAULT_CAPTURE_INTERVAL = 10;
 const BUNDLED_CONFIG_URL = chrome.runtime.getURL('runtime-config.json');
 const sessions = new Map();
 
@@ -88,7 +88,7 @@ async function ensureContentScriptReady(tabId) {
   return Boolean(secondPing && secondPing.ok);
 }
 
-async function processFrameForTab(tabId, senderTab, pageContext) {
+async function processFrameForTab(tabId, senderTab, pageContext, requestMode) {
   const session = sessions.get(tabId);
   if (!session || !session.active || !senderTab) {
     return { ok: false, shouldSpeak: false };
@@ -107,6 +107,7 @@ async function processFrameForTab(tabId, senderTab, pageContext) {
     body: JSON.stringify({
       selectedGame: 'kintara',
       sessionId: session.sessionId,
+      requestMode: requestMode === 'what-now' ? 'what-now' : 'ambient',
       imageDataUrl,
       pageContext,
       language: 'en',
@@ -256,7 +257,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
 
-        const result = await processFrameForTab(sender.tab.id, sender.tab, message.pageContext || {}).catch((error) => ({
+        const result = await processFrameForTab(
+          sender.tab.id,
+          sender.tab,
+          message.pageContext || {},
+          message.requestMode || 'ambient'
+        ).catch((error) => ({
           ok: false,
           shouldSpeak: false,
           error: error instanceof Error ? error.message : String(error)

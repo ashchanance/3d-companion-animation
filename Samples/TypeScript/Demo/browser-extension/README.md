@@ -9,6 +9,7 @@ This extension is the browser surface for HARUKA's Kintara gaming companion flow
 - Captures the visible tab on an interval
 - Sends the frame and page context to `/api/haruka/game-frame`
 - Shows HARUKA's short gaming reactions back on top of the tab
+- Auto-analyzes the current Kintara situation every 10 seconds
 
 ## Load locally
 

@@ -50,6 +50,7 @@ export interface HarukaGameFrameRequest {
   selectedGame?: 'kintara';
   sessionId?: string;
   pageContext?: HarukaGameFramePageContext;
+  requestMode?: 'ambient' | 'what-now';
   language?: HarukaLanguage;
   profileId?: HarukaSoulProfileId;
   engineMode?: HarukaEngineMode;
@@ -305,7 +306,15 @@ function shouldInterrupt(observation: KintaraObservation): boolean {
   );
 }
 
-function shouldSpeakNow(observation: KintaraObservation, session: GameSessionState | undefined): boolean {
+function shouldSpeakNow(
+  observation: KintaraObservation,
+  session: GameSessionState | undefined,
+  requestMode: 'ambient' | 'what-now'
+): boolean {
+  if (requestMode === 'what-now') {
+    return true;
+  }
+
   const now = Date.now();
   if (shouldInterrupt(observation)) {
     return true;
@@ -322,9 +331,16 @@ function shouldSpeakNow(observation: KintaraObservation, session: GameSessionSta
   return buildSignature(observation) !== session.lastSignature;
 }
 
-function buildContextForHaruka(observation: KintaraObservation): string {
+function buildContextForHaruka(
+  observation: KintaraObservation,
+  requestMode: 'ambient' | 'what-now'
+): string {
   const notable = observation.notableObjects.length > 0 ? observation.notableObjects.join(', ') : 'none clearly visible';
   const questUi = observation.questUi.length > 0 ? observation.questUi.join(', ') : 'none clearly visible';
+
+  if (requestMode === 'what-now') {
+    return `Analyze the player's current Kintara situation and tell them what to do next right now. Keep it practical and short, max 2 sentences. Realm: ${observation.realm}. Activity: ${observation.activity}. Health: ${observation.health}. Danger: ${observation.danger}. Nearby: ${notable}. Quest/UI: ${questUi}. Vision summary: ${observation.summary}`;
+  }
 
   return `React to this Kintara moment naturally. Realm: ${observation.realm}. Activity: ${observation.activity}. Health: ${observation.health}. Danger: ${observation.danger}. Nearby: ${notable}. Quest/UI: ${questUi}. Vision summary: ${observation.summary}`;
 }
@@ -348,6 +364,7 @@ function buildGameContext(request: HarukaGameFrameRequest, observation: KintaraO
 }
 
 export async function runHarukaGameFrame(request: HarukaGameFrameRequest): Promise<HarukaGameFrameResponse> {
+  const requestMode = request.requestMode === 'what-now' ? 'what-now' : 'ambient';
   if (request.selectedGame !== 'kintara') {
     return {
       ok: false,
@@ -382,7 +399,7 @@ export async function runHarukaGameFrame(request: HarukaGameFrameRequest): Promi
   }
   const observation = visionObservation || fallbackObservation(request.pageContext);
   const gameContext = buildGameContext(request, observation);
-  const speak = shouldSpeakNow(observation, session);
+  const speak = shouldSpeakNow(observation, session, requestMode);
 
   if (!speak) {
     return {
@@ -391,18 +408,19 @@ export async function runHarukaGameFrame(request: HarukaGameFrameRequest): Promi
       reply: '',
       overlayReply: '',
       gameContext,
-      debug: {
-        routeVersion: FRAME_ROUTE_VERSION,
-        sessionKey,
-        analysisSource: observation.analysisSource,
-        signature: buildSignature(observation),
-        reason: 'cooldown_or_no_meaningful_change'
-      }
-    };
-  }
+        debug: {
+          routeVersion: FRAME_ROUTE_VERSION,
+          sessionKey,
+          analysisSource: observation.analysisSource,
+          signature: buildSignature(observation),
+          reason: 'cooldown_or_no_meaningful_change',
+          requestMode
+        }
+      };
+    }
 
   const chatRequest: HarukaChatRequest = {
-    message: buildContextForHaruka(observation),
+    message: buildContextForHaruka(observation, requestMode),
     history: [],
     language: request.language || 'en',
     profileId: request.profileId || 'classic',
@@ -426,13 +444,14 @@ export async function runHarukaGameFrame(request: HarukaGameFrameRequest): Promi
       overlayReply: '',
       gameContext,
       error: result.error,
-      debug: {
-        routeVersion: FRAME_ROUTE_VERSION,
-        sessionKey,
-        analysisSource: observation.analysisSource,
-        handlerDebug: result.debug || null
-      }
-    };
+        debug: {
+          routeVersion: FRAME_ROUTE_VERSION,
+          sessionKey,
+          analysisSource: observation.analysisSource,
+          requestMode,
+          handlerDebug: result.debug || null
+        }
+      };
   }
 
   gameSessions.set(sessionKey, {
@@ -450,6 +469,7 @@ export async function runHarukaGameFrame(request: HarukaGameFrameRequest): Promi
       routeVersion: FRAME_ROUTE_VERSION,
       sessionKey,
       analysisSource: observation.analysisSource,
+      requestMode,
       usage: result.usage || null
     }
   };

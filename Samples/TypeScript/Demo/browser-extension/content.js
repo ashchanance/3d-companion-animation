@@ -1,4 +1,6 @@
 (function initHarukaContentScript() {
+  const AUTO_ANALYSIS_INTERVAL_SEC = 10;
+
   if (window.__HARUKA_KINTARA_CONTENT_SCRIPT_READY__) {
     return;
   }
@@ -8,11 +10,12 @@
   const state = {
     active: false,
     muted: false,
-    captureIntervalSec: 12,
+    captureIntervalSec: AUTO_ANALYSIS_INTERVAL_SEC,
     intervalId: null,
     lastReply: '',
     runtimeOrigin: '',
-    pendingSpeechText: ''
+    pendingSpeechText: '',
+    analysisBusy: false
   };
 
   let overlay = null;
@@ -50,6 +53,7 @@
         <div class="haruka-reply">Waiting for Kintara context...</div>
         <div class="haruka-meta">Overlay ready.</div>
         <div class="haruka-actions">
+          <button type="button" class="accent" data-action="what-now">What now?</button>
           <button type="button" data-action="mute">Mute</button>
           <button type="button" class="secondary" data-action="hide">Hide</button>
         </div>
@@ -76,6 +80,10 @@
           postToCompanionViewer('HARUKA_COMPANION_STOP');
           window.speechSynthesis?.cancel();
         }
+      }
+
+      if (action === 'what-now') {
+        void requestSituationAdvice();
       }
 
       if (action === 'hide') {
@@ -217,6 +225,58 @@
     };
   }
 
+  async function requestSituationAdvice(triggerSource) {
+    if (!state.active || state.analysisBusy) {
+      return;
+    }
+
+    ensureOverlay();
+    state.analysisBusy = true;
+    statusNode.textContent = triggerSource === 'auto' ? 'Auto-analyzing' : 'Analyzing next move';
+    metaNode.textContent = triggerSource === 'auto'
+      ? 'HARUKA is checking your current Kintara situation automatically...'
+      : 'HARUKA is checking your current Kintara situation...';
+
+    try {
+      const result = await chrome.runtime.sendMessage({
+        type: 'PROCESS_FRAME',
+        requestMode: 'what-now',
+        pageContext: extractPageContext()
+      });
+
+      if (!result) {
+        return;
+      }
+
+      if (!result.ok && result.error) {
+        replyNode.textContent = 'HARUKA could not finish the situational read right now.';
+        metaNode.textContent = result.error;
+        return;
+      }
+
+      if (typeof result.overlayReply === 'string' && result.overlayReply.trim()) {
+        replyNode.textContent = result.overlayReply.trim();
+        metaNode.textContent = `Realm: ${result.gameContext?.realm || 'Unknown'} | Next move ready`;
+
+        if (!state.muted && result.overlayReply !== state.lastReply) {
+          const nextSpeech = result.overlayReply.trim();
+          state.pendingSpeechText = nextSpeech;
+          const posted = postToCompanionViewer('HARUKA_COMPANION_SPEAK', nextSpeech);
+          if (posted) {
+            state.pendingSpeechText = '';
+          }
+        }
+
+        state.lastReply = result.overlayReply;
+      }
+    } finally {
+      state.analysisBusy = false;
+      if (state.active) {
+        statusNode.textContent = 'Watching Kintara';
+      }
+    }
+  }
+
   async function processFrame() {
     if (!state.active) {
       return;
@@ -228,6 +288,7 @@
 
     const result = await chrome.runtime.sendMessage({
       type: 'PROCESS_FRAME',
+      requestMode: 'ambient',
       pageContext: extractPageContext()
     });
 
@@ -266,20 +327,21 @@
   function startSession(captureIntervalSec) {
     ensureOverlay();
     state.active = true;
-    state.captureIntervalSec = captureIntervalSec || 12;
+    state.captureIntervalSec = AUTO_ANALYSIS_INTERVAL_SEC;
     syncModelViewer();
     overlay.classList.remove('haruka-hidden');
     statusNode.textContent = 'Watching Kintara';
+    metaNode.textContent = `Auto analysis every ${AUTO_ANALYSIS_INTERVAL_SEC} seconds.`;
 
     if (state.intervalId) {
       window.clearInterval(state.intervalId);
     }
 
     state.intervalId = window.setInterval(() => {
-      void processFrame();
-    }, state.captureIntervalSec * 1000);
+      void requestSituationAdvice('auto');
+    }, AUTO_ANALYSIS_INTERVAL_SEC * 1000);
 
-    void processFrame();
+    void requestSituationAdvice('auto');
   }
 
   function stopSession(hiddenOnly) {

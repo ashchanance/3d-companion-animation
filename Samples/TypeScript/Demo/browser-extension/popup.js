@@ -1,5 +1,5 @@
 const LOCAL_RUNTIME_ORIGIN = 'http://127.0.0.1:5000';
-const DEFAULT_CAPTURE_INTERVAL = 12;
+const DEFAULT_CAPTURE_INTERVAL = 10;
 const BUNDLED_CONFIG_URL = chrome.runtime.getURL('runtime-config.json');
 
 let bundledConfigPromise = null;

@@ -108,6 +108,11 @@
   background: rgba(240, 199, 104, 0.18);
 }
 
+#haruka-kintara-overlay button.accent {
+  background: linear-gradient(135deg, rgba(240, 199, 104, 0.95), rgba(176, 122, 30, 0.96));
+  color: #1f1806;
+}
+
 #haruka-kintara-overlay button.secondary {
   background: rgba(255, 255, 255, 0.08);
 }
