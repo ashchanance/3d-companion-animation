@@ -1,6 +1,6 @@
 {
-  "runtimeOrigin": "",
+  "runtimeOrigin": "https://www.harukacompanion.tech",
   "captureIntervalSec": 12,
-  "betaLabel": "Local Development Mode",
-  "betaNote": "Set runtimeOrigin to your public HARUKA deployment before sharing this extension with friends."
+  "betaLabel": "HARUKA Public Beta",
+  "betaNote": "Bundled to the hosted HARUKA runtime at harukacompanion.tech so friends can load the extension without running a local server."
 }
