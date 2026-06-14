@@ -4,6 +4,7 @@ export interface HarukaEmbedContext {
   userId: string;
   sessionId: string;
   language: 'en' | 'jp';
+  view: 'widget' | 'companion';
 }
 
 declare global {
@@ -129,19 +130,60 @@ function ensureEmbedStyles(): void {
         bottom: 88px;
       }
     }
+
+    body.mode-companion-embed {
+      overflow: hidden !important;
+      width: 100vw;
+      height: 100vh;
+      background: transparent !important;
+    }
+
+    body.mode-companion-embed #landing-page,
+    body.mode-companion-embed #chat-bg-container,
+    body.mode-companion-embed #ui-overlay,
+    body.mode-companion-embed #relay-console,
+    body.mode-companion-embed #settings-modal {
+      display: none !important;
+    }
+
+    body.mode-companion-embed > canvas {
+      width: 100vw !important;
+      height: 100vh !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: none !important;
+      transform: scale(1.18) translateY(7%);
+      transform-origin: center bottom;
+      filter: drop-shadow(0 18px 28px rgba(7, 12, 18, 0.2));
+    }
+
+    @media (max-width: 520px) {
+      body.mode-companion-embed > canvas {
+        transform: scale(1.08) translateY(6%);
+      }
+    }
   `;
 
   document.head.appendChild(style);
 }
 
-function applyEmbedDomMode(): void {
+function applyEmbedDomMode(view: 'widget' | 'companion'): void {
   if (!document.body) {
     return;
   }
 
   document.body.classList.remove('mode-landing');
-  document.body.classList.add('mode-chat', 'mode-widget-embed');
+  document.body.classList.add('mode-chat');
   ensureEmbedStyles();
+
+  if (view === 'companion') {
+    document.body.classList.add('mode-companion-embed');
+    document.body.classList.remove('mode-widget-embed');
+    return;
+  }
+
+  document.body.classList.add('mode-widget-embed');
+  document.body.classList.remove('mode-companion-embed');
 
   const input = document.getElementById('chat-input') as HTMLInputElement | null;
   if (input) {
@@ -153,6 +195,7 @@ export function initializeHarukaEmbedMode(): HarukaEmbedContext {
   const params = new URLSearchParams(window.location.search);
   const enabled = readBooleanParam(params.get('embed'));
   const language = params.get('lang') === 'jp' ? 'jp' : 'en';
+  const view = params.get('view') === 'companion' ? 'companion' : 'widget';
   const sessionId = params.get('sessionId')?.trim() || getStoredId(window.sessionStorage, SESSION_STORAGE_KEY, 'session');
   const userId = params.get('userId')?.trim() || getStoredId(window.localStorage, USER_STORAGE_KEY, 'user');
 
@@ -161,7 +204,8 @@ export function initializeHarukaEmbedMode(): HarukaEmbedContext {
     apiKey: params.get('apiKey')?.trim() || '',
     userId,
     sessionId,
-    language
+    language,
+    view
   };
 
   window.__harukaEmbedContext = context;
@@ -171,9 +215,9 @@ export function initializeHarukaEmbedMode(): HarukaEmbedContext {
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyEmbedDomMode, { once: true });
+    document.addEventListener('DOMContentLoaded', () => applyEmbedDomMode(view), { once: true });
   } else {
-    applyEmbedDomMode();
+    applyEmbedDomMode(view);
   }
 
   return context;

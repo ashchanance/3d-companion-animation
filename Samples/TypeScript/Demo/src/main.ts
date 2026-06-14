@@ -52,6 +52,29 @@ window.addEventListener(
     (window as any).chatManager = chatManager;
     chatManager.setLanguage(embedContext.language);
 
+    if (embedContext.enabled && embedContext.view === 'companion') {
+      window.addEventListener('message', (event: MessageEvent) => {
+        const payload = event.data;
+        if (!payload || typeof payload !== 'object') {
+          return;
+        }
+
+        if ((payload as { source?: string }).source !== 'haruka-kintara-extension') {
+          return;
+        }
+
+        if ((payload as { type?: string }).type === 'HARUKA_COMPANION_SPEAK') {
+          const text = typeof (payload as { text?: string }).text === 'string' ? (payload as { text: string }).text : '';
+          chatManager.playCompanionSpeech(text);
+          return;
+        }
+
+        if ((payload as { type?: string }).type === 'HARUKA_COMPANION_STOP') {
+          chatManager.stopCompanionSpeech();
+        }
+      });
+    }
+
     const launchParams = new URLSearchParams(window.location.search);
     const storedPortfolioContext = readStoredPortfolioContext();
     if (storedPortfolioContext && (launchParams.get('portfolio') === '1' || launchParams.get('mode') === 'chat')) {

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HARUKA Gaming Mode</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup-shell">
+      <div class="eyebrow">HARUKA Gaming Mode</div>
+      <h1>Kintara Companion</h1>
+      <p class="subtitle">Browser extension surface for the HARUKA runtime.</p>
+      <section class="hero-card">
+        <div class="hero-label">Beta Sharing</div>
+        <div id="beta-status" class="hero-value">Checking bundled config...</div>
+        <p id="beta-note" class="hero-note">
+          You can bundle a public HARUKA runtime so friends only need to load this extension.
+        </p>
+      </section>
+
+      <section class="card">
+        <div class="row">
+          <span class="label">Current tab</span>
+          <span id="tab-status" class="value">Checking...</span>
+        </div>
+        <div class="row">
+          <span class="label">Session</span>
+          <span id="session-status" class="value">Inactive</span>
+        </div>
+        <div class="row">
+          <span class="label">Runtime</span>
+          <span id="runtime-status" class="value">Checking...</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <label class="field">
+          <span>HARUKA Runtime Origin</span>
+          <input id="runtime-origin" type="text" placeholder="http://127.0.0.1:5000" />
+        </label>
+        <label class="field">
+          <span>Capture Interval (seconds)</span>
+          <input id="capture-interval" type="number" min="6" max="30" step="1" />
+        </label>
+        <p id="runtime-details" class="field-note">
+          Use localhost for development, or an https public runtime for beta sharing.
+        </p>
+        <p id="save-feedback" class="field-note"></p>
+        <button id="save-settings" class="secondary">Save Settings</button>
+        <button id="reset-beta-defaults" class="ghost">Reset To Bundled Beta Defaults</button>
+      </section>
+
+      <section class="card">
+        <button id="start-session">Start Kintara Companion</button>
+        <button id="stop-session" class="secondary">Stop</button>
+        <button id="open-runtime" class="ghost">Open HARUKA Runtime</button>
+      </section>
+
+      <p class="helper">
+        Supported flow: Kintara tab + HARUKA runtime at <code>/api/haruka/game-frame</code>.
+      </p>
+    </main>
+
+    <script src="./popup.js"></script>
+  </body>
+</html>

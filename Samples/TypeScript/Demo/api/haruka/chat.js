@@ -190,6 +190,47 @@ The user connected a Solana wallet through HARUKA Utility before entering chat.
 `.trim();
 }
 
+function buildGameContextSection(request) {
+  if (request.selectedGame !== 'kintara' || !request.gameContext) {
+    return '';
+  }
+
+  const context = request.gameContext;
+  const notableObjects = Array.isArray(context.notableObjects) && context.notableObjects.length > 0
+    ? context.notableObjects.join(', ')
+    : 'Not visible';
+  const questUi = Array.isArray(context.questUi) && context.questUi.length > 0
+    ? context.questUi.join(', ')
+    : 'Not visible';
+
+  return `
+## Gaming Companion Mode
+Haruka is acting as a live gaming companion for Kintara, a browser-based isometric MMO on Solana.
+
+## Current Kintara Context
+- Realm: ${context.realm || 'Unknown'}
+- Activity: ${context.activity || 'Unknown'}
+- Health: ${context.health || 'Unknown'}
+- Danger: ${context.danger || 'Unknown'}
+- Nearby notable objects: ${notableObjects}
+- Visible quest or UI elements: ${questUi}
+- Vision summary: ${context.visionSummary || 'Not available'}
+- Page hint: ${context.pageHint || 'Not available'}
+- Analysis source: ${context.analysisSource || 'manual'}
+- Interrupt priority: ${context.shouldInterrupt ? 'High' : 'Normal'}
+
+## Kintara Companion Rules
+- Use Kintara terms naturally and correctly.
+- Speak like a knowledgeable friend watching over the player shoulder.
+- Keep spontaneous reactions to one short sentence by default.
+- Use at most two short sentences when the moment is urgent or safety-critical.
+- Prioritize danger, low health, Wilderness risk, and tombstone recovery over flavor commentary.
+- If visibility is incomplete, stay modest and avoid pretending certainty.
+- Do not dump tutorials unless the player is clearly in danger or looks stuck.
+- If the context is calm, sound light and helpful rather than intense.
+`.trim();
+}
+
 function summarizeRecentHistory(history) {
   if (!Array.isArray(history) || history.length === 0) {
     return 'Haruka is meeting the user and setting the tone for a fresh conversation.';
@@ -205,6 +246,7 @@ function composeHarukaSystemPrompt(request) {
   const profile = HARUKA_SOUL_PROFILES[request.profileId] || HARUKA_SOUL_PROFILES.classic;
   const recentScene = summarizeRecentHistory(request.history || []);
   const portfolioContext = buildPortfolioContextSection(request);
+  const gameContext = buildGameContextSection(request);
   const liveMode =
     request.source === 'pumpfun-relay'
       ? `## Live Chat Mode
@@ -242,6 +284,8 @@ ${profile.conversationGoal}
 ${recentScene}
 
 ${portfolioContext}
+
+${gameContext}
 
 ${liveMode}
 
@@ -489,6 +533,10 @@ function buildProviderDebug(request) {
     embedApiKeyRequired: embedKeys.length > 0,
     configuredEmbedKeyCount: embedKeys.length,
     hasEmbedApiKey: Boolean(request.apiKey && String(request.apiKey).trim()),
+    selectedGame: request.selectedGame || null,
+    hasGameContext: Boolean(request.gameContext),
+    gameContextRealm: request.gameContext ? request.gameContext.realm || null : null,
+    gameContextActivity: request.gameContext ? request.gameContext.activity || null : null,
     hasPortfolioContext: Boolean(request.portfolioContext),
     portfolioWalletAddress: request.portfolioContext ? request.portfolioContext.walletAddress || null : null,
     userId: request.userId || null,
@@ -767,7 +815,7 @@ async function runHarukaChatCore(request, options) {
   };
 }
 
-module.exports = async function handler(request, response) {
+async function handler(request, response) {
   applyHeaders(response);
 
   if (request.method === 'OPTIONS') {
@@ -875,4 +923,10 @@ module.exports = async function handler(request, response) {
       }
     });
   }
-};
+}
+
+handler.runHarukaChatCore = runHarukaChatCore;
+handler.composeHarukaSystemPrompt = composeHarukaSystemPrompt;
+handler.buildProviderDebug = buildProviderDebug;
+
+module.exports = handler;

@@ -281,6 +281,21 @@ export class ChatManager {
     this._isProcessingReply = false;
   }
 
+  public playCompanionSpeech(text: string): void {
+    const normalized = text.trim();
+    if (!normalized) {
+      return;
+    }
+
+    const emotion = this.detectEmotion(normalized);
+    this.triggerCharacterAction(emotion);
+    this.speakReply(normalized);
+  }
+
+  public stopCompanionSpeech(): void {
+    this.stopActivePlayback();
+  }
+
   public async handleExternalViewerComment(
     username: string,
     message: string,

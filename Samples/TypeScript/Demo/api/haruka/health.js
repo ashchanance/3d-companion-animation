@@ -1,7 +1,7 @@
 const { buildBuybackSnapshot } = require('../../lib/haruka/buyback.js');
 const { buildX402Snapshot } = require('./x402.js');
 
-const ROUTE_VERSION = 'api-haruka-health-2026-06-05-v4';
+const ROUTE_VERSION = 'api-haruka-health-2026-06-14-v5';
 
 function readEmbedKeys() {
   return String(process.env.HARUKA_EMBED_API_KEYS || '')
@@ -54,8 +54,13 @@ module.exports = function handler(_request, response) {
   const apiKey = process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
   const baseUrl = process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '';
   const model = process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || '';
+  const visionApiKey = process.env.HARUKA_VISION_API_KEY || '';
+  const visionBaseUrl = process.env.HARUKA_VISION_BASE_URL || '';
+  const visionModel = process.env.HARUKA_VISION_MODEL || '';
   const embedKeys = readEmbedKeys();
   const usageGateEnabled = parseBooleanFlag(process.env.HARUKA_USAGE_GATE_ENABLED);
+  const dedicatedVisionConfigured = Boolean(visionApiKey && visionBaseUrl && visionModel);
+  const visionFallbackToMainProvider = !dedicatedVisionConfigured && Boolean(apiKey && baseUrl && model);
 
   response.setHeader('Content-Type', 'application/json');
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -68,6 +73,15 @@ module.exports = function handler(_request, response) {
     megallmApiKeyLength: apiKey.length,
     megallmBaseUrl: baseUrl,
     megallmModel: model,
+    gamingCompanionEnabled: true,
+    gameFrameRouteEnabled: true,
+    hasVisionApiKey: Boolean(visionApiKey),
+    visionApiKeyLength: visionApiKey.length,
+    visionBaseUrl: visionBaseUrl || baseUrl || '',
+    visionModel: visionModel || model || '',
+    dedicatedVisionProviderConfigured: dedicatedVisionConfigured,
+    visionUsesMainProviderFallback: visionFallbackToMainProvider,
+    visionProviderConfigured: dedicatedVisionConfigured || visionFallbackToMainProvider,
     bundledOpenSoulsBridgeReady: true,
     defaultOpenSoulsMode: 'bundled',
     externalOpenSoulsBridgeRequired: false,

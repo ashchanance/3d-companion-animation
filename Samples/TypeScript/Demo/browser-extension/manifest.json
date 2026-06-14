@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "HARUKA Kintara Companion",
+  "version": "0.1.0",
+  "description": "Browser extension surface for HARUKA's Kintara gaming companion mode.",
+  "permissions": ["activeTab", "storage", "tabs", "scripting"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/haruka-16.png",
+    "32": "icons/haruka-32.png",
+    "48": "icons/haruka-48.png",
+    "128": "icons/haruka-128.png"
+  },
+  "action": {
+    "default_title": "HARUKA Gaming Mode",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/haruka-16.png",
+      "32": "icons/haruka-32.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

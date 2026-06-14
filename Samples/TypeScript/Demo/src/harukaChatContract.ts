@@ -4,7 +4,9 @@ export type HarukaSoulProfileId = 'classic' | 'scholar' | 'sunset' | 'cyberpunk'
 
 export type HarukaEngineMode = 'direct' | 'opensouls-bridge';
 
-export type HarukaChatSource = 'chat-ui' | 'pumpfun-relay';
+export type HarukaSupportedGame = 'kintara';
+
+export type HarukaChatSource = 'chat-ui' | 'pumpfun-relay' | 'gaming-companion';
 
 export interface HarukaHistoryItem {
   role: 'user' | 'assistant';
@@ -21,9 +23,25 @@ export interface OpenSoulsBridgeConfig {
   baseUrl?: string;
 }
 
-export type HarukaClientType = 'web-app' | 'embed-widget' | 'api-client';
+export type HarukaClientType = 'web-app' | 'embed-widget' | 'api-client' | 'browser-extension';
 export type HarukaHolderTier = 0 | 1 | 2 | 3;
 export type HarukaTierMemoryDepth = 'light' | 'warm' | 'deep' | 'legendary';
+
+export interface HarukaGameContext {
+  game: HarukaSupportedGame;
+  realm?: string;
+  activity?: string;
+  health?: string;
+  danger?: string;
+  notableObjects?: string[];
+  questUi?: string[];
+  visionSummary?: string;
+  pageHint?: string;
+  host?: string;
+  analysisSource?: 'vision' | 'page-fallback' | 'manual';
+  shouldInterrupt?: boolean;
+  capturedAt?: string;
+}
 
 export interface HarukaPortfolioContext {
   walletAddress: string;
@@ -60,6 +78,8 @@ export interface HarukaChatRequest {
   apiKey?: string;
   userId?: string;
   sessionId?: string;
+  selectedGame?: HarukaSupportedGame;
+  gameContext?: HarukaGameContext;
   portfolioContext?: HarukaPortfolioContext;
 }
 

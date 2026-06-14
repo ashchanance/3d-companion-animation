@@ -86,10 +86,52 @@ The user connected a Solana wallet through HARUKA Utility before entering chat.
 `.trim();
 }
 
+function buildGameContextSection(request: HarukaChatRequest): string {
+  if (request.selectedGame !== 'kintara' || !request.gameContext) {
+    return '';
+  }
+
+  const context = request.gameContext;
+  const notableObjects =
+    Array.isArray(context.notableObjects) && context.notableObjects.length > 0
+      ? context.notableObjects.join(', ')
+      : 'Not visible';
+  const questUi =
+    Array.isArray(context.questUi) && context.questUi.length > 0 ? context.questUi.join(', ') : 'Not visible';
+
+  return `
+## Gaming Companion Mode
+Haruka is acting as a live gaming companion for Kintara, a browser-based isometric MMO on Solana.
+
+## Current Kintara Context
+- Realm: ${context.realm || 'Unknown'}
+- Activity: ${context.activity || 'Unknown'}
+- Health: ${context.health || 'Unknown'}
+- Danger: ${context.danger || 'Unknown'}
+- Nearby notable objects: ${notableObjects}
+- Visible quest or UI elements: ${questUi}
+- Vision summary: ${context.visionSummary || 'Not available'}
+- Page hint: ${context.pageHint || 'Not available'}
+- Analysis source: ${context.analysisSource || 'manual'}
+- Interrupt priority: ${context.shouldInterrupt ? 'High' : 'Normal'}
+
+## Kintara Companion Rules
+- Use Kintara terms naturally and correctly.
+- Speak like a knowledgeable friend watching over the player's shoulder.
+- Keep spontaneous reactions to one short sentence by default.
+- Use at most two short sentences when the moment is urgent or safety-critical.
+- Prioritize danger, low health, Wilderness risk, and tombstone recovery over flavor commentary.
+- If visibility is incomplete, stay modest and avoid pretending certainty.
+- Do not dump tutorials unless the player is clearly in danger or looks stuck.
+- If the context is calm, sound light and helpful rather than intense.
+`.trim();
+}
+
 export function composeHarukaSystemPrompt(request: HarukaChatRequest): string {
   const profile = getHarukaSoulProfile(request.profileId);
   const recentScene = summarizeRecentHistory(request.history);
   const portfolioContext = buildPortfolioContextSection(request);
+  const gameContext = buildGameContextSection(request);
   const liveMode =
     request.source === 'pumpfun-relay'
       ? `## Live Chat Mode
@@ -127,6 +169,8 @@ ${profile.conversationGoal}
 ${recentScene}
 
 ${portfolioContext}
+
+${gameContext}
 
 ${liveMode}
 
