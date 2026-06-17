@@ -486,7 +486,8 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
           docs: path.resolve(__dirname, 'docs.html'),
           features: path.resolve(__dirname, 'features.html'),
           x402: path.resolve(__dirname, 'x402.html'),
-          utility: path.resolve(__dirname, 'utility.html')
+          utility: path.resolve(__dirname, 'utility.html'),
+          game: path.resolve(__dirname, 'game/index.html')
         }
       }
     }

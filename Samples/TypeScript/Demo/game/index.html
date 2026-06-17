@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HARUKA - Haruka's Realm Coming Soon</title>
+  
+  <meta name="description" content="Haruka's Realm - An idle adventure where your agents farm and fish for you. Experience pixel-art simulation, customizable homes, and holder-tiered slots.">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', sans-serif;
+      --font-serif: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      /* Theme colors matching other pages */
+      --bg-landing: #FBF5E6;
+      --cardigan-cream: #FBF8EA;
+      --cardigan-cream-warm: #F5EDCA;
+      --text-main: #1E2D1F;
+      --text-muted: #4A5E4B;
+      
+      --primary-50: #FDF8EC;
+      --primary-100: #FAF0D0;
+      --primary-200: #F2D98A;
+      --primary-300: #E8C05A;
+      --primary-400: #D9A434;
+      --primary-500: #C8922A;
+      --primary-600: #B07A1E;
+      --primary-700: #8E6016;
+      
+      --slate-50: #f7f9f4;
+      --slate-100: #edf2e9;
+      --slate-200: #dce7d8;
+      --slate-300: #c4d6be;
+      --slate-400: #9bb89a;
+      --slate-500: #72977A;
+      --slate-600: #54755C;
+      --slate-700: #3D5A3E;
+      --slate-800: #2A3F2B;
+      --slate-900: #1A271B;
+
+      --transition-bezier: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-landing);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100dvh;
+      overflow-x: clip;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    .landing-nav {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: rgba(250, 246, 240, 0.82);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(30, 42, 58, 0.08);
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 42, 58, 0.02), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+      box-sizing: border-box;
+      padding: 0 40px;
+    }
+
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-700);
+      background: var(--primary-100);
+      padding: 3px 12px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+    }
+
+    .nav-links a {
+      color: var(--slate-600);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: color 0.25s var(--transition-bezier);
+    }
+
+    .nav-links a:hover {
+      color: var(--primary-600);
+    }
+
+    .nav-links a.active {
+      color: var(--primary-600);
+      font-weight: 700;
+      position: relative;
+    }
+
+    .nav-links a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 100%;
+      height: 2.5px;
+      background: var(--primary-600);
+      border-radius: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .icon-link {
+      display: inline-flex;
+      width: 40px;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid var(--slate-200);
+      background: #ffffff;
+      color: var(--slate-700);
+      box-shadow: 0 2px 8px rgba(30, 42, 58, 0.04);
+      transition: all 0.25s var(--transition-bezier);
+      text-decoration: none;
+    }
+
+    .icon-link:hover {
+      border-color: var(--slate-300);
+      transform: translateY(-2px);
+      background: var(--slate-50);
+      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.08);
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: #ffffff;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(53, 92, 145, 0.2);
+      transition: all 0.25s var(--transition-bezier);
+      text-decoration: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-500);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(53, 92, 145, 0.3);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      padding: 120px 40px 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .tilemap-bg-layer {
+      position: absolute;
+      inset: 0;
+      background-image: url('/game/tilemaps/spring_farm_tilemap.png');
+      background-size: 128px;
+      background-repeat: repeat;
+      image-rendering: pixelated;
+      opacity: 0.75;
+      z-index: 1;
+    }
+
+    .hero-gradient-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(251, 245, 230, 0.1) 0%, var(--bg-landing) 95%);
+      z-index: 2;
+    }
+
+    .hero-container {
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      background: rgba(251, 248, 234, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 48px 32px;
+      border-radius: 36px;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 
+        0 24px 60px rgba(30, 42, 58, 0.05), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .coming-soon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: #7f5539;
+      background: #faf2ec;
+      border: 1px solid rgba(127, 85, 57, 0.25);
+      padding: 6px 16px;
+      border-radius: 20px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px rgba(127, 85, 57, 0.05);
+      animation: pulseBadge 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseBadge {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.03); opacity: 0.9; }
+    }
+
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -3px;
+      line-height: 1.0;
+      text-shadow: 0 10px 30px rgba(30, 42, 58, 0.05);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 600px;
+      text-balance: balance;
+    }
+
+    /* Content Wrapper */
+    .content-wrapper {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 40px 120px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 80px;
+    }
+
+    /* Bento Section Header */
+    .section-header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-600);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 12px;
+      background: var(--primary-100);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1px;
+    }
+
+    /* Character Preview Block */
+    .char-preview-card {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+      border-radius: 36px;
+      padding: 40px;
+      box-shadow: 0 20px 48px rgba(30, 42, 58, 0.04);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .char-visualizer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      background: var(--cardigan-cream-warm);
+      border: 1px solid rgba(30, 42, 58, 0.08);
+      border-radius: 24px;
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      min-height: 380px;
+      justify-content: center;
+    }
+
+    .char-visualizer::before {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(235, 208, 185, 0.45) 0%, rgba(250, 245, 238, 0) 70%);
+      filter: blur(20px);
+      z-index: 1;
+    }
+
+    .main-portrait {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      object-fit: cover;
+      box-shadow: 0 10px 24px rgba(30, 42, 58, 0.08);
+      z-index: 2;
+      transition: transform 0.4s var(--transition-bezier);
+    }
+
+    .sprite-box {
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Spritesheet animation cycle using CSS Steps */
+    .pixel-sprite {
+      width: 48px;
+      height: 48px;
+      background-image: url('/game/characters/main_character/walk_and_idle.png');
+      background-repeat: no-repeat;
+      image-rendering: pixelated;
+      transform: scale(3.5);
+      margin: 36px 0;
+      transition: background-position 0.2s steps(1);
+      animation: spriteLoop 0.8s steps(4) infinite;
+    }
+
+    /* walk/idle animation loop - assuming 4 frames horizontally */
+    @keyframes spriteLoop {
+      from { background-position-x: 0px; }
+      to { background-position-x: -192px; } /* 48px * 4 = 192px */
+    }
+
+    .char-avatar-details {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .avatar-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .avatar-btn {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(30, 42, 58, 0.08);
+      border-radius: 20px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s var(--transition-bezier);
+    }
+
+    .avatar-btn:hover {
+      background: #ffffff;
+      border-color: var(--primary-300);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(30, 42, 58, 0.03);
+    }
+
+    .avatar-btn.active {
+      background: #ffffff;
+      border-color: var(--primary-500);
+      box-shadow: 0 10px 25px rgba(200, 146, 42, 0.12);
+    }
+
+    .avatar-btn img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(30, 42, 58, 0.05);
+    }
+
+    .avatar-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .avatar-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    /* World Preview Strip */
+    .world-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .preview-card {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+      border-radius: 28px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 0.35s var(--transition-bezier);
+      box-shadow: 0 10px 24px rgba(30, 42, 58, 0.01);
+    }
+
+    .preview-card:hover {
+      background: #ffffff;
+      border-color: var(--primary-300);
+      transform: translateY(-6px);
+      box-shadow: 
+        0 24px 48px rgba(127, 85, 57, 0.06), 
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .preview-image-box {
+      width: 100%;
+      height: 180px;
+      background: var(--cardigan-cream);
+      border: 1px solid rgba(30, 42, 58, 0.06);
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 16px;
+    }
+
+    .preview-image-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      transition: transform 0.4s var(--transition-bezier);
+    }
+
+    .preview-card:hover .preview-image-box img {
+      transform: scale(1.15);
+    }
+
+    .preview-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-600);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .preview-caption {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: -8px;
+    }
+
+    .preview-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* Tier System table */
+    .tier-card {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(30, 42, 58, 0.08);
+      border-radius: 32px;
+      padding: 32px;
+      box-shadow: 0 15px 40px rgba(30, 42, 58, 0.02);
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(30, 42, 58, 0.06);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      padding: 18px 24px;
+      text-align: left;
+      border-bottom: 1px solid rgba(30, 42, 58, 0.06);
+    }
+
+    th {
+      background: rgba(245, 237, 202, 0.5);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    td {
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tr.locked {
+      color: rgba(30, 42, 58, 0.45);
+      background: rgba(30, 42, 58, 0.01);
+    }
+
+    tr.locked td {
+      color: rgba(30, 42, 58, 0.5);
+    }
+
+    .tier-badge-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .lock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(30, 42, 58, 0.08);
+      color: var(--text-muted);
+    }
+
+    /* Footer CTA */
+    .footer-cta {
+      background: linear-gradient(135deg, var(--cardigan-cream-warm), rgba(250, 246, 240, 0.5));
+      border: 1px solid rgba(127, 85, 57, 0.15);
+      border-radius: 36px;
+      padding: 56px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      box-shadow: 0 30px 60px rgba(30, 42, 58, 0.04);
+      margin-top: 40px;
+    }
+
+    .cta-title {
+      font-family: var(--font-serif);
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: var(--text-main);
+    }
+
+    .cta-text {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 540px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 42, 58, 0.1);
+      background: rgba(250, 246, 240, 0.92);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.25s var(--transition-bezier);
+      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.02);
+    }
+
+    .btn-cta-secondary:hover {
+      transform: translateY(-2px);
+      border-color: rgba(30, 42, 58, 0.16);
+      background: #ffffff;
+      box-shadow: 0 8px 20px rgba(30, 42, 58, 0.05);
+    }
+
+    /* Global Footer */
+    .game-footer {
+      margin-top: auto;
+      padding: 40px 0;
+      border-top: 1px solid rgba(30, 42, 58, 0.04);
+      font-size: 13px;
+      color: var(--slate-500);
+      font-family: var(--font-mono);
+      background: rgba(250, 246, 240, 0.4);
+    }
+
+    .footer-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .game-footer a {
+      color: var(--slate-600);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .game-footer a:hover {
+      color: var(--primary-600);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .char-preview-card {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .world-preview-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .landing-nav {
+        padding: 0 20px;
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero-section {
+        padding: 80px 20px 60px;
+      }
+      .content-wrapper {
+        padding: 0 20px 80px;
+        gap: 60px;
+      }
+      .char-preview-card {
+        padding: 24px;
+        border-radius: 28px;
+      }
+      .world-preview-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .footer-cta {
+        padding: 36px 20px;
+        border-radius: 28px;
+      }
+      .footer-container {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="landing-nav">
+    <div class="nav-container">
+      <a href="../index.html" class="nav-brand">
+        <span class="brand-title">HARUKA</span>
+        <span class="brand-badge">はるか</span>
+      </a>
+      <div class="nav-links">
+        <a href="../about-us.html">About Us</a>
+        <a href="../features.html">Features</a>
+        <a href="../lore.html">Lore</a>
+        <a href="../roadmap.html">Roadmap</a>
+        <a href="../docs.html">Docs</a>
+        <a href="../x402.html">x402</a>
+        <a href="../utility.html">Utility</a>
+        <a href="index.html" class="active">Game</a>
+      </div>
+      <div class="nav-actions">
+        <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
+          </svg>
+        </a>
+        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
+          </svg>
+        </a>
+        <a href="../index.html?mode=chat" class="btn-primary">Start Chat</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="tilemap-bg-layer"></div>
+    <div class="hero-gradient-overlay"></div>
+    <div class="hero-container">
+      <div class="coming-soon-badge">🔒 Coming Soon</div>
+      <h1 class="hero-title">Haruka's Realm</h1>
+      <p class="hero-subtitle">An idle adventure where your agents farm and fish for you — even while you're away.</p>
+    </div>
+  </header>
+
+  <!-- Content Wrapper -->
+  <div class="content-wrapper">
+    
+    <!-- Character Preview Section -->
+    <section>
+      <div class="section-header">
+        <span class="section-tag">Avatars</span>
+        <h2 class="section-title">Meet Your Agents</h2>
+      </div>
+      <div class="char-preview-card">
+        <div class="char-visualizer">
+          <img id="char-portrait-display" class="main-portrait" src="/game/characters/main_character/portrait_female.png" alt="Selected Character Portrait">
+          <div class="sprite-box">
+            <div id="char-sprite-display" class="pixel-sprite"></div>
+          </div>
+        </div>
+        <div class="char-avatar-details">
+          <p class="preview-text" style="font-size: 16px; margin-bottom: 8px;">Select an avatar to preview your idle farming companion. Each agent has unique idle behavior and is fully animated in-game.</p>
+          <div class="avatar-selector-grid">
+            <button class="avatar-btn active" onclick="selectAvatar('female')">
+              <img src="/game/characters/main_character/portrait_female.png" alt="Female Avatar">
+              <span class="avatar-name">Haruka (Female)</span>
+              <span class="avatar-desc">Farms efficiently and loves planting spring flowers.</span>
+            </button>
+            <button class="avatar-btn" onclick="selectAvatar('male')">
+              <img src="/game/characters/main_character/portrait_male.png" alt="Male Avatar">
+              <span class="avatar-name">Haru (Male)</span>
+              <span class="avatar-desc">Expert fisher, handles harvesting and tree cutting.</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- World Preview Section -->
+    <section>
+      <div class="section-header">
+        <span class="section-tag">World Preview</span>
+        <h2 class="section-title">Explore the Tiny Farm</h2>
+      </div>
+      <div class="world-preview-grid">
+        <div class="preview-card">
+          <div class="preview-image-box">
+            <img src="/game/objects_items/farm_objects_free.png" alt="Farm objects">
+          </div>
+          <span class="preview-label">Building</span>
+          <h3 class="preview-caption">Build your farm</h3>
+          <p class="preview-text">Construct fences, cabins, and storehouses to unlock space and shelter your farming agents.</p>
+        </div>
+        <div class="preview-card">
+          <div class="preview-image-box">
+            <img src="/game/objects_items/plants_free.png" alt="Plants and crops">
+          </div>
+          <span class="preview-label">Agriculture</span>
+          <h3 class="preview-caption">Grow and harvest</h3>
+          <p class="preview-text">Sow seeds, water crop tiles, and watch your fields sprout with diverse plants under seasonal sunlight.</p>
+        </div>
+        <div class="preview-card">
+          <div class="preview-image-box">
+            <img src="/game/objects_items/items_free.png" alt="Harvest items">
+          </div>
+          <span class="preview-label">Inventory</span>
+          <h3 class="preview-caption">Collect items</h3>
+          <p class="preview-text">Gather wood, stone, crops, and fish to trade for $HARUKA or upgrade your farm's productivity.</p>
+        </div>
+        <div class="preview-card">
+          <div class="preview-image-box">
+            <img src="/game/objects_items/furniture_free.png" alt="Furniture and interior">
+          </div>
+          <span class="preview-label">Housing</span>
+          <h3 class="preview-caption">Decorate your home</h3>
+          <p class="preview-text">Furnish cabins with carpets, chairs, desks, and bookshelves to create the ultimate cozy indoor lounge.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tier System Preview -->
+    <section>
+      <div class="section-header">
+        <span class="section-tag">Tier System</span>
+        <h2 class="section-title">Agent Access Tier List</h2>
+      </div>
+      <div class="tier-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Hold $HARUKA Requirement</th>
+                <th>Access &amp; Utility</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="tier-badge-cell">🌱 Player</td>
+                <td><strong>1,000 $HARUKA</strong></td>
+                <td>1 agent slot. Access basic idle farming.</td>
+              </tr>
+              <tr>
+                <td class="tier-badge-cell">⚔️ Commander</td>
+                <td><strong>100,000 $HARUKA</strong></td>
+                <td>2 agent slots. Automate watering and crop sowing.</td>
+              </tr>
+              <tr class="locked">
+                <td class="tier-badge-cell">👑 Warlord <span class="lock-badge">🔒 Locked</span></td>
+                <td><strong>1,000,000 $HARUKA</strong></td>
+                <td>3 agent slots. Unlock fishing docks and home interior design.</td>
+              </tr>
+              <tr class="locked">
+                <td class="tier-badge-cell">🐉 Shogun <span class="lock-badge">🔒 Locked</span></td>
+                <td><strong>5,000,000 $HARUKA</strong></td>
+                <td>Unlimited agent slots. Full automated domain management.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="footer-cta">
+      <h2 class="cta-title">Start Holding $HARUKA Today</h2>
+      <p class="cta-text">Game is currently in active development. Lock in your token requirements to be immediately ready when the realm launches.</p>
+      <div class="cta-buttons">
+        <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank" class="btn-primary">Buy $HARUKA on Pump.fun</a>
+        <a href="https://t.me/meetharuka" target="_blank" class="btn-cta-secondary">Join Community Telegram</a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="game-footer">
+    <div class="footer-container">
+      <div>&copy; 2026 HARUKA. All rights reserved.</div>
+      <div>
+        <a href="../index.html">Main Companion</a> &bull; 
+        <a href="https://x.com/meetharuka" target="_blank">Twitter/X</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Avatar Switcher Script -->
+  <script>
+    function selectAvatar(gender) {
+      // Update buttons active class
+      const buttons = document.querySelectorAll('.avatar-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      
+      const targetBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(gender));
+      if (targetBtn) {
+        targetBtn.classList.add('active');
+      }
+
+      // Update portrait and animated sprite parameters
+      const portrait = document.getElementById('char-portrait-display');
+      const sprite = document.getElementById('char-sprite-display');
+
+      if (gender === 'female') {
+        portrait.src = '/game/characters/main_character/portrait_female.png';
+        // Reset spritesheet row to female row (assuming y-offset is 0 or matches row 1)
+        sprite.style.backgroundPositionY = '0px';
+      } else {
+        portrait.src = '/game/characters/main_character/portrait_male.png';
+        // Set spritesheet row to male row (assuming y-offset is at row 2, e.g. -48px or -96px depending on layout)
+        sprite.style.backgroundPositionY = '-48px';
+      }
+    }
+  </script>
+</body>
+</html>
