@@ -1585,10 +1585,242 @@
     #dialogueBox.waiting-for-input::after {
       display: none;
     }
+
+    /* Game Navbar Styles */
+    .game-navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(13, 17, 23, 0.85);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 18px;
+      margin-bottom: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 20px var(--panel-glow);
+    }
+
+    .game-navbar .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .game-navbar .brand-logo {
+      font-size: 20px;
+      animation: logoFloat 3s infinite ease-in-out;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .game-navbar .brand-name {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: 0.05em;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .game-navbar .nav-menu {
+      display: flex;
+      gap: 20px;
+    }
+
+    .game-navbar .nav-menu-link {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.2s ease;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .game-navbar .nav-menu-link:hover,
+    .game-navbar .nav-menu-link.active {
+      color: var(--gold);
+      text-shadow: 0 0 8px var(--gold-glowing);
+    }
+
+    .game-navbar .nav-menu-link.active {
+      background: rgba(255, 202, 40, 0.08);
+      border: 1px solid rgba(255, 202, 40, 0.15);
+    }
+
+    .game-navbar .nav-wallet {
+      position: relative;
+    }
+
+    .game-navbar .wallet-connect-btn {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #000;
+      background: var(--gold);
+      border: 1.5px solid var(--gold);
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .game-navbar .wallet-connect-btn:hover {
+      box-shadow: 0 0 12px var(--gold-glowing);
+      transform: translateY(-2px);
+      background: #ffd54f;
+      border-color: #ffd54f;
+    }
+
+    .game-navbar .wallet-connect-btn:active {
+      transform: translateY(0);
+    }
+
+    .game-navbar .wallet-info-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 220px;
+      background: rgba(10, 14, 22, 0.95);
+      border: 1.5px solid var(--gold);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: dropFadeIn 0.2s ease-out;
+    }
+
+    @keyframes dropFadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .game-navbar #walletDropdownAddress {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      background: rgba(0,0,0,0.3);
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.06);
+      word-break: break-all;
+    }
+
+    .game-navbar #walletDropdownTier {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 750;
+      color: #000;
+      background: var(--gold);
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-align: center;
+      text-transform: uppercase;
+      box-shadow: 0 0 6px var(--gold-glowing);
+    }
+    
+    .game-navbar #walletDropdownTier.tier-0 { background: #8a96a3; color: #fff; box-shadow: none; }
+    .game-navbar #walletDropdownTier.tier-1 { background: #81c784; color: #000; box-shadow: 0 0 6px rgba(129, 199, 132, 0.4); }
+    .game-navbar #walletDropdownTier.tier-2 { background: #4fc3f7; color: #000; box-shadow: 0 0 6px rgba(79, 195, 247, 0.4); }
+    .game-navbar #walletDropdownTier.tier-3 { background: var(--gold); color: #000; box-shadow: 0 0 8px var(--gold-glowing); }
+
+    .game-navbar .wallet-disconnect-btn {
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 11px;
+      color: #ff7875;
+      background: rgba(255, 77, 79, 0.08);
+      border: 1px solid rgba(255, 77, 79, 0.2);
+      border-radius: 8px;
+      padding: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .game-navbar .wallet-disconnect-btn:hover {
+      background: #ff4d4f;
+      color: #fff;
+      border-color: #ff4d4f;
+    }
+
+    /* Wallet Select Modal Grid */
+    .wallet-options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .wallet-options-grid .rpg-menu-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px;
+    }
+    
+    .wallet-options-grid .rpg-menu-btn .btn-icon {
+      font-size: 24px;
+    }
+
+    /* Multiplier indicator in player HUD */
+    .rpg-multiplier-badge {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: #fff;
+      background: #10b981;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+    }
   </style>
 </head>
 <body>
   <main class="game-frame">
+    <!-- Game Navbar -->
+    <header class="game-navbar">
+      <div class="nav-brand">
+        <span class="brand-logo">🌾</span>
+        <span class="brand-name">HARUKA'S FARM</span>
+      </div>
+      <div class="nav-menu">
+        <a href="/index.html" class="nav-menu-link">Home</a>
+        <a href="/utility.html" class="nav-menu-link">Portfolio</a>
+        <a href="/game/index.html" class="nav-menu-link active">Game</a>
+      </div>
+      <div class="nav-wallet">
+        <button id="btnConnectWallet" class="wallet-connect-btn" type="button">
+          <span class="btn-icon">🔌</span>
+          <span id="walletBtnText">Connect Wallet</span>
+        </button>
+        <div id="walletInfoDropdown" class="wallet-info-dropdown" style="display: none;">
+          <span id="walletDropdownAddress">Abc...xyz</span>
+          <span id="walletDropdownTier" class="wallet-tier-pill">Tier 0 - Free</span>
+          <button id="btnDisconnectWallet" class="wallet-disconnect-btn" type="button">Disconnect</button>
+        </div>
+      </div>
+    </header>
     <section class="game-layout">
       <div class="canvas-shell">
         <!-- Overlay for arcade screen glass shine / scanlines -->
@@ -1632,6 +1864,25 @@
 
           <div class="menu-footer">
             v1.0.0 &copy; 2026 HARUKA'S REALM
+          </div>
+        </div>
+
+        <!-- Wallet Selection Modal -->
+        <div id="walletModal" class="rpg-menu-modal" style="display: none;">
+          <div class="rpg-modal-content">
+            <h3 class="rpg-modal-title">Select Wallet</h3>
+            <div class="rpg-modal-body">
+              <p>Connect your Solana wallet to unlock holder perks inside Haruka Farm!</p>
+              <div class="wallet-options-grid">
+                <button id="btnConnectPhantom" class="rpg-menu-btn rpg-menu-btn--primary" type="button">
+                  <span class="btn-icon">👻</span> Phantom
+                </button>
+                <button id="btnConnectSolflare" class="rpg-menu-btn rpg-menu-btn--battle" type="button">
+                  <span class="btn-icon">☀️</span> Solflare
+                </button>
+              </div>
+            </div>
+            <button id="btnCloseWalletModal" class="rpg-menu-btn" type="button">Cancel</button>
           </div>
         </div>
 
@@ -1686,6 +1937,14 @@
                 <div class="record-item">
                   <span class="record-label">Planted Plots</span>
                   <span id="recordPlanted" class="record-value">0 / 12</span>
+                </div>
+                <div class="record-item" id="recordWalletRow">
+                  <span class="record-label">Connected Wallet</span>
+                  <span id="recordWallet" class="record-value">Not Connected</span>
+                </div>
+                <div class="record-item" id="recordMultiplierRow">
+                  <span class="record-label">Active Multiplier</span>
+                  <span id="recordMultiplier" class="record-value">1.0x Gold</span>
                 </div>
               </div>
             </div>
@@ -1956,6 +2215,7 @@
       function updateProfileAndRecords() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
+          const walletRaw = localStorage.getItem('haruka.portfolio.context.v1');
           if (raw) {
             const state = JSON.parse(raw);
             if (state) {
@@ -1966,7 +2226,14 @@
 
               // Show profile card
               menuProfileCard.style.display = 'flex';
-              menuProfileStats.textContent = `Lv ${level} | 🪙 ${gold}g`;
+              let walletSuffix = '';
+              if (walletRaw) {
+                try {
+                  const w = JSON.parse(walletRaw);
+                  walletSuffix = ` | 🔌 ${w.shortAddress}`;
+                } catch (_) {}
+              }
+              menuProfileStats.textContent = `Lv ${level} | 🪙 ${gold}g${walletSuffix}`;
               return;
             }
           }
@@ -2044,6 +2311,7 @@
         let gold = 100;
         let harvests = 0;
         let plantedPlots = 0;
+        let xp = 0;
 
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
@@ -2070,6 +2338,27 @@
         recordLevel.textContent = `Lv ${level}`;
         recordXp.textContent = `${xp} XP (${harvests} harvests)`;
         recordPlanted.textContent = `${plantedPlots} / 12`;
+
+        // Update wallet records
+        const recordWallet = document.getElementById('recordWallet');
+        const recordMultiplier = document.getElementById('recordMultiplier');
+        if (recordWallet && recordMultiplier) {
+          const walletRaw = localStorage.getItem('haruka.portfolio.context.v1');
+          if (walletRaw) {
+            try {
+              const w = JSON.parse(walletRaw);
+              recordWallet.textContent = `${w.shortAddress} (${w.tierLabel})`;
+              const multipliers = { 1: '1.1x Gold', 2: '1.25x Gold', 3: '1.5x Gold' };
+              recordMultiplier.textContent = multipliers[w.tier] || '1.0x Gold';
+            } catch (err) {
+              recordWallet.textContent = 'Error';
+              recordMultiplier.textContent = '1.0x Gold';
+            }
+          } else {
+            recordWallet.textContent = 'Not Connected';
+            recordMultiplier.textContent = '1.0x Gold';
+          }
+        }
 
         modalRecords.style.display = 'flex';
         gsap.fromTo(modalRecords.querySelector('.rpg-modal-content'), 

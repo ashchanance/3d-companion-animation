@@ -133,7 +133,7 @@ const offset = {
   y: -650
 }
 
-const farmState = loadFarmState()
+let farmState = loadFarmState()
 
 collisionsMap.forEach((row, i) => {
   row.forEach((symbol, j) => {
@@ -656,12 +656,40 @@ function syncFarmInteractionZone() {
   }
 }
 
-function loadFarmState() {
+function loadFarmState(customWalletAddress) {
   const baseState = createBaseFarmState()
+  let key = 'haruka-realm-canvas-farm-v1'
+
+  if (customWalletAddress) {
+    key = `haruka-realm-canvas-farm-v1-${customWalletAddress}`
+  } else {
+    try {
+      const rawContext = window.localStorage.getItem('haruka.portfolio.context.v1')
+      if (rawContext) {
+        const context = JSON.parse(rawContext)
+        if (context && context.walletAddress) {
+          key = `haruka-realm-canvas-farm-v1-${context.walletAddress}`
+        }
+      }
+    } catch (_) {}
+  }
 
   try {
-    const raw = window.localStorage.getItem(FARM_STORAGE_KEY)
+    const raw = window.localStorage.getItem(key)
     if (!raw) {
+      // If we connected a wallet, but it has no saved progress yet,
+      // copy the guest progress (from 'haruka-realm-canvas-farm-v1') to this wallet
+      // so the player doesn't lose their work!
+      if (key !== 'haruka-realm-canvas-farm-v1') {
+        const guestRaw = window.localStorage.getItem('haruka-realm-canvas-farm-v1')
+        if (guestRaw) {
+          const parsed = JSON.parse(guestRaw)
+          const normalized = normalizeFarmState(parsed, baseState)
+          // Save it immediately for this wallet
+          window.localStorage.setItem(key, JSON.stringify(normalized))
+          return normalized
+        }
+      }
       return baseState
     }
 
@@ -670,6 +698,24 @@ function loadFarmState() {
   } catch (_error) {
     return baseState
   }
+}
+
+function getFarmStorageKey() {
+  try {
+    const raw = window.localStorage.getItem('haruka.portfolio.context.v1')
+    if (raw) {
+      const context = JSON.parse(raw)
+      if (context && context.walletAddress) {
+        return `haruka-realm-canvas-farm-v1-${context.walletAddress}`
+      }
+    }
+  } catch (_) {}
+  return 'haruka-realm-canvas-farm-v1'
+}
+
+function persistFarmState() {
+  const key = getFarmStorageKey()
+  window.localStorage.setItem(key, JSON.stringify(farmState))
 }
 
 function createBaseFarmState() {
@@ -728,9 +774,7 @@ function normalizeFarmState(parsed, fallbackState) {
   }
 }
 
-function persistFarmState() {
-  window.localStorage.setItem(FARM_STORAGE_KEY, JSON.stringify(farmState))
-}
+
 
 function harvestFarmZone(zone) {
   const readyPlotIds = getReadyFarmPlots(zone)
@@ -749,10 +793,11 @@ function harvestFarmZone(zone) {
 
   let totalGold = 0
   let totalXp = 0
+  const multiplier = getGoldMultiplier()
   readyPlotIds.forEach((plotId) => {
     const plotState = farmState.plots[plotId]
     const crop = FARM_CROPS[plotState.cropKey]
-    totalGold += crop.sellPrice
+    totalGold += Math.round(crop.sellPrice * multiplier)
     
     // Add crop XP based on dev-brief:
     const xpTable = {
@@ -778,7 +823,9 @@ function harvestFarmZone(zone) {
   
   const newLvl = getPlayerLevel()
 
-  showFarmStatusMessage(`Harvested ${readyPlotIds.length} plots in ${zone.label} for ${totalGold}g and +${totalXp} XP. The soil is now empty.`)
+  const bonusPercent = Math.round((multiplier - 1) * 100)
+  const bonusText = bonusPercent > 0 ? ` (+${bonusPercent}% Holder Bonus!)` : ''
+  showFarmStatusMessage(`Harvested ${readyPlotIds.length} plots in ${zone.label} for ${totalGold}g${bonusText} and +${totalXp} XP. The soil is now empty.`)
   updateFarmUi(true)
   
   // Trigger XP Gain HUD/floating text animation
@@ -1587,5 +1634,289 @@ if (btnOpenMenu) {
   })
 }
 
+// =======================================================
+// WEB3 WALLET INTEGRATION FOR HARUKA FARM
+// =======================================================
+
+const HARUKA_PORTFOLIO_STORAGE_KEY = 'haruka.portfolio.context.v1'
+const HARUKA_TIER_DEFINITIONS = [
+  { tier: 3, label: 'Forest Guard', minHaruka: 5000000, memoryDepth: 'legendary', perks: ['Everything Tier 2', 'Gaming companion mode', 'Swap inside chat', 'Deeper memory', 'Private community access', 'Name listed on website'] },
+  { tier: 2, label: 'Partner', minHaruka: 2500000, memoryDepth: 'deep', perks: ['Everything Tier 1', 'Custom personality settings', 'Priority response', 'Reduced API rate (developers)', 'Early access new features', 'Exclusive background scenes'] },
+  { tier: 1, label: 'Companion', minHaruka: 500000, memoryDepth: 'warm', perks: ['Everything Tier 0', 'Memory unlocked', 'Faster response', 'Portfolio management'] },
+  { tier: 0, label: 'Free', minHaruka: 0, memoryDepth: 'light', perks: ['Basic chat', 'Voice interaction', 'Live2D expressions', 'EN/JP toggle', 'Standard response speed'] }
+]
+
+function getWalletContext() {
+  try {
+    const raw = window.localStorage.getItem(HARUKA_PORTFOLIO_STORAGE_KEY)
+    if (raw) {
+      return JSON.parse(raw)
+    }
+  } catch (e) {
+    console.error(e)
+  }
+  return null
+}
+
+function getGoldMultiplier() {
+  const wallet = getWalletContext()
+  if (!wallet) return 1.0
+  if (wallet.tier === 3) return 1.5
+  if (wallet.tier === 2) return 1.25
+  if (wallet.tier === 1) return 1.10
+  return 1.0
+}
+
+function detectHarukaTier(harukaBalance) {
+  const normalizedBalance = Number.isFinite(harukaBalance) ? harukaBalance : 0
+  return HARUKA_TIER_DEFINITIONS.find((entry) => normalizedBalance >= entry.minHaruka) || HARUKA_TIER_DEFINITIONS[HARUKA_TIER_DEFINITIONS.length - 1]
+}
+
+function getTierPerksForLevel(tier) {
+  const ascendingDefinitions = [...HARUKA_TIER_DEFINITIONS].sort((a, b) => a.tier - b.tier)
+  return [...new Set(
+    ascendingDefinitions
+      .filter((entry) => entry.tier <= tier)
+      .flatMap((entry) => entry.perks)
+  )]
+}
+
+function formatWalletAddress(address) {
+  const normalized = String(address || '').trim()
+  if (normalized.length <= 10) return normalized
+  return `${normalized.slice(0, 4)}...${normalized.slice(-4)}`
+}
+
+function getProvider(kind) {
+  if (kind === 'phantom') {
+    return window.phantom?.solana || (window.solana?.isPhantom ? window.solana : null) || null
+  }
+  if (kind === 'solflare') {
+    return window.solflare || (window.solana?.isSolflare ? window.solana : null) || null
+  }
+  return null
+}
+
+function updateWalletNavbarUI(context) {
+  const btn = document.getElementById('btnConnectWallet')
+  const dropdown = document.getElementById('walletInfoDropdown')
+  const dropdownAddress = document.getElementById('walletDropdownAddress')
+  const dropdownTier = document.getElementById('walletDropdownTier')
+  const btnText = document.getElementById('walletBtnText')
+
+  if (context) {
+    if (btnText) btnText.textContent = context.shortAddress
+    if (dropdownAddress) dropdownAddress.textContent = context.walletAddress
+    if (dropdownTier) {
+      dropdownTier.textContent = `Tier ${context.tier} - ${context.tierLabel}`
+      dropdownTier.className = `wallet-tier-pill tier-${context.tier}`
+    }
+    updatePlayerHUDMultiplier(context.tier)
+  } else {
+    if (btnText) btnText.textContent = 'Connect Wallet'
+    if (dropdown) dropdown.style.display = 'none'
+    const badge = document.querySelector('.rpg-multiplier-badge')
+    if (badge) badge.remove()
+  }
+}
+
+function updatePlayerHUDMultiplier(tier) {
+  const header = document.querySelector('.rpg-player-header')
+  if (!header) return
+
+  let badge = header.querySelector('.rpg-multiplier-badge')
+  if (tier === 0 || !tier) {
+    if (badge) badge.remove()
+    return
+  }
+
+  if (!badge) {
+    badge = document.createElement('span')
+    badge.className = 'rpg-multiplier-badge'
+    const menuBtn = document.getElementById('btnOpenMenu')
+    if (menuBtn) {
+      header.insertBefore(badge, menuBtn)
+    } else {
+      header.appendChild(badge)
+    }
+  }
+
+  const multiplierText = {
+    1: '1.1x Gold',
+    2: '1.25x Gold',
+    3: '1.5x Gold'
+  }
+  badge.textContent = multiplierText[tier] || ''
+}
+
+async function connectWallet(kind) {
+  const provider = getProvider(kind)
+  if (!provider) {
+    const urls = {
+      phantom: 'https://phantom.app/',
+      solflare: 'https://solflare.com/'
+    }
+    alert(`HARUKA could not find ${kind === 'phantom' ? 'Phantom' : 'Solflare'} in this browser. Opening the install page.`)
+    window.open(urls[kind], '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  try {
+    showFarmStatusMessage('Connecting to wallet...')
+    await provider.connect()
+    const walletAddress = provider.publicKey?.toString()
+    if (!walletAddress) {
+      throw new Error('Wallet did not expose a public key.')
+    }
+
+    showFarmStatusMessage('Loading portfolio snapshot...')
+    const response = await fetch('/api/haruka/portfolio-snapshot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ walletAddress })
+    })
+
+    if (!response.ok) {
+      throw new Error('Server snapshot API error.')
+    }
+
+    const snapshot = await response.json()
+    if (!snapshot.ok) {
+      throw new Error(snapshot.error || 'Snapshot request failed.')
+    }
+
+    const tier = detectHarukaTier(snapshot.haruka)
+    const context = {
+      walletAddress,
+      shortAddress: formatWalletAddress(walletAddress),
+      walletProvider: kind,
+      sol: snapshot.sol || 0,
+      usdc: snapshot.usdc || 0,
+      haruka: snapshot.haruka || 0,
+      harukaPriceUsd: snapshot.harukaPriceUsd,
+      harukaChange24h: snapshot.harukaChange24h,
+      harukaMarketCap: snapshot.harukaMarketCap,
+      harukaVolume24h: snapshot.harukaVolume24h,
+      tier: tier.tier,
+      tierLabel: tier.label,
+      tierMinHaruka: tier.minHaruka,
+      memoryDepth: tier.memoryDepth,
+      unlockedPerks: getTierPerksForLevel(tier.tier),
+      capturedAt: snapshot.capturedAt,
+      source: 'utility-page'
+    }
+
+    window.localStorage.setItem(HARUKA_PORTFOLIO_STORAGE_KEY, JSON.stringify(context))
+    farmState = loadFarmState(walletAddress)
+    updateWalletNavbarUI(context)
+    showFarmStatusMessage(`Connected! active tier: ${tier.label}`)
+    
+    if (window.updateProfileAndRecords) {
+      window.updateProfileAndRecords()
+    }
+    updateFarmUi(true)
+  } catch (error) {
+    console.error(error)
+    showFarmStatusMessage('Wallet connection failed.')
+    alert(`Wallet connection failed: ${error.message || error}`)
+  }
+}
+
+async function disconnectWallet() {
+  const context = getWalletContext()
+  if (context) {
+    const provider = getProvider(context.walletProvider)
+    if (provider && typeof provider.disconnect === 'function') {
+      try {
+        await provider.disconnect()
+      } catch (err) {
+        console.warn('Provider disconnect failed:', err)
+      }
+    }
+  }
+
+  window.localStorage.removeItem(HARUKA_PORTFOLIO_STORAGE_KEY)
+  farmState = loadFarmState()
+  updateWalletNavbarUI(null)
+  showFarmStatusMessage('Wallet disconnected.')
+  
+  if (window.updateProfileAndRecords) {
+    window.updateProfileAndRecords()
+  }
+  updateFarmUi(true)
+}
+
+function initializeWallet() {
+  // Bind UI buttons
+  const btnConnect = document.getElementById('btnConnectWallet')
+  const dropdown = document.getElementById('walletInfoDropdown')
+  const modal = document.getElementById('walletModal')
+  
+  const btnPhantom = document.getElementById('btnConnectPhantom')
+  const btnSolflare = document.getElementById('btnConnectSolflare')
+  const btnCloseModal = document.getElementById('btnCloseWalletModal')
+  const btnDisconnect = document.getElementById('btnDisconnectWallet')
+
+  if (btnConnect) {
+    btnConnect.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const context = getWalletContext()
+      if (context) {
+        // Toggle dropdown
+        if (dropdown) {
+          dropdown.style.display = dropdown.style.display === 'none' ? 'flex' : 'none'
+        }
+      } else {
+        // Open selection modal
+        if (modal) modal.style.display = 'flex'
+      }
+    })
+  }
+
+  if (btnPhantom) {
+    btnPhantom.addEventListener('click', () => {
+      if (modal) modal.style.display = 'none'
+      connectWallet('phantom')
+    })
+  }
+
+  if (btnSolflare) {
+    btnSolflare.addEventListener('click', () => {
+      if (modal) modal.style.display = 'none'
+      connectWallet('solflare')
+    })
+  }
+
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', () => {
+      if (modal) modal.style.display = 'none'
+    })
+  }
+
+  if (btnDisconnect) {
+    btnDisconnect.addEventListener('click', () => {
+      disconnectWallet()
+    })
+  }
+
+  // Close dropdown on click outside
+  window.addEventListener('click', (e) => {
+    if (dropdown && dropdown.style.display !== 'none') {
+      if (!btnConnect.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none'
+      }
+    }
+  })
+
+  // Load existing wallet state
+  const context = getWalletContext()
+  if (context) {
+    updateWalletNavbarUI(context)
+  }
+}
+
 animate()
 updateFarmUi(true)
+initializeWallet()
