@@ -3,974 +3,2101 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HARUKA - Haruka's Realm Coming Soon</title>
-  
-  <meta name="description" content="Haruka's Realm - An idle adventure where your agents farm and fish for you. Experience pixel-art simulation, customizable homes, and holder-tiered slots.">
-  
-  <!-- Modern Google Fonts -->
+  <title>HARUKA Farm Canvas</title>
+  <meta
+    name="description"
+    content="HARUKA farm canvas game with manual planting, harvest patches, and battle-ready overworld."
+  >
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --font-sans: 'Plus Jakarta Sans', sans-serif;
-      --font-serif: 'Outfit', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-      
-      /* Theme colors matching other pages */
-      --bg-landing: #FBF5E6;
-      --cardigan-cream: #FBF8EA;
-      --cardigan-cream-warm: #F5EDCA;
-      --text-main: #1E2D1F;
-      --text-muted: #4A5E4B;
-      
-      --primary-50: #FDF8EC;
-      --primary-100: #FAF0D0;
-      --primary-200: #F2D98A;
-      --primary-300: #E8C05A;
-      --primary-400: #D9A434;
-      --primary-500: #C8922A;
-      --primary-600: #B07A1E;
-      --primary-700: #8E6016;
-      
-      --slate-50: #f7f9f4;
-      --slate-100: #edf2e9;
-      --slate-200: #dce7d8;
-      --slate-300: #c4d6be;
-      --slate-400: #9bb89a;
-      --slate-500: #72977A;
-      --slate-600: #54755C;
-      --slate-700: #3D5A3E;
-      --slate-800: #2A3F2B;
-      --slate-900: #1A271B;
-
-      --transition-bezier: cubic-bezier(0.16, 1, 0.3, 1);
+      color-scheme: dark;
+      --text: #ffffff;
+      --muted: #8a96a3;
+      --accent: #52c41a; /* neon green */
+      --gold: #ffca28;
+      --gold-glowing: rgba(255, 202, 40, 0.4);
+      --panel-bg: rgba(13, 17, 23, 0.82);
+      --panel-border: rgba(255, 252, 240, 0.15);
+      --panel-glow: rgba(0, 0, 0, 0.6);
+      --danger: #ff4d4f;
+      --mono: "Azeret Mono", monospace;
+      --sans: "Outfit", sans-serif;
     }
 
     * {
       box-sizing: border-box;
+    }
+
+    html,
+    body {
       margin: 0;
-      padding: 0;
+      min-height: 100%;
+      background: #080a0f; /* Deep dark gaming backdrop */
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden;
     }
 
     body {
-      background-color: var(--bg-landing);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      min-height: 100dvh;
-      overflow-x: clip;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Navbar */
-    .landing-nav {
-      position: sticky;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background: rgba(250, 246, 240, 0.82);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-bottom: 1px solid rgba(30, 42, 58, 0.08);
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 42, 58, 0.02), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
-      box-sizing: border-box;
-      padding: 0 40px;
-    }
-
-    .nav-container {
-      max-width: 1280px;
-      margin: 0 auto;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-    }
-
-    .brand-title {
-      font-family: var(--font-serif);
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      color: var(--text-main);
-    }
-
-    .brand-badge {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-700);
-      background: var(--primary-100);
-      padding: 3px 12px;
-      border-radius: 12px;
-      letter-spacing: 0.5px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 36px;
-    }
-
-    .nav-links a {
-      color: var(--slate-600);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 15px;
-      transition: color 0.25s var(--transition-bezier);
-    }
-
-    .nav-links a:hover {
-      color: var(--primary-600);
-    }
-
-    .nav-links a.active {
-      color: var(--primary-600);
-      font-weight: 700;
-      position: relative;
-    }
-
-    .nav-links a.active::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 0;
-      width: 100%;
-      height: 2.5px;
-      background: var(--primary-600);
-      border-radius: 2px;
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .icon-link {
-      display: inline-flex;
-      width: 40px;
-      height: 40px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      border: 1px solid var(--slate-200);
-      background: #ffffff;
-      color: var(--slate-700);
-      box-shadow: 0 2px 8px rgba(30, 42, 58, 0.04);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
-    }
-
-    .icon-link:hover {
-      border-color: var(--slate-300);
-      transform: translateY(-2px);
-      background: var(--slate-50);
-      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.08);
-    }
-
-    .btn-primary {
-      background: var(--primary-600);
-      color: #ffffff;
-      border: none;
-      border-radius: 30px;
-      padding: 10px 24px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(53, 92, 145, 0.2);
-      transition: all 0.25s var(--transition-bezier);
-      text-decoration: none;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-500);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(53, 92, 145, 0.3);
-    }
-
-    /* Hero Section */
-    .hero-section {
-      position: relative;
-      padding: 120px 40px 100px;
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
-    }
-
-    .tilemap-bg-layer {
-      position: absolute;
-      inset: 0;
-      background-image: url('/game/tilemaps/spring_farm_tilemap.png');
-      background-size: 128px;
-      background-repeat: repeat;
-      image-rendering: pixelated;
-      opacity: 0.75;
-      z-index: 1;
-    }
-
-    .hero-gradient-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(251, 245, 230, 0.1) 0%, var(--bg-landing) 95%);
-      z-index: 2;
-    }
-
-    .hero-container {
-      max-width: 800px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-      z-index: 3;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      background: rgba(251, 248, 234, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      padding: 48px 32px;
-      border-radius: 36px;
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      box-shadow: 
-        0 24px 60px rgba(30, 42, 58, 0.05), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    }
-
-    .coming-soon-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 700;
-      color: #7f5539;
-      background: #faf2ec;
-      border: 1px solid rgba(127, 85, 57, 0.25);
-      padding: 6px 16px;
-      border-radius: 20px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      box-shadow: 0 4px 12px rgba(127, 85, 57, 0.05);
-      animation: pulseBadge 2s infinite ease-in-out;
-    }
-
-    @keyframes pulseBadge {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.03); opacity: 0.9; }
-    }
-
-    .hero-title {
-      font-family: var(--font-serif);
-      font-size: clamp(3.5rem, 8vw, 5.5rem);
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -3px;
-      line-height: 1.0;
-      text-shadow: 0 10px 30px rgba(30, 42, 58, 0.05);
-    }
-
-    .hero-subtitle {
-      font-size: clamp(1rem, 2.5vw, 1.35rem);
-      line-height: 1.7;
-      color: var(--text-muted);
-      max-width: 600px;
-      text-balance: balance;
-    }
-
-    /* Content Wrapper */
-    .content-wrapper {
-      max-width: 1280px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 0 40px 120px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      gap: 80px;
-    }
-
-    /* Bento Section Header */
-    .section-header {
-      margin-bottom: 32px;
-      text-align: center;
-    }
-
-    .section-tag {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-600);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      display: inline-block;
-      margin-bottom: 12px;
-      background: var(--primary-100);
-      padding: 4px 10px;
-      border-radius: 20px;
-    }
-
-    .section-title {
-      font-family: var(--font-serif);
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -1px;
-    }
-
-    /* Character Preview Block */
-    .char-preview-card {
-      background: rgba(255, 255, 255, 0.5);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(30, 42, 58, 0.06);
-      border-radius: 36px;
-      padding: 40px;
-      box-shadow: 0 20px 48px rgba(30, 42, 58, 0.04);
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 40px;
-      align-items: center;
-    }
-
-    .char-visualizer {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      background: var(--cardigan-cream-warm);
-      border: 1px solid rgba(30, 42, 58, 0.08);
-      border-radius: 24px;
-      padding: 32px;
-      position: relative;
-      overflow: hidden;
-      min-height: 380px;
-      justify-content: center;
-    }
-
-    .char-visualizer::before {
-      content: '';
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(235, 208, 185, 0.45) 0%, rgba(250, 245, 238, 0) 70%);
-      filter: blur(20px);
-      z-index: 1;
-    }
-
-    .main-portrait {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      border: 4px solid #ffffff;
-      object-fit: cover;
-      box-shadow: 0 10px 24px rgba(30, 42, 58, 0.08);
-      z-index: 2;
-      transition: transform 0.4s var(--transition-bezier);
-    }
-
-    .sprite-box {
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-
-    /* Spritesheet animation cycle using CSS Steps */
-    .pixel-sprite {
-      width: 48px;
-      height: 48px;
-      background-image: url('/game/characters/main_character/walk_and_idle.png');
-      background-repeat: no-repeat;
-      image-rendering: pixelated;
-      transform: scale(3.5);
-      margin: 36px 0;
-      transition: background-position 0.2s steps(1);
-      animation: spriteLoop 0.8s steps(4) infinite;
-    }
-
-    /* walk/idle animation loop - assuming 4 frames horizontally */
-    @keyframes spriteLoop {
-      from { background-position-x: 0px; }
-      to { background-position-x: -192px; } /* 48px * 4 = 192px */
-    }
-
-    .char-avatar-details {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .avatar-selector-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .avatar-btn {
-      background: rgba(255, 255, 255, 0.65);
-      border: 1px solid rgba(30, 42, 58, 0.08);
-      border-radius: 20px;
-      padding: 16px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.3s var(--transition-bezier);
-    }
-
-    .avatar-btn:hover {
-      background: #ffffff;
-      border-color: var(--primary-300);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(30, 42, 58, 0.03);
-    }
-
-    .avatar-btn.active {
-      background: #ffffff;
-      border-color: var(--primary-500);
-      box-shadow: 0 10px 25px rgba(200, 146, 42, 0.12);
-    }
-
-    .avatar-btn img {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      border: 2px solid #ffffff;
-      object-fit: cover;
-      box-shadow: 0 4px 10px rgba(30, 42, 58, 0.05);
-    }
-
-    .avatar-name {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .avatar-desc {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--text-muted);
-      text-align: center;
-    }
-
-    /* World Preview Strip */
-    .world-preview-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-    }
-
-    .preview-card {
-      background: rgba(255, 255, 255, 0.5);
-      border: 1px solid rgba(30, 42, 58, 0.06);
-      border-radius: 28px;
       padding: 24px;
+    }
+
+    .game-frame {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 8px;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #181d28, #0e111a);
+      border: 3px solid #1c2331;
+      box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.8),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    }
+
+    .game-layout {
+      position: relative;
+    }
+
+    .canvas-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 20px;
+      border: 4px solid #161a23;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+      background: #0a0b0e;
+    }
+
+    #haruka-game-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+
+    /* Screen Overlay CRT effects */
+    .rpg-screen-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 90;
+      background: 
+        radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.25) 100%),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%),
+        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      background-size: 100% 100%, 100% 4px, 6px 100%;
+      opacity: 0.8;
+    }
+
+    /* RPG dialogue overlays (character conversations) */
+    #characterDialogueBox {
+      position: absolute;
+      left: 50%;
+      bottom: 110px; /* Shifted up slightly above the hotbar */
+      transform: translateX(-50%);
+      width: min(650px, calc(100% - 32px));
+      min-height: 76px;
+      background: rgba(10, 14, 22, 0.92);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      font-size: 15px;
+      line-height: 1.4;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      z-index: 200;
+      pointer-events: auto;
+      backdrop-filter: blur(8px);
+    }
+
+    #characterDialogueBox::after {
+      content: "▼";
+      position: absolute;
+      bottom: 6px;
+      right: 14px;
+      color: var(--gold);
+      font-size: 10px;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    #overlappingDiv {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 95;
+    }
+
+    /* Battle interface overlay */
+    #userInterface {
+      position: absolute;
+      inset: 0;
+      display: none;
+      z-index: 150;
+      pointer-events: none;
+    }
+
+    .battle-card {
+      position: absolute;
+      width: 260px;
+      padding: 12px 18px;
+      background: rgba(13, 17, 23, 0.9);
+      border: 2.5px solid var(--gold);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      transition: all 0.3s;
+    }
+
+    .battle-card--enemy {
+      top: 20px;
+      left: 20px;
+      border-left: 5px solid var(--accent);
+      clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+    }
+
+    .battle-card--player {
+      right: 20px;
+      bottom: 124px;
+      border-right: 5px solid var(--danger);
+      clip-path: polygon(8% 0, 100% 0, 100% 100%, 0% 100%);
+    }
+
+    .battle-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      padding-right: 12px;
+    }
+    
+    .battle-card--player .battle-card-header {
+      padding-left: 12px;
+      padding-right: 0;
+    }
+
+    .battle-card__name {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    
+    .battle-card__level {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--gold);
+      opacity: 0.8;
+    }
+
+    .battle-card__track {
+      width: 100%;
+      height: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.9);
+      background: rgba(255, 77, 79, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .battle-card__fill {
+      width: 100%;
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease-out;
+    }
+
+    #enemyHealthBar {
+      background: linear-gradient(90deg, #52c41a 0%, #95de64 100%);
+      box-shadow: 0 0 4px rgba(82, 196, 26, 0.5);
+    }
+
+    #playerHealthBar {
+      background: linear-gradient(90deg, #ff4d4f 0%, #ff7875 100%);
+      box-shadow: 0 0 4px rgba(255, 77, 79, 0.5);
+    }
+    
+    .battle-card__hp-num {
+      display: flex;
+      justify-content: flex-end;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    
+    .battle-card--player .battle-card__hp-num {
+      color: #ff7875;
+    }
+
+    .battle-card--enemy .battle-card__hp-num {
+      color: #95de64;
+    }
+
+    .battle-console {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      min-height: 108px;
+      background: rgba(8, 10, 15, 0.95);
+      border-top: 4px solid var(--gold);
+      pointer-events: auto;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+
+    #dialogueBox {
+      padding: 20px 28px;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    #dialogueBox::after {
+      content: "▼";
+      position: absolute;
+      bottom: 12px;
+      right: 20px;
+      color: var(--gold);
+      font-size: 10px;
+      animation: blink 0.8s infinite;
+    }
+
+    .battle-actions {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      border-left: 4px solid var(--gold);
+      background: rgba(13, 17, 23, 0.5);
+    }
+
+    #attacksBox {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 4px;
+      gap: 4px;
+    }
+
+    #attacksBox button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      padding: 8px 12px;
+      outline: none;
+    }
+
+    #attacksBox button:hover {
+      background: rgba(255, 202, 40, 0.12);
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 10px rgba(255, 202, 40, 0.15);
+      transform: translateY(-1px);
+    }
+
+    #attacksBox button:active {
+      transform: translateY(1px);
+    }
+
+    .battle-type-container {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .battle-type-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    #attackType {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(255,255,255,0.08);
+      padding: 2px 10px;
+      border-radius: 4px;
+      text-shadow: 0 0 4px currentColor;
+    }
+
+    /* Core Farm HUD Overlay Container */
+    .farm-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      pointer-events: none;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* Interactive children must restore pointer events */
+    .farm-overlay > * {
+      pointer-events: auto;
+    }
+
+    /* 1. Top-Left Player Status HUD */
+    .rpg-hud-player {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      box-shadow: 0 8px 20px var(--panel-glow);
+      backdrop-filter: blur(10px);
+      z-index: 102;
+    }
+
+    .rpg-portrait-box {
+      position: relative;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2.5px solid var(--gold);
+      overflow: hidden;
+      background: #111;
+      box-shadow: 0 0 10px var(--gold-glowing);
+    }
+
+    .rpg-portrait {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .rpg-player-stats {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      transition: all 0.35s var(--transition-bezier);
-      box-shadow: 0 10px 24px rgba(30, 42, 58, 0.01);
+      gap: 3px;
     }
 
-    .preview-card:hover {
-      background: #ffffff;
-      border-color: var(--primary-300);
-      transform: translateY(-6px);
-      box-shadow: 
-        0 24px 48px rgba(127, 85, 57, 0.06), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    .rpg-player-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .preview-image-box {
-      width: 100%;
-      height: 180px;
-      background: var(--cardigan-cream);
-      border: 1px solid rgba(30, 42, 58, 0.06);
-      border-radius: 18px;
+    .rpg-player-name {
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .rpg-level-badge {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: #000;
+      background: var(--gold);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .rpg-zone-row {
+      display: flex;
+    }
+
+    .rpg-zone-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: #8bb2ff;
+      background: rgba(0, 110, 255, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 110, 255, 0.3);
+      text-transform: uppercase;
+    }
+
+    .rpg-gold-box {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0,0,0,0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 202, 40, 0.2);
+      width: fit-content;
+    }
+
+    .rpg-gold-coin {
+      font-size: 12px;
+      animation: coinSpin 4s infinite linear;
+    }
+
+    @keyframes coinSpin {
+      0%, 100% { transform: rotateY(0deg); }
+      50% { transform: rotateY(180deg); }
+    }
+
+    .rpg-gold-val {
+      font-family: var(--mono);
+      color: #ffd54f;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .rpg-xp-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      width: fit-content;
+    }
+
+    .rpg-xp-track {
+      width: 60px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .rpg-xp-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00e5ff 0%, #0084ff 100%);
+      box-shadow: 0 0 6px rgba(0, 229, 255, 0.5);
+      transition: width 0.3s ease-out;
+    }
+
+    .rpg-xp-val {
+      font-family: var(--mono);
+      color: #00e5ff;
+      font-weight: 800;
+      font-size: 9px;
+      text-shadow: 0 0 4px rgba(0, 229, 255, 0.3);
+      white-space: nowrap;
+    }
+
+    /* Fullscreen Level Up Celebration Overlay */
+    .level-up-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .level-up-banner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      transform: scale(0.5);
+      opacity: 0;
+    }
+
+    .level-up-glow {
+      font-family: var(--sans);
+      font-size: 56px;
+      font-weight: 900;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-shadow: 
+        0 0 10px rgba(255, 202, 40, 0.8),
+        0 0 30px rgba(255, 202, 40, 0.5),
+        0 4px 0 #d8a000;
+      animation: levelUpTextPulse 1.5s infinite alternate ease-in-out;
+    }
+
+    .level-up-subtitle {
+      font-family: var(--mono);
+      font-size: 20px;
+      color: #fff;
+      margin-top: 10px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 20px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    @keyframes levelUpTextPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.05); filter: brightness(1.25); }
+    }
+
+    /* Floating Sparkles/Particles */
+    .rpg-particle {
+      position: absolute;
+      pointer-events: none;
+      font-size: 20px;
+      animation: particleFloat 1.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);
+      z-index: 510;
+    }
+
+    @keyframes particleFloat {
+      0% { transform: translate(0, 0) scale(0.5) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(1.2) rotate(var(--dr)); opacity: 0; }
+    }
+
+    /* Floating XP text style */
+    .rpg-xp-float {
+      position: absolute;
+      color: #00e5ff;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 800;
+      text-shadow: 
+        0 0 6px rgba(0, 229, 255, 0.8),
+        0 1px 2px rgba(0,0,0,0.9);
+      pointer-events: none;
+      z-index: 150;
+      font-style: italic;
+    }
+
+    @keyframes portraitLevelUpPulse {
+      0% { box-shadow: 0 0 10px var(--gold-glowing); }
+      50% { box-shadow: 0 0 30px #ffca28, 0 0 50px #ffca28; }
+      100% { box-shadow: 0 0 10px var(--gold-glowing); }
+    }
+
+    .rpg-portrait-box.portrait-level-glow {
+      animation: portraitLevelUpPulse 0.5s infinite alternate ease-in-out;
+    }
+
+    /* 2. Top-Right Quest/Crop Tracker */
+    .rpg-hud-tracker {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 210px;
+      background: var(--panel-bg);
+      border: 1.5px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 20px var(--panel-glow);
+      color: #fff;
+      z-index: 102;
+    }
+
+    /* Dynamic pulse if there are harvestable crops */
+    .farm-overlay[data-mode="ready"] .rpg-hud-tracker {
+      border-color: var(--gold);
+      animation: trackerPulse 2s infinite;
+    }
+
+    @keyframes trackerPulse {
+      0%, 100% { box-shadow: 0 8px 20px var(--panel-glow); }
+      50% { box-shadow: 0 0 15px rgba(255, 202, 40, 0.25); }
+    }
+
+    .rpg-tracker-header {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 5px;
+      margin-bottom: 8px;
+    }
+
+    .rpg-tracker-eyebrow {
+      display: block;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    .rpg-tracker-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .rpg-tracker-content {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .rpg-tracker-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .rpg-tracker-label {
+      color: var(--muted);
+    }
+
+    .rpg-tracker-val {
+      font-family: var(--mono);
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .rpg-tracker-row--action {
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px dashed rgba(255,255,255,0.08);
+    }
+
+    .rpg-tracker-row--action .rpg-tracker-val {
+      color: #00e5ff;
+      text-transform: uppercase;
+      text-shadow: 0 0 4px rgba(0,229,255,0.3);
+    }
+
+    /* 3. Floating Action Prompt */
+    .rpg-action-prompt-container {
+      position: absolute;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 101;
+      pointer-events: none;
+      width: fit-content;
+    }
+
+    .rpg-action-prompt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10, 13, 20, 0.9);
+      border: 1.5px solid var(--gold);
+      border-radius: 20px;
+      padding: 6px 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+      backdrop-filter: blur(6px);
+      max-width: 420px;
+    }
+
+    .rpg-key-badge {
+      background: var(--gold);
+      color: #000;
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .rpg-action-text {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    /* 4. Bottom-Center Seed Hotbar */
+    .rpg-hud-hotbar-container {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 102;
+      pointer-events: auto;
+    }
+
+    .rpg-hotbar-slots {
+      display: flex;
+      gap: 6px;
+      background: rgba(8, 10, 15, 0.92);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+    }
+
+    .farm-seed-button {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      padding: 16px;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      outline: none;
+      padding: 0;
     }
 
-    .preview-image-box img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      image-rendering: pixelated;
-      transition: transform 0.4s var(--transition-bezier);
+    .farm-seed-button:hover,
+    .farm-seed-button:focus-visible {
+      border-color: var(--gold);
+      background: rgba(255,202,40,0.08);
+      transform: translateY(-4px);
     }
 
-    .preview-card:hover .preview-image-box img {
+    .farm-seed-button:active {
+      transform: translateY(-1px) scale(0.96);
+    }
+
+    .farm-seed-button.is-active {
+      border-color: var(--gold);
+      background: radial-gradient(circle, rgba(255,202,40,0.18) 0%, rgba(255,202,40,0.04) 100%);
+      box-shadow: 0 0 12px rgba(255,202,40,0.3);
+      transform: translateY(-4px);
+      animation: hotbarSlotGlow 2s infinite alternate;
+    }
+
+    .farm-seed-button.is-locked {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .farm-seed-button.is-locked:hover,
+    .farm-seed-button.is-locked:focus-visible {
+      transform: none;
+      border-color: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: none;
+    }
+
+    @keyframes hotbarSlotGlow {
+      0% { border-color: rgba(255,202,40,0.6); }
+      100% { border-color: rgba(255,202,40,1); box-shadow: 0 0 16px rgba(255,202,40,0.5); }
+    }
+
+    .farm-seed-button__key {
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      background: var(--gold);
+      color: #000;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      border: 1px solid #000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+
+    .seed-icon {
+      font-size: 24px;
+      line-height: 1;
+      transition: transform 0.2s;
+    }
+
+    .farm-seed-button.is-active .seed-icon {
       transform: scale(1.15);
     }
 
-    .preview-label {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary-600);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .preview-caption {
-      font-family: var(--font-serif);
-      font-size: 20px;
+    .farm-seed-button__name {
+      position: absolute;
+      bottom: 2px;
+      font-size: 7.5px;
       font-weight: 800;
-      color: var(--text-main);
-      margin-top: -8px;
-    }
-
-    .preview-text {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--text-muted);
-    }
-
-    /* Tier System table */
-    .tier-card {
-      background: rgba(255, 255, 255, 0.45);
-      border: 1px solid rgba(30, 42, 58, 0.08);
-      border-radius: 32px;
-      padding: 32px;
-      box-shadow: 0 15px 40px rgba(30, 42, 58, 0.02);
-      overflow: hidden;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid rgba(30, 42, 58, 0.06);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px;
-    }
-
-    th, td {
-      padding: 18px 24px;
-      text-align: left;
-      border-bottom: 1px solid rgba(30, 42, 58, 0.06);
-    }
-
-    th {
-      background: rgba(245, 237, 202, 0.5);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 700;
+      color: rgba(255,255,255,0.95);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 2px #000;
+      pointer-events: none;
     }
 
-    td {
-      font-size: 15px;
-      line-height: 1.6;
-    }
-
-    tr:last-child td {
-      border-bottom: 0;
-    }
-
-    tr.locked {
-      color: rgba(30, 42, 58, 0.45);
-      background: rgba(30, 42, 58, 0.01);
-    }
-
-    tr.locked td {
-      color: rgba(30, 42, 58, 0.5);
-    }
-
-    .tier-badge-cell {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-    }
-
-    .lock-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-family: var(--font-mono);
-      font-size: 9.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 3px 8px;
+    /* Seed Details tooltip on Hover */
+    .farm-seed-button__meta {
+      position: absolute;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: rgba(10, 13, 20, 0.95);
+      border: 1.5px solid var(--gold);
       border-radius: 8px;
-      background: rgba(30, 42, 58, 0.08);
-      color: var(--text-muted);
+      padding: 6px 8px;
+      min-width: 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.18s ease-out;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+      z-index: 1000;
     }
 
-    /* Footer CTA */
-    .footer-cta {
-      background: linear-gradient(135deg, var(--cardigan-cream-warm), rgba(250, 246, 240, 0.5));
-      border: 1px solid rgba(127, 85, 57, 0.15);
-      border-radius: 36px;
-      padding: 56px;
+    .farm-seed-button:hover .farm-seed-button__meta {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .farm-seed-button__meta::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--gold) transparent transparent transparent;
+    }
+
+    .farm-seed-button__meta span {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: #bbb;
+    }
+
+    .farm-seed-button__meta span:first-child {
+      color: #ffd54f;
+      font-weight: 800;
+    }
+
+    .farm-seed-button__meta span:last-child {
+      color: #81c784;
+    }
+
+    /* 5. Floating Controls Card (Bottom-Left) */
+    .rpg-controls-card {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      width: 170px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      backdrop-filter: blur(8px);
+      color: var(--muted);
+      z-index: 95;
+      box-shadow: 0 6px 16px var(--panel-glow);
+    }
+
+    .rpg-controls-title {
+      display: block;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 3px;
+    }
+
+    .rpg-controls-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      margin-bottom: 3px;
+      color: #ddd;
+    }
+
+    .rpg-controls-row strong {
+      color: #fff;
+      font-weight: 700;
+      background: rgba(255,255,255,0.08);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 8.5px;
+    }
+
+    .rpg-controls-footer {
+      margin: 4px 0 0 0;
+      font-size: 8px;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+
+    /* 6. Floating Status Alerts (Top-Left under Player portrait) */
+    .farm-legend {
+      position: absolute;
+      top: 104px;
+      left: 16px;
+      z-index: 95;
+      width: 200px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 16px var(--panel-glow);
+      display: block;
+    }
+
+    .farm-legend__title {
+      display: block;
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: #ff7875;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      letter-spacing: 0.05em;
+    }
+
+    #farmHintValue {
+      margin: 0;
+      font-size: 10px;
+      line-height: 1.3;
+      font-weight: 500;
+      color: #eee;
+    }
+
+    /* Responsive scaling and styling overrides */
+    @media (max-width: 960px) {
+      body {
+        padding: 12px;
+      }
+
+      .game-frame {
+        border-radius: 18px;
+        padding: 4px;
+      }
+
+      .canvas-shell {
+        border-radius: 14px;
+      }
+
+      .rpg-hud-player {
+        top: 8px;
+        left: 8px;
+        padding: 6px 10px;
+      }
+
+      .rpg-xp-track {
+        width: 45px;
+      }
+
+      .rpg-xp-val {
+        font-size: 8px;
+      }
+
+      .rpg-portrait-box {
+        width: 38px;
+        height: 38px;
+      }
+
+      .rpg-hud-tracker {
+        top: 8px;
+        right: 8px;
+        width: 170px;
+        padding: 8px;
+      }
+
+      .farm-legend {
+        top: 76px;
+        left: 8px;
+        width: 170px;
+      }
+
+      .rpg-controls-card {
+        display: none; /* Hide controls help on smaller layouts to save space */
+      }
+
+      .rpg-hud-hotbar-container {
+        bottom: 8px;
+      }
+
+      .rpg-hotbar-slots {
+        padding: 4px;
+        gap: 4px;
+      }
+
+      .farm-seed-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+      }
+
+      .seed-icon {
+        font-size: 18px;
+      }
+
+      .farm-seed-button__name {
+        font-size: 6px;
+      }
+
+      .farm-seed-button__key {
+        width: 12px;
+        height: 12px;
+        font-size: 7px;
+      }
+
+      .rpg-action-prompt-container {
+        bottom: 64px;
+      }
+
+      .rpg-action-prompt {
+        padding: 4px 10px;
+      }
+
+      .rpg-action-text {
+        font-size: 9px;
+      }
+
+      #characterDialogueBox {
+        width: calc(100% - 16px);
+        bottom: 74px;
+        font-size: 13px;
+        min-height: 60px;
+        padding: 10px 14px;
+      }
+      
+      .battle-card {
+        width: 180px;
+        padding: 8px;
+      }
+      
+      .battle-card--player {
+        bottom: 90px;
+      }
+      
+      .battle-console {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      
+      .battle-actions {
+        border-left: none;
+        border-top: 2px solid var(--gold);
+      }
+    }
+
+    @media (max-width: 580px) {
+      .rpg-hud-player {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin: 4px;
+        display: inline-flex;
+      }
+
+      .rpg-hud-tracker {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: auto;
+        margin: 4px;
+      }
+
+      .farm-overlay {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
+
+      .canvas-shell {
+        overflow: visible;
+      }
+
+      .farm-legend {
+        position: relative;
+        top: auto;
+        left: auto;
+        width: auto;
+        margin: 4px;
+      }
+    }
+
+    /* Battle Confirmation Modal */
+    .rpg-confirm-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 180;
+      background: rgba(8, 10, 15, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .rpg-confirm-content {
+      width: min(380px, calc(100% - 32px));
+      background: rgba(13, 17, 23, 0.95);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 24px;
       text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.85);
+      animation: modalFadeIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .rpg-confirm-icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 12px;
+      animation: iconPulse 1.5s infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .rpg-confirm-title {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .rpg-confirm-text {
+      margin: 0 0 20px 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .rpg-confirm-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .rpg-btn-confirm {
+      flex: 1;
+      padding: 10px 16px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1.5px solid var(--gold);
+      background: var(--gold);
+      color: #000;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .rpg-btn-confirm:hover {
+      box-shadow: 0 0 12px var(--gold-glowing);
+      transform: translateY(-2px);
+    }
+
+    .rpg-btn-confirm:active {
+      transform: translateY(0);
+    }
+
+    .rpg-btn-confirm--no {
+      background: transparent;
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .rpg-btn-confirm--no:hover {
+      border-color: #fff;
+      box-shadow: 0 0 12px rgba(255,255,255,0.1);
+    }
+
+    /* Main Menu Styles */
+    .main-menu-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 15, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 500;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 28px;
-      box-shadow: 0 30px 60px rgba(30, 42, 58, 0.04);
-      margin-top: 40px;
+      justify-content: center;
+      padding: 24px;
+      pointer-events: auto;
+      color: #fff;
     }
 
-    .cta-title {
-      font-family: var(--font-serif);
-      font-size: 36px;
+    .menu-brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .menu-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
       font-weight: 800;
-      letter-spacing: -1px;
-      color: var(--text-main);
+      color: var(--gold);
+      letter-spacing: 0.15em;
     }
 
-    .cta-text {
-      font-size: 16px;
-      line-height: 1.7;
-      color: var(--text-muted);
-      max-width: 540px;
+    .menu-title {
+      font-size: 38px;
+      font-weight: 800;
+      margin: 6px 0;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-shadow: 0 0 20px rgba(255, 202, 40, 0.3);
     }
 
-    .cta-buttons {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .btn-cta-secondary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 48px;
-      padding: 0 28px;
-      border-radius: 999px;
-      border: 1px solid rgba(30, 42, 58, 0.1);
-      background: rgba(250, 246, 240, 0.92);
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all 0.25s var(--transition-bezier);
-      box-shadow: 0 4px 12px rgba(30, 42, 58, 0.02);
-    }
-
-    .btn-cta-secondary:hover {
-      transform: translateY(-2px);
-      border-color: rgba(30, 42, 58, 0.16);
-      background: #ffffff;
-      box-shadow: 0 8px 20px rgba(30, 42, 58, 0.05);
-    }
-
-    /* Global Footer */
-    .game-footer {
-      margin-top: auto;
-      padding: 40px 0;
-      border-top: 1px solid rgba(30, 42, 58, 0.04);
+    .menu-subtitle {
       font-size: 13px;
-      color: var(--slate-500);
-      font-family: var(--font-mono);
-      background: rgba(250, 246, 240, 0.4);
+      color: var(--muted);
+      margin: 0;
     }
 
-    .footer-container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 40px;
+    .menu-profile-card {
       display: flex;
       align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      width: 260px;
+    }
+
+    .menu-profile-img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+    }
+
+    .menu-profile-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-profile-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .menu-profile-stats {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--gold);
+    }
+
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 220px;
+    }
+
+    .rpg-menu-btn {
+      width: 100%;
+      padding: 12px 18px;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .rpg-menu-btn:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .rpg-menu-btn:active {
+      transform: translateY(0);
+    }
+
+    .rpg-menu-btn--primary {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+    }
+
+    .rpg-menu-btn--primary:hover {
+      box-shadow: 0 0 15px var(--gold-glowing);
+      background: #ffd54f;
+      border-color: #ffd54f;
+    }
+
+    .rpg-menu-btn--danger {
+      border-color: rgba(255, 77, 79, 0.3);
+      color: #ff7875;
+    }
+
+    .rpg-menu-btn--danger:hover {
+      border-color: #ff4d4f;
+      background: rgba(255, 77, 79, 0.08);
+    }
+
+    .menu-footer {
+      margin-top: 32px;
+      font-family: var(--mono);
+      font-size: 8px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Modal dialogs inside menu */
+    .rpg-menu-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 10, 15, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 600;
+      animation: modalFadeIn 0.25s ease-out;
+    }
+
+    .rpg-modal-content {
+      width: min(420px, 100%);
+      background: rgba(13, 17, 23, 0.95);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .rpg-modal-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--gold);
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 8px;
+      text-align: center;
+    }
+
+    .rpg-modal-body {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #eee;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .rpg-modal-body p {
+      margin: 0 0 10px 0;
+    }
+
+    .records-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .record-item {
+      display: flex;
       justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.03);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
-    .game-footer a {
-      color: var(--slate-600);
-      text-decoration: none;
-      transition: color 0.2s ease;
+    .record-label {
+      color: var(--muted);
     }
 
-    .game-footer a:hover {
-      color: var(--primary-600);
+    .record-value {
+      font-family: var(--mono);
+      color: #fff;
+      font-weight: 700;
     }
 
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .char-preview-card {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-      .world-preview-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    /* Decorative Artwork in Main Menu */
+    .menu-artwork {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 24px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 252, 240, 0.08);
     }
 
-    @media (max-width: 768px) {
-      .landing-nav {
-        padding: 0 20px;
-      }
-      .nav-links {
-        display: none;
-      }
-      .hero-section {
-        padding: 80px 20px 60px;
-      }
-      .content-wrapper {
-        padding: 0 20px 80px;
-        gap: 60px;
-      }
-      .char-preview-card {
-        padding: 24px;
-        border-radius: 28px;
-      }
-      .world-preview-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-      .footer-cta {
-        padding: 36px 20px;
-        border-radius: 28px;
-      }
-      .footer-container {
-        flex-direction: column;
-        gap: 16px;
-        text-align: center;
-      }
+    .menu-art-sprite {
+      width: 54px;
+      height: 54px;
+      image-rendering: pixelated;
+      object-fit: contain;
+    }
+
+    .menu-art-emby {
+      animation: floatLeft 3s infinite ease-in-out;
+    }
+
+    .menu-art-draggle {
+      animation: floatRight 3s infinite ease-in-out;
+    }
+
+    .menu-art-vs {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--danger);
+      text-shadow: 0 0 8px rgba(255, 77, 79, 0.6);
+    }
+
+    @keyframes floatLeft {
+      0%, 100% { transform: translateY(0) rotate(-6deg); }
+      50% { transform: translateY(-8px) rotate(4deg); }
+    }
+
+    @keyframes floatRight {
+      0%, 100% { transform: translateY(0) rotate(6deg); }
+      50% { transform: translateY(-8px) rotate(-4deg); }
+    }
+
+    /* Modal list styling */
+    .rpg-modal-body ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .rpg-modal-body li {
+      margin-bottom: 6px;
+    }
+
+    /* Enter Battle Main Menu Button */
+    .rpg-menu-btn--battle {
+      background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%) !important;
+      color: #fff !important;
+      border-color: #ff4d4f !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      box-shadow: 0 0 10px rgba(255, 77, 79, 0.2);
+    }
+
+    .rpg-menu-btn--battle:hover {
+      background: linear-gradient(135deg, #ff7875 0%, #ff9c9c 100%) !important;
+      border-color: #ff7875 !important;
+      box-shadow: 0 0 15px rgba(255, 77, 79, 0.4);
+    }
+
+    /* HUD Menu Toggle Button */
+    .rpg-hud-menu-btn {
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--gold);
+      background: rgba(255, 202, 40, 0.15);
+      border: 1px solid var(--gold);
+      border-radius: 4px;
+      padding: 2px 6px;
+      cursor: pointer;
+      margin-left: auto;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .rpg-hud-menu-btn:hover {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 0 8px var(--gold-glowing);
+    }
+
+    /* Hide dialogue down-arrow when waiting for move selection */
+    #dialogueBox.waiting-for-input::after {
+      display: none;
     }
   </style>
 </head>
 <body>
+  <main class="game-frame">
+    <section class="game-layout">
+      <div class="canvas-shell">
+        <!-- Overlay for arcade screen glass shine / scanlines -->
+        <div class="rpg-screen-overlay"></div>
+        
+        <div id="characterDialogueBox" aria-live="polite"></div>
+        <canvas id="haruka-game-canvas"></canvas>
+        <div id="overlappingDiv"></div>
 
-  <!-- Sticky Navbar -->
-  <nav class="landing-nav">
-    <div class="nav-container">
-      <a href="../index.html" class="nav-brand">
-        <span class="brand-title">HARUKA</span>
-        <span class="brand-badge">はるか</span>
-      </a>
-      <div class="nav-links">
-        <a href="../about-us.html">About Us</a>
-        <a href="../features.html">Features</a>
-        <a href="../lore.html">Lore</a>
-        <a href="../roadmap.html">Roadmap</a>
-        <a href="../docs.html">Docs</a>
-        <a href="../x402.html">x402</a>
-        <a href="../utility.html">Utility</a>
-        <a href="index.html" class="active">Game</a>
-      </div>
-      <div class="nav-actions">
-        <a href="https://x.com/meetharuka" target="_blank" class="icon-link" aria-label="X (Twitter)">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M18.901 1.153h3.68l-8.037 9.188L24 22.847h-7.406l-5.8-7.584-6.637 7.584H.478l8.596-9.825L0 1.153h7.594l5.243 6.932 6.064-6.932Zm-1.29 19.494h2.04L6.486 3.24H4.298l13.313 17.407Z" />
-          </svg>
-        </a>
-        <a href="https://github.com/ashchanance/3d-companion-animation.git" target="_blank" class="icon-link" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 7.75 6.84 9.08.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 19.75 22 16.42 22 12A10 10 0 0 0 12 2z" />
-          </svg>
-        </a>
-        <a href="../index.html?mode=chat" class="btn-primary">Start Chat</a>
-      </div>
-    </div>
-  </nav>
+        <!-- Main Menu Overlay -->
+        <div id="mainMenu" class="main-menu-overlay">
+          <div class="menu-brand-header">
+            <span class="menu-eyebrow">HARUKA'S REALM</span>
+            <h1 class="menu-title">FARM & BATTLE RPG</h1>
+            <p class="menu-subtitle">Plant, Harvest, and Battle in a Pixel World</p>
+          </div>
 
-  <!-- Hero Section -->
-  <header class="hero-section">
-    <div class="tilemap-bg-layer"></div>
-    <div class="hero-gradient-overlay"></div>
-    <div class="hero-container">
-      <div class="coming-soon-badge">🔒 Coming Soon</div>
-      <h1 class="hero-title">Haruka's Realm</h1>
-      <p class="hero-subtitle">An idle adventure where your agents farm and fish for you — even while you're away.</p>
-    </div>
-  </header>
+          <!-- Decorative Battle Art/Sprites in Main Menu -->
+          <div class="menu-artwork">
+            <img src="/game/img/embySprite.png" class="menu-art-sprite menu-art-emby" alt="Haruka">
+            <span class="menu-art-vs">VS</span>
+            <img src="/game/img/draggleSprite.png" class="menu-art-sprite menu-art-draggle" alt="Draggle">
+          </div>
 
-  <!-- Content Wrapper -->
-  <div class="content-wrapper">
-    
-    <!-- Character Preview Section -->
-    <section>
-      <div class="section-header">
-        <span class="section-tag">Avatars</span>
-        <h2 class="section-title">Meet Your Agents</h2>
-      </div>
-      <div class="char-preview-card">
-        <div class="char-visualizer">
-          <img id="char-portrait-display" class="main-portrait" src="/game/characters/main_character/portrait_female.png" alt="Selected Character Portrait">
-          <div class="sprite-box">
-            <div id="char-sprite-display" class="pixel-sprite"></div>
+          <!-- Resume Profile Card -->
+          <div id="menuProfileCard" class="menu-profile-card" style="display: none;">
+            <img src="/hiyori_avatar.png" class="menu-profile-img" alt="Player Avatar">
+            <div class="menu-profile-info">
+              <span class="menu-profile-name">HARUKA</span>
+              <span id="menuProfileStats" class="menu-profile-stats">Lv 1 | 🪙 100g</span>
+            </div>
+          </div>
+
+          <div class="menu-buttons">
+            <button id="btnPlayGame" class="rpg-menu-btn rpg-menu-btn--primary">Play Game</button>
+            <button id="btnEnterBattle" class="rpg-menu-btn rpg-menu-btn--battle">Enter Battle</button>
+            <button id="btnHowToPlay" class="rpg-menu-btn">How To Play</button>
+            <button id="btnRecords" class="rpg-menu-btn">Farm Records</button>
+            <button id="btnResetData" class="rpg-menu-btn rpg-menu-btn--danger">Reset Progress</button>
+          </div>
+
+          <div class="menu-footer">
+            v1.0.0 &copy; 2026 HARUKA'S REALM
           </div>
         </div>
-        <div class="char-avatar-details">
-          <p class="preview-text" style="font-size: 16px; margin-bottom: 8px;">Select an avatar to preview your idle farming companion. Each agent has unique idle behavior and is fully animated in-game.</p>
-          <div class="avatar-selector-grid">
-            <button class="avatar-btn active" onclick="selectAvatar('female')">
-              <img src="/game/characters/main_character/portrait_female.png" alt="Female Avatar">
-              <span class="avatar-name">Haruka (Female)</span>
-              <span class="avatar-desc">Farms efficiently and loves planting spring flowers.</span>
-            </button>
-            <button class="avatar-btn" onclick="selectAvatar('male')">
-              <img src="/game/characters/main_character/portrait_male.png" alt="Male Avatar">
-              <span class="avatar-name">Haru (Male)</span>
-              <span class="avatar-desc">Expert fisher, handles harvesting and tree cutting.</span>
-            </button>
+
+        <!-- How to Play Modal -->
+        <div id="modalHowToPlay" class="rpg-menu-modal" style="display: none;">
+          <div class="rpg-modal-content">
+            <h3 class="rpg-modal-title">How To Play</h3>
+            <div class="rpg-modal-body">
+              <p>🌾 <strong>Farming Loop:</strong></p>
+              <ul>
+                <li>Select a seed from the hotbar (keys 1-6 or Q/E).</li>
+                <li>Walk into an empty field patch (dark green ground).</li>
+                <li>Press <strong>Spacebar</strong> to plant. Seed cost will be deducted from your gold.</li>
+                <li>Wait for the crops to grow!</li>
+                <li>Once ready (marked by gold/harvest indicators), <strong>Left Click</strong> inside the patch to harvest and earn Gold + XP!</li>
+              </ul>
+              <p>⚔️ <strong>Battle Zone:</strong></p>
+              <ul>
+                <li>Defeat enemies in battle encounters to earn +50 Gold and +30 XP!</li>
+                <li>Enter the Battle Zone manually from the Main Menu or immediately after leveling up.</li>
+              </ul>
+              <p>🎮 <strong>Controls:</strong></p>
+              <ul>
+                <li>Move: <strong>WASD / Arrow Keys</strong></li>
+                <li>Plant / Interact: <strong>Spacebar</strong></li>
+                <li>Harvest Crops: <strong>Left Click</strong> (when standing near ready crops)</li>
+                <li>Select Seed: <strong>1-6 / Q / E</strong> or click hotbar buttons</li>
+              </ul>
+            </div>
+            <button id="btnCloseHowToPlay" class="rpg-menu-btn rpg-menu-btn--primary">Close</button>
           </div>
         </div>
+
+        <!-- Farm Records Modal -->
+        <div id="modalRecords" class="rpg-menu-modal" style="display: none;">
+          <div class="rpg-modal-content">
+            <h3 class="rpg-modal-title">Farm Records</h3>
+            <div class="rpg-modal-body">
+              <div class="records-grid">
+                <div class="record-item">
+                  <span class="record-label">Gold Balance</span>
+                  <span id="recordGold" class="record-value">100g</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Player Level</span>
+                  <span id="recordLevel" class="record-value">Lv 1</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Total Exp Earned</span>
+                  <span id="recordXp" class="record-value">0 XP</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Planted Plots</span>
+                  <span id="recordPlanted" class="record-value">0 / 12</span>
+                </div>
+              </div>
+            </div>
+            <button id="btnCloseRecords" class="rpg-menu-btn rpg-menu-btn--primary">Close</button>
+          </div>
+        </div>
+
+        <!-- Battle Confirmation Modal -->
+        <div id="battleConfirmModal" class="rpg-confirm-modal" style="display: none;">
+          <div class="rpg-confirm-content">
+            <span class="rpg-confirm-icon">⚔️</span>
+            <h3 class="rpg-confirm-title">Battle Triggered</h3>
+            <p class="rpg-confirm-text">A wild monster is lurking in this zone! Do you want to battle?</p>
+            <div class="rpg-confirm-actions">
+              <button id="btnConfirmBattleYes" class="rpg-btn-confirm">PLAY</button>
+              <button id="btnConfirmBattleNo" class="rpg-btn-confirm rpg-btn-confirm--no">NO</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level Up Celebration Overlay -->
+        <div id="levelUpOverlay" class="level-up-overlay">
+          <div class="level-up-banner">
+            <span class="level-up-glow">LEVEL UP!</span>
+            <span class="level-up-subtitle">You reached Level <span id="levelUpModalVal">2</span></span>
+          </div>
+        </div>
+
+        <section id="userInterface" aria-label="Battle interface">
+          <div class="battle-card battle-card--enemy">
+            <div class="battle-card-header">
+              <span class="battle-card__name">Draggle</span>
+              <span class="battle-card__level">Lv 32</span>
+            </div>
+            <div class="battle-card__track">
+              <div id="enemyHealthBar" class="battle-card__fill"></div>
+            </div>
+            <span class="battle-card__hp-num">HP: 80 / 80</span>
+          </div>
+
+          <div class="battle-card battle-card--player">
+            <div class="battle-card-header">
+              <span class="battle-card__name">Haruka</span>
+              <span class="battle-card__level">Lv 28</span>
+            </div>
+            <div class="battle-card__track">
+              <div id="playerHealthBar" class="battle-card__fill"></div>
+            </div>
+            <span class="battle-card__hp-num">HP: 100 / 100</span>
+          </div>
+
+          <div class="battle-console">
+            <div id="dialogueBox" aria-live="polite"></div>
+            <div class="battle-actions">
+              <div id="attacksBox"></div>
+              <div class="battle-type-container">
+                <span class="battle-type-label">SKILL TYPE</span>
+                <div id="attackType">Normal</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Main HUD Panel Container (Invisible wrapper, pointer-events: none) -->
+        <aside class="farm-overlay" aria-label="Canvas farm dashboard">
+          
+          <!-- Top-Left Player Status HUD -->
+          <div class="rpg-hud-player">
+            <div class="rpg-portrait-box">
+              <img src="/hiyori_avatar.png" class="rpg-portrait" alt="Hiyori">
+            </div>
+            <div class="rpg-player-stats">
+              <div class="rpg-player-header">
+                <span class="rpg-player-name">HARUKA</span>
+                <span class="rpg-level-badge">LV 99</span>
+                <button id="btnOpenMenu" class="rpg-hud-menu-btn" title="Open Main Menu (ESC)">MENU</button>
+              </div>
+              <div class="rpg-zone-row">
+                <span id="farmZoneValue" class="rpg-zone-badge">Free roam</span>
+              </div>
+              <div class="rpg-gold-box">
+                <span class="rpg-gold-coin">🪙</span>
+                <span id="farmGoldValue" class="rpg-gold-val">100g</span>
+              </div>
+              <div class="rpg-xp-row">
+                <div class="rpg-xp-track" title="XP Progress">
+                  <div id="farmXpBar" class="rpg-xp-fill"></div>
+                </div>
+                <span id="farmXpValue" class="rpg-xp-val">0 / 50 XP</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top-Right Quest Tracker -->
+          <div class="rpg-hud-tracker">
+            <div class="rpg-tracker-header">
+              <span class="rpg-tracker-eyebrow">ACTIVE MISSION</span>
+              <span id="farmModeValue" class="rpg-tracker-title">Growing cycle</span>
+            </div>
+            <div class="rpg-tracker-content">
+              <div class="rpg-tracker-row">
+                <span class="rpg-tracker-label">Planted Plots</span>
+                <span id="farmFieldValue" class="rpg-tracker-val">0 / 12</span>
+              </div>
+              <div class="rpg-tracker-row">
+                <span class="rpg-tracker-label">Ready Plots</span>
+                <span id="farmReadyValue" class="rpg-tracker-val">0 plots</span>
+              </div>
+              <div class="rpg-tracker-row">
+                <span class="rpg-tracker-label">Empty Soil</span>
+                <span id="farmEmptyValue" class="rpg-tracker-val">12 plots</span>
+              </div>
+              <div class="rpg-tracker-row">
+                <span class="rpg-tracker-label">Selected Seed</span>
+                <span id="farmSeedValue" class="rpg-tracker-val">Carrot</span>
+              </div>
+              <div class="rpg-tracker-row rpg-tracker-row--action">
+                <span class="rpg-tracker-label">Current Action</span>
+                <span id="farmActionShortValue" class="rpg-tracker-val">Plant</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Action Prompt -->
+          <div class="rpg-action-prompt-container">
+            <div class="rpg-action-prompt">
+              <span class="rpg-key-badge">SPACE</span>
+              <p id="farmActionValue" class="rpg-action-text">
+                Walk into a field patch and press Space to harvest or plant.
+              </p>
+            </div>
+          </div>
+
+          <!-- Floating Seed deck hotbar (Bottom-Center) -->
+          <div class="rpg-hud-hotbar-container">
+            <div class="rpg-hotbar-slots">
+              <button type="button" class="farm-seed-button" data-farm-seed="carrot" aria-pressed="true">
+                <span class="farm-seed-button__key">1</span>
+                <span class="seed-icon">🥕</span>
+                <span class="farm-seed-button__name">Carrot</span>
+                <span class="farm-seed-button__meta">
+                  <span>12g</span>
+                  <span>1m 30s</span>
+                </span>
+              </button>
+              <button type="button" class="farm-seed-button" data-farm-seed="potato" aria-pressed="false">
+                <span class="farm-seed-button__key">2</span>
+                <span class="seed-icon">🥔</span>
+                <span class="farm-seed-button__name">Potato</span>
+                <span class="farm-seed-button__meta">
+                  <span>18g</span>
+                  <span>2m 30s</span>
+                </span>
+              </button>
+              <button type="button" class="farm-seed-button" data-farm-seed="tomato" aria-pressed="false">
+                <span class="farm-seed-button__key">3</span>
+                <span class="seed-icon">🍅</span>
+                <span class="farm-seed-button__name">Tomato</span>
+                <span class="farm-seed-button__meta">
+                  <span>28g</span>
+                  <span>4m</span>
+                </span>
+              </button>
+              <button type="button" class="farm-seed-button" data-farm-seed="strawberry" aria-pressed="false">
+                <span class="farm-seed-button__key">4</span>
+                <span class="seed-icon">🍓</span>
+                <span class="farm-seed-button__name">Strawberry</span>
+                <span class="farm-seed-button__meta">
+                  <span>42g</span>
+                  <span>6m</span>
+                </span>
+              </button>
+              <button type="button" class="farm-seed-button" data-farm-seed="lettuce" aria-pressed="false">
+                <span class="farm-seed-button__key">5</span>
+                <span class="seed-icon">🥬</span>
+                <span class="farm-seed-button__name">Lettuce</span>
+                <span class="farm-seed-button__meta">
+                  <span>60g</span>
+                  <span>9m</span>
+                </span>
+              </button>
+              <button type="button" class="farm-seed-button" data-farm-seed="pumpkin" aria-pressed="false">
+                <span class="farm-seed-button__key">6</span>
+                <span class="seed-icon">🎃</span>
+                <span class="farm-seed-button__name">Pumpkin</span>
+                <span class="farm-seed-button__meta">
+                  <span>90g</span>
+                  <span>12m</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Floating Controls Card (Bottom-Left) -->
+          <div class="rpg-controls-card">
+            <span class="rpg-controls-title">SYSTEM FLOW</span>
+            <div class="rpg-controls-row">Move <strong>WASD / Arrows</strong></div>
+            <div class="rpg-controls-row">Plant <strong>Space</strong></div>
+            <div class="rpg-controls-row">Harvest <strong>Left Click</strong></div>
+            <div class="rpg-controls-row">Select <strong>1-6 / Q / E</strong></div>
+            <p class="rpg-controls-footer">Soil stays empty after harvest.</p>
+          </div>
+
+        </aside>
+
+        <!-- Floating Status Log (Top-Left under portrait) -->
+        <aside class="farm-legend">
+          <span class="farm-legend__title">SYSTEM ALERT</span>
+          <p id="farmHintValue">
+            Walk near the dark green field patches and press Space to harvest or plant.
+          </p>
+        </aside>
       </div>
     </section>
+  </main>
 
-    <!-- World Preview Section -->
-    <section>
-      <div class="section-header">
-        <span class="section-tag">World Preview</span>
-        <h2 class="section-title">Explore the Tiny Farm</h2>
-      </div>
-      <div class="world-preview-grid">
-        <div class="preview-card">
-          <div class="preview-image-box">
-            <img src="/game/objects_items/farm_objects_free.png" alt="Farm objects">
-          </div>
-          <span class="preview-label">Building</span>
-          <h3 class="preview-caption">Build your farm</h3>
-          <p class="preview-text">Construct fences, cabins, and storehouses to unlock space and shelter your farming agents.</p>
-        </div>
-        <div class="preview-card">
-          <div class="preview-image-box">
-            <img src="/game/objects_items/plants_free.png" alt="Plants and crops">
-          </div>
-          <span class="preview-label">Agriculture</span>
-          <h3 class="preview-caption">Grow and harvest</h3>
-          <p class="preview-text">Sow seeds, water crop tiles, and watch your fields sprout with diverse plants under seasonal sunlight.</p>
-        </div>
-        <div class="preview-card">
-          <div class="preview-image-box">
-            <img src="/game/objects_items/items_free.png" alt="Harvest items">
-          </div>
-          <span class="preview-label">Inventory</span>
-          <h3 class="preview-caption">Collect items</h3>
-          <p class="preview-text">Gather wood, stone, crops, and fish to trade for $HARUKA or upgrade your farm's productivity.</p>
-        </div>
-        <div class="preview-card">
-          <div class="preview-image-box">
-            <img src="/game/objects_items/furniture_free.png" alt="Furniture and interior">
-          </div>
-          <span class="preview-label">Housing</span>
-          <h3 class="preview-caption">Decorate your home</h3>
-          <p class="preview-text">Furnish cabins with carpets, chairs, desks, and bookshelves to create the ultimate cozy indoor lounge.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Tier System Preview -->
-    <section>
-      <div class="section-header">
-        <span class="section-tag">Tier System</span>
-        <h2 class="section-title">Agent Access Tier List</h2>
-      </div>
-      <div class="tier-card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tier</th>
-                <th>Hold $HARUKA Requirement</th>
-                <th>Access &amp; Utility</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="tier-badge-cell">🌱 Player</td>
-                <td><strong>1,000 $HARUKA</strong></td>
-                <td>1 agent slot. Access basic idle farming.</td>
-              </tr>
-              <tr>
-                <td class="tier-badge-cell">⚔️ Commander</td>
-                <td><strong>100,000 $HARUKA</strong></td>
-                <td>2 agent slots. Automate watering and crop sowing.</td>
-              </tr>
-              <tr class="locked">
-                <td class="tier-badge-cell">👑 Warlord <span class="lock-badge">🔒 Locked</span></td>
-                <td><strong>1,000,000 $HARUKA</strong></td>
-                <td>3 agent slots. Unlock fishing docks and home interior design.</td>
-              </tr>
-              <tr class="locked">
-                <td class="tier-badge-cell">🐉 Shogun <span class="lock-badge">🔒 Locked</span></td>
-                <td><strong>5,000,000 $HARUKA</strong></td>
-                <td>Unlimited agent slots. Full automated domain management.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer CTA -->
-    <section class="footer-cta">
-      <h2 class="cta-title">Start Holding $HARUKA Today</h2>
-      <p class="cta-text">Game is currently in active development. Lock in your token requirements to be immediately ready when the realm launches.</p>
-      <div class="cta-buttons">
-        <a href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank" class="btn-primary">Buy $HARUKA on Pump.fun</a>
-        <a href="https://t.me/meetharuka" target="_blank" class="btn-cta-secondary">Join Community Telegram</a>
-      </div>
-    </section>
-
-  </div>
-
-  <!-- Global Footer -->
-  <footer class="game-footer">
-    <div class="footer-container">
-      <div>&copy; 2026 HARUKA. All rights reserved.</div>
-      <div>
-        <a href="../index.html">Main Companion</a> &bull; 
-        <a href="https://x.com/meetharuka" target="_blank">Twitter/X</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- Avatar Switcher Script -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+  <script src="/game/data/collisions.js"></script>
+  <script src="/game/data/battleZones.js"></script>
+  <script src="/game/data/characters.js"></script>
+  <script src="/game/data/attacks.js"></script>
+  <script src="/game/data/audio.js"></script>
+  <script src="/game/data/monsters.js"></script>
+  <script src="/game/js/utils.js"></script>
+  <script src="/game/classes.js?v=1.0.2"></script>
+  <script src="/game/battleScene.js?v=1.0.2"></script>
+  <script src="/game/index.js?v=1.0.2"></script>
+  <!-- Main Menu controller script -->
   <script>
-    function selectAvatar(gender) {
-      // Update buttons active class
-      const buttons = document.querySelectorAll('.avatar-btn');
-      buttons.forEach(btn => btn.classList.remove('active'));
-      
-      const targetBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(gender));
-      if (targetBtn) {
-        targetBtn.classList.add('active');
+    window.addEventListener('load', () => {
+      const mainMenu = document.getElementById('mainMenu');
+      const modalHowToPlay = document.getElementById('modalHowToPlay');
+      const modalRecords = document.getElementById('modalRecords');
+
+      const btnPlayGame = document.getElementById('btnPlayGame');
+      const btnHowToPlay = document.getElementById('btnHowToPlay');
+      const btnRecords = document.getElementById('btnRecords');
+      const btnResetData = document.getElementById('btnResetData');
+
+      const btnCloseHowToPlay = document.getElementById('btnCloseHowToPlay');
+      const btnCloseRecords = document.getElementById('btnCloseRecords');
+
+      const menuProfileCard = document.getElementById('menuProfileCard');
+      const menuProfileStats = document.getElementById('menuProfileStats');
+
+      const recordGold = document.getElementById('recordGold');
+      const recordLevel = document.getElementById('recordLevel');
+      const recordXp = document.getElementById('recordXp');
+      const recordPlanted = document.getElementById('recordPlanted');
+
+      const STORAGE_KEY = 'haruka-realm-canvas-farm-v1';
+
+      function getLevelFromXp(xp) {
+        let level = 1;
+        if (xp >= 3500) level = 10;
+        else if (xp >= 2600) level = 9;
+        else if (xp >= 1900) level = 8;
+        else if (xp >= 1350) level = 7;
+        else if (xp >= 900) level = 6;
+        else if (xp >= 560) level = 5;
+        else if (xp >= 320) level = 4;
+        else if (xp >= 150) level = 3;
+        else if (xp >= 50) level = 2;
+        return level;
       }
 
-      // Update portrait and animated sprite parameters
-      const portrait = document.getElementById('char-portrait-display');
-      const sprite = document.getElementById('char-sprite-display');
+      function updateProfileAndRecords() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const state = JSON.parse(raw);
+            if (state) {
+              const gold = typeof state.gold === 'number' ? state.gold : 100;
+              const harvests = typeof state.harvests === 'number' ? state.harvests : 0;
+              const xp = typeof state.xp === 'number' ? state.xp : harvests * 12;
+              const level = getLevelFromXp(xp);
 
-      if (gender === 'female') {
-        portrait.src = '/game/characters/main_character/portrait_female.png';
-        // Reset spritesheet row to female row (assuming y-offset is 0 or matches row 1)
-        sprite.style.backgroundPositionY = '0px';
-      } else {
-        portrait.src = '/game/characters/main_character/portrait_male.png';
-        // Set spritesheet row to male row (assuming y-offset is at row 2, e.g. -48px or -96px depending on layout)
-        sprite.style.backgroundPositionY = '-48px';
+              // Show profile card
+              menuProfileCard.style.display = 'flex';
+              menuProfileStats.textContent = `Lv ${level} | 🪙 ${gold}g`;
+              return;
+            }
+          }
+          menuProfileCard.style.display = 'none';
+        } catch (e) {
+          console.error(e);
+          menuProfileCard.style.display = 'none';
+        }
       }
-    }
+
+      // Expose globally so index.js can call it when opening menu
+      window.updateProfileAndRecords = updateProfileAndRecords;
+
+      updateProfileAndRecords();
+
+      // Play / Resume Game
+      btnPlayGame.addEventListener('click', () => {
+        // Play audio if not playing
+        if (window.audio && window.audio.Map && !window.audio.Map.playing()) {
+          window.audio.Map.play();
+        }
+        
+        // GSAP fadeout
+        gsap.to(mainMenu, {
+          opacity: 0,
+          pointerEvents: 'none',
+          duration: 0.5,
+          onComplete: () => {
+            mainMenu.style.display = 'none';
+          }
+        });
+      });
+
+      // Enter Battle from Menu
+      const btnEnterBattle = document.getElementById('btnEnterBattle');
+      btnEnterBattle.addEventListener('click', () => {
+        // Hide Main Menu
+        gsap.to(mainMenu, {
+          opacity: 0,
+          pointerEvents: 'none',
+          duration: 0.3,
+          onComplete: () => {
+            mainMenu.style.display = 'none';
+          }
+        });
+
+        // Start battle sequence
+        if (window.startBattleSequence) {
+          window.startBattleSequence();
+        }
+      });
+
+      // Modals
+      btnHowToPlay.addEventListener('click', () => {
+        modalHowToPlay.style.display = 'flex';
+        gsap.fromTo(modalHowToPlay.querySelector('.rpg-modal-content'), 
+          { scale: 0.8, opacity: 0 }, 
+          { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(1.7)' }
+        );
+      });
+
+      btnCloseHowToPlay.addEventListener('click', () => {
+        gsap.to(modalHowToPlay.querySelector('.rpg-modal-content'), {
+          scale: 0.8,
+          opacity: 0,
+          duration: 0.2,
+          onComplete: () => {
+            modalHowToPlay.style.display = 'none';
+          }
+        });
+      });
+
+      btnRecords.addEventListener('click', () => {
+        // Load latest stats
+        let gold = 100;
+        let harvests = 0;
+        let plantedPlots = 0;
+
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const state = JSON.parse(raw);
+            if (state) {
+              gold = typeof state.gold === 'number' ? state.gold : 100;
+              harvests = typeof state.harvests === 'number' ? state.harvests : 0;
+              xp = typeof state.xp === 'number' ? state.xp : harvests * 12;
+              
+              // Count planted plots
+              if (state.plots) {
+                plantedPlots = Object.values(state.plots).filter(p => p && p.cropKey !== null).length;
+              }
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+
+        const level = getLevelFromXp(xp);
+
+        recordGold.textContent = `${gold}g`;
+        recordLevel.textContent = `Lv ${level}`;
+        recordXp.textContent = `${xp} XP (${harvests} harvests)`;
+        recordPlanted.textContent = `${plantedPlots} / 12`;
+
+        modalRecords.style.display = 'flex';
+        gsap.fromTo(modalRecords.querySelector('.rpg-modal-content'), 
+          { scale: 0.8, opacity: 0 }, 
+          { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(1.7)' }
+        );
+      });
+
+      btnCloseRecords.addEventListener('click', () => {
+        gsap.to(modalRecords.querySelector('.rpg-modal-content'), {
+          scale: 0.8,
+          opacity: 0,
+          duration: 0.2,
+          onComplete: () => {
+            modalRecords.style.display = 'none';
+          }
+        });
+      });
+
+      // Reset Data
+      btnResetData.addEventListener('click', () => {
+        const confirmReset = confirm('Are you sure you want to RESET all your farming and battle progress? This cannot be undone.');
+        if (confirmReset) {
+          localStorage.removeItem(STORAGE_KEY);
+          window.location.reload();
+        }
+      });
+    });
   </script>
 </body>
 </html>

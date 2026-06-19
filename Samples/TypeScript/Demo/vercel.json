@@ -18,6 +18,7 @@
     { "source": "/features", "destination": "/features.html" },
     { "source": "/x402",     "destination": "/x402.html"     },
     { "source": "/lore",     "destination": "/lore.html"     },
-    { "source": "/utility",  "destination": "/utility.html"  }
+    { "source": "/utility",  "destination": "/utility.html"  },
+    { "source": "/game",     "destination": "/game/index.html" }
   ]
 }

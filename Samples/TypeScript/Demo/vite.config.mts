@@ -48,6 +48,49 @@ function createPumpfunStreamPlugin(): Plugin {
   };
 }
 
+function createStaticRouteAliasPlugin(): Plugin {
+  const routeMap = new Map<string, string>([
+    ['/about-us', '/about-us.html'],
+    ['/roadmap', '/roadmap.html'],
+    ['/docs', '/docs.html'],
+    ['/features', '/features.html'],
+    ['/x402', '/x402.html'],
+    ['/lore', '/lore.html'],
+    ['/utility', '/utility.html'],
+    ['/game', '/game/index.html'],
+  ]);
+
+  const attach = (server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) => {
+    server.middlewares.use((req, _res, next) => {
+      if (req.method !== 'GET' || !req.url) {
+        next();
+        return;
+      }
+
+      const requestUrl = new URL(req.url, 'http://127.0.0.1');
+      const rewriteTarget = routeMap.get(requestUrl.pathname);
+      if (!rewriteTarget) {
+        next();
+        return;
+      }
+
+      requestUrl.pathname = rewriteTarget;
+      req.url = `${requestUrl.pathname}${requestUrl.search}`;
+      next();
+    });
+  };
+
+  return {
+    name: 'haruka-static-route-alias',
+    configureServer(server) {
+      attach(server);
+    },
+    configurePreviewServer(server) {
+      attach(server);
+    }
+  };
+}
+
 function createHarukaChatPlugin(): Plugin {
   const readEmbedKeys = (): string[] =>
     String(process.env.HARUKA_EMBED_API_KEYS || '')
@@ -459,7 +502,7 @@ export default defineConfig((env: ConfigEnv): UserConfig => {
   }
 
   return {
-    plugins: [createPumpfunStreamPlugin(), createHarukaChatPlugin()],
+    plugins: [createPumpfunStreamPlugin(), createStaticRouteAliasPlugin(), createHarukaChatPlugin()],
     server: {
       port: 5000
     },
