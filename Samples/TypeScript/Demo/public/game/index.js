@@ -2237,6 +2237,7 @@ if (btnOpenMenu) {
 // =======================================================
 
 const HARUKA_PORTFOLIO_STORAGE_KEY = 'haruka.portfolio.context.v1'
+const HARUKA_SNAPSHOT_TIMEOUT_MS = 9000
 const HARUKA_TIER_DEFINITIONS = [
   { tier: 3, label: 'Forest Guard', minHaruka: 5000000, memoryDepth: 'legendary', perks: ['Everything Tier 2', 'Gaming companion mode', 'Swap inside chat', 'Deeper memory', 'Private community access', 'Name listed on website'] },
   { tier: 2, label: 'Partner', minHaruka: 2500000, memoryDepth: 'deep', perks: ['Everything Tier 1', 'Custom personality settings', 'Priority response', 'Reduced API rate (developers)', 'Early access new features', 'Exclusive background scenes'] },
@@ -2254,6 +2255,71 @@ function getWalletContext() {
     console.error(e)
   }
   return null
+}
+
+function createPortfolioContextFromSnapshot(walletAddress, walletProvider, snapshot, source = 'utility-page') {
+  const tier = detectHarukaTier(snapshot.haruka)
+  return {
+    walletAddress,
+    shortAddress: formatWalletAddress(walletAddress),
+    walletProvider,
+    sol: snapshot.sol || 0,
+    usdc: snapshot.usdc || 0,
+    haruka: snapshot.haruka || 0,
+    harukaPriceUsd: snapshot.harukaPriceUsd,
+    harukaChange24h: snapshot.harukaChange24h,
+    harukaMarketCap: snapshot.harukaMarketCap,
+    harukaVolume24h: snapshot.harukaVolume24h,
+    tier: tier.tier,
+    tierLabel: tier.label,
+    tierMinHaruka: tier.minHaruka,
+    memoryDepth: tier.memoryDepth,
+    unlockedPerks: getTierPerksForLevel(tier.tier),
+    capturedAt: snapshot.capturedAt || new Date().toISOString(),
+    source
+  }
+}
+
+async function fetchPortfolioSnapshot(walletAddress, timeoutMs = HARUKA_SNAPSHOT_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
+
+  try {
+    const response = await fetch('/api/haruka/portfolio-snapshot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ walletAddress }),
+      signal: controller.signal
+    })
+
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || 'HARUKA could not fetch the wallet snapshot.')
+    }
+
+    return payload
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Live wallet snapshot timed out. Retrying with cached context if available.')
+    }
+
+    throw error
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
+function getCachedWalletContextForAddress(walletAddress) {
+  const cached = getWalletContext()
+  if (!cached) {
+    return null
+  }
+
+  return cached.walletAddress === walletAddress ? cached : null
 }
 
 function getGoldMultiplier() {
@@ -2371,50 +2437,35 @@ async function connectWallet(kind) {
     }
 
     showFarmStatusMessage('Loading portfolio snapshot...')
-    const response = await fetch('/api/haruka/portfolio-snapshot', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ walletAddress })
-    })
+    let context
+    let usingCachedSnapshot = false
 
-    if (!response.ok) {
-      throw new Error('Server snapshot API error.')
-    }
+    try {
+      const snapshot = await fetchPortfolioSnapshot(walletAddress)
+      context = createPortfolioContextFromSnapshot(walletAddress, kind, snapshot, 'utility-page')
+    } catch (snapshotError) {
+      const cachedContext = getCachedWalletContextForAddress(walletAddress)
+      if (!cachedContext) {
+        throw snapshotError
+      }
 
-    const snapshot = await response.json()
-    if (!snapshot.ok) {
-      throw new Error(snapshot.error || 'Snapshot request failed.')
-    }
-
-    const tier = detectHarukaTier(snapshot.haruka)
-    const context = {
-      walletAddress,
-      shortAddress: formatWalletAddress(walletAddress),
-      walletProvider: kind,
-      sol: snapshot.sol || 0,
-      usdc: snapshot.usdc || 0,
-      haruka: snapshot.haruka || 0,
-      harukaPriceUsd: snapshot.harukaPriceUsd,
-      harukaChange24h: snapshot.harukaChange24h,
-      harukaMarketCap: snapshot.harukaMarketCap,
-      harukaVolume24h: snapshot.harukaVolume24h,
-      tier: tier.tier,
-      tierLabel: tier.label,
-      tierMinHaruka: tier.minHaruka,
-      memoryDepth: tier.memoryDepth,
-      unlockedPerks: getTierPerksForLevel(tier.tier),
-      capturedAt: snapshot.capturedAt,
-      source: 'utility-page'
+      usingCachedSnapshot = true
+      context = {
+        ...cachedContext,
+        walletProvider: kind,
+        source: 'cached-snapshot-fallback',
+        capturedAt: cachedContext.capturedAt || new Date().toISOString()
+      }
+      showFarmStatusMessage('Live snapshot is unavailable. Using the last cached wallet snapshot for now.')
     }
 
     window.localStorage.setItem(HARUKA_PORTFOLIO_STORAGE_KEY, JSON.stringify(context))
     farmState = loadFarmState(walletAddress)
     updateWalletNavbarUI(context)
+    const tier = detectHarukaTier(context.haruka)
     const accessGranted = hasHarukaGameAccess()
     const accessMessage = accessGranted
-      ? `Connected! active tier: ${tier.label}. HARUKA Realm access granted.`
+      ? `Connected! active tier: ${tier.label}. HARUKA Realm access granted${usingCachedSnapshot ? ' via cached snapshot' : ''}.`
       : `Connected, but access needs ${HARUKA_MIN_HOLD_TO_PLAY} $HARUKA. Current: ${formatHarukaAmount(context.haruka)} $HARUKA.`
     showFarmStatusMessage(accessMessage)
     triggerHarukaNarration(accessGranted ? 'loginGranted' : 'loginDenied', {
@@ -2428,8 +2479,14 @@ async function connectWallet(kind) {
     updateFarmUi(true)
   } catch (error) {
     console.error(error)
-    showFarmStatusMessage('Wallet connection failed.')
-    alert(`Wallet connection failed: ${error.message || error}`)
+    showFarmStatusMessage(`Wallet connection failed: ${error instanceof Error ? error.message : 'Unknown error.'}`)
+    try {
+      await provider.disconnect?.()
+    } catch (disconnectError) {
+      console.error(disconnectError)
+    }
+    alert(`Wallet connection failed: ${error instanceof Error ? error.message : error}`)
+    updateFarmUi(true)
   }
 }
 

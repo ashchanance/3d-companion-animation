@@ -35,6 +35,7 @@ const INSTALL_URLS: Record<HarukaPortfolioWalletProvider, string> = {
 };
 const OPEN_CHAT_URL = '/?mode=chat&portfolio=1';
 const PORTFOLIO_API_URL = '/api/haruka/portfolio-snapshot';
+const PORTFOLIO_SNAPSHOT_TIMEOUT_MS = 9000;
 
 const connectPhantomBtn = document.getElementById('connect-phantom-btn') as HTMLButtonElement | null;
 const connectSolflareBtn = document.getElementById('connect-solflare-btn') as HTMLButtonElement | null;
@@ -270,20 +271,36 @@ function stopActiveGreetingPlayback(): void {
 }
 
 async function fetchPortfolioSnapshot(walletAddress: string): Promise<PortfolioSnapshotResponse> {
-  const response = await fetch(PORTFOLIO_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ walletAddress })
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    controller.abort();
+  }, PORTFOLIO_SNAPSHOT_TIMEOUT_MS);
 
-  const payload = (await response.json()) as PortfolioSnapshotResponse;
-  if (!response.ok || !payload.ok) {
-    throw new Error(payload.error || 'HARUKA could not fetch the wallet snapshot.');
+  try {
+    const response = await fetch(PORTFOLIO_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ walletAddress }),
+      signal: controller.signal
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as PortfolioSnapshotResponse;
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || 'HARUKA could not fetch the wallet snapshot.');
+    }
+
+    return payload;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Live wallet snapshot timed out. Please retry in a moment.');
+    }
+
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-
-  return payload;
 }
 
 function speakGreetingWebSpeech(message: string): void {

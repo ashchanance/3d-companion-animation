@@ -2,6 +2,8 @@ const ROUTE_VERSION = 'api-haruka-portfolio-snapshot-2026-06-10-v1';
 const DEFAULT_RPC_URL = 'https://api.mainnet-beta.solana.com';
 const HARUKA_MINT = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const RPC_TIMEOUT_MS = 8000;
+const PRICE_TIMEOUT_MS = 5000;
 
 let cachedSolanaSdkPromise = null;
 
@@ -45,6 +47,21 @@ function isRpcForbiddenError(error) {
   return message.includes('403') || message.toLowerCase().includes('access forbidden');
 }
 
+function withTimeout(promise, timeoutMs, label) {
+  let timeoutId = null;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms.`));
+    }, timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  });
+}
+
 async function loadSolanaSdk() {
   if (!cachedSolanaSdkPromise) {
     cachedSolanaSdkPromise = import('@solana/web3.js')
@@ -66,13 +83,21 @@ async function loadSolanaSdk() {
 }
 
 async function getParsedTokenBalance(connection, owner, mint) {
-  const response = await connection.getParsedTokenAccountsByOwner(owner, { mint });
+  const response = await withTimeout(
+    connection.getParsedTokenAccountsByOwner(owner, { mint }),
+    RPC_TIMEOUT_MS,
+    'Parsed token balance lookup'
+  );
   const tokenAmount = response.value[0]?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
   return typeof tokenAmount === 'number' && Number.isFinite(tokenAmount) ? tokenAmount : 0;
 }
 
 async function getHarukaPrice() {
-  const response = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${HARUKA_MINT}`);
+  const response = await withTimeout(
+    fetch(`https://api.dexscreener.com/latest/dex/tokens/${HARUKA_MINT}`),
+    PRICE_TIMEOUT_MS,
+    'DexScreener price lookup'
+  );
   if (!response.ok) {
     throw new Error(`DexScreener returned ${response.status} for HARUKA market snapshot.`);
   }
@@ -124,7 +149,7 @@ module.exports = async function handler(request, response) {
     const usdcMint = new sdk.PublicKey(USDC_MINT);
 
     const [solLamports, usdcBalance, harukaBalance, priceSnapshot] = await Promise.all([
-      connection.getBalance(owner),
+      withTimeout(connection.getBalance(owner), RPC_TIMEOUT_MS, 'SOL balance lookup'),
       getParsedTokenBalance(connection, owner, usdcMint).catch(() => 0),
       getParsedTokenBalance(connection, owner, harukaMint).catch(() => 0),
       getHarukaPrice().catch(() => ({
@@ -147,11 +172,14 @@ module.exports = async function handler(request, response) {
     });
   } catch (error) {
     const rpcForbidden = isRpcForbiddenError(error);
+    const timedOut = String(error && error.message ? error.message : error || '').toLowerCase().includes('timed out');
     response.status(rpcForbidden ? 503 : 500).json({
       ok: false,
-      code: rpcForbidden ? 'RPC_FORBIDDEN' : 'PORTFOLIO_SNAPSHOT_FAILED',
+      code: rpcForbidden ? 'RPC_FORBIDDEN' : timedOut ? 'PORTFOLIO_SNAPSHOT_TIMEOUT' : 'PORTFOLIO_SNAPSHOT_FAILED',
       error: rpcForbidden
         ? 'The Solana RPC provider rejected this portfolio lookup. Configure HARUKA_UTILITY_RPC_URL or HARUKA_BUYBACK_RPC_URL with a dedicated mainnet RPC.'
+        : timedOut
+          ? 'Live wallet snapshot timed out. Retry in a moment or use the last cached wallet snapshot.'
         : String(error && error.message ? error.message : error || 'Unknown portfolio snapshot error.'),
       routeVersion: ROUTE_VERSION
     });
