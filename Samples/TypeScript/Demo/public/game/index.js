@@ -1,4 +1,4 @@
-const canvas = document.querySelector('#haruka-game-canvas')
+﻿const canvas = document.querySelector('#haruka-game-canvas')
 if (!canvas) {
   throw new Error('Missing #haruka-game-canvas element for the HARUKA game route.')
 }
@@ -27,13 +27,49 @@ const farmUi = {
   seedButtons: Array.from(document.querySelectorAll('[data-farm-seed]')),
   xpBar: document.querySelector('#farmXpBar'),
   xpValue: document.querySelector('#farmXpValue'),
-  actionKeyBadge: document.querySelector('.rpg-key-badge')
+  actionKeyBadge: document.querySelector('.rpg-key-badge'),
+  harukaValue: document.querySelector('#farmHarukaValue'),
+  unclaimedValue: document.querySelector('#farmUnclaimedValue'),
+  dailyCapValue: document.querySelector('#farmDailyCapValue'),
+  streakValue: document.querySelector('#farmStreakValue'),
+  claimButton: document.querySelector('#btnClaimRewards'),
+  economyGate: document.querySelector('#economyGatePanel'),
+  economyGateBalance: document.querySelector('#economyGateBalance'),
+  economyGateStatus: document.querySelector('#economyGateStatus'),
+  economyTabButtons: Array.from(document.querySelectorAll('[data-economy-view]')),
+  economyPanels: Array.from(document.querySelectorAll('[data-economy-panel]')),
+  marketInventoryValue: document.querySelector('#marketInventoryValue'),
+  marketShopValue: document.querySelector('#marketShopValue'),
+  marketSellerValue: document.querySelector('#marketSellerValue'),
+  marketRevenueValue: document.querySelector('#marketRevenueValue'),
+  marketBurnValue: document.querySelector('#marketBurnValue'),
+  marketRefillValue: document.querySelector('#marketRefillValue'),
+  marketStatusValue: document.querySelector('#marketStatusValue'),
+  sellInventoryButton: document.querySelector('#btnSellInventory'),
+  revenueWeekPoolValue: document.querySelector('#revenueWeekPoolValue'),
+  revenueEstimateValue: document.querySelector('#revenueEstimateValue'),
+  revenueNextValue: document.querySelector('#revenueNextValue'),
+  revenueBoostValue: document.querySelector('#revenueBoostValue')
 }
 
 const FARM_STORAGE_KEY = 'haruka-realm-canvas-farm-v1'
 const FARM_TILE_SIZE = 48
 const FARM_SPRITE_SIZE = 16
 const FARM_SEED_ORDER = ['carrot', 'potato', 'tomato', 'strawberry', 'lettuce', 'pumpkin']
+const HARUKA_MINT = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump'
+const TREASURY_WALLET = '5o5fW5CYtaYLRwdNoJeXhfajvwX48X1NxvXqtbXmtJHb'
+const HARUKA_MIN_HOLD_TO_PLAY = 1000
+const HARUKA_INITIAL_REWARD_POOL = 500000
+const HARUKA_MIN_CLAIM = 100
+const HARUKA_CLAIM_BURN_RATE = 0.02
+const MARKETPLACE_FEE_SPLIT = {
+  seller: 0.6,
+  revenue: 0.3,
+  burn: 0.067,
+  rewardPool: 0.033
+}
+const REVENUE_SHARE_REFERENCE_SUPPLY = 25000000
+const STREAK_MILESTONES = new Set([3, 5, 7])
 const FARM_PLOT_BLUEPRINTS = [
   { id: 'meadow-1', fieldId: 'meadow-field', tileX: 26, tileY: 24, cropKey: 'carrot', plantedOffsetMs: 42000 },
   { id: 'meadow-2', fieldId: 'meadow-field', tileX: 27, tileY: 24, cropKey: 'potato', plantedOffsetMs: 52000 },
@@ -58,49 +94,55 @@ const FARM_CROPS = {
   carrot: {
     label: 'Carrot',
     row: 2,
-    growMs: 90000,
+    growMs: 10000,
     cost: 12,
     sellPrice: 25,
+    harukaReward: 5,
     level: 1
   },
   potato: {
     label: 'Potato',
     row: 3,
-    growMs: 150000,
+    growMs: 20000,
     cost: 18,
     sellPrice: 50,
+    harukaReward: 12,
     level: 1
   },
   tomato: {
     label: 'Tomato',
     row: 4,
-    growMs: 240000,
+    growMs: 35000,
     cost: 28,
     sellPrice: 90,
+    harukaReward: 25,
     level: 2
   },
   strawberry: {
     label: 'Strawberry',
     row: 1,
-    growMs: 360000,
+    growMs: 55000,
     cost: 42,
     sellPrice: 160,
+    harukaReward: 50,
     level: 3
   },
   lettuce: {
     label: 'Lettuce',
     row: 5,
-    growMs: 540000,
+    growMs: 80000,
     cost: 60,
     sellPrice: 240,
+    harukaReward: 80,
     level: 4
   },
   pumpkin: {
     label: 'Pumpkin',
     row: 0,
-    growMs: 720000,
+    growMs: 115000,
     cost: 90,
     sellPrice: 380,
+    harukaReward: 130,
     level: 5
   }
 }
@@ -111,6 +153,20 @@ farmUi.seedButtons.forEach((button) => {
     setSelectedFarmSeed(seedKey)
   })
 })
+
+if (farmUi.claimButton) {
+  farmUi.claimButton.addEventListener('click', claimHarukaRewards)
+}
+
+farmUi.economyTabButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    setEconomyView(button.dataset.economyView)
+  })
+})
+
+if (farmUi.sellInventoryButton) {
+  farmUi.sellInventoryButton.addEventListener('click', sellAllInventoryToShop)
+}
 
 const collisionsMap = []
 for (let i = 0; i < collisions.length; i += 70) {
@@ -476,9 +532,91 @@ function animate() {
 
 let farmUiLastRefresh = 0
 let farmMessageTimeoutId = 0
+let harukaNarrationTimeoutId = 0
+let currentEconomyView = 'harvest'
 let farmHintOverride = {
   text: '',
   expiresAt: 0
+}
+
+const HARUKA_EVENT_SCRIPTS = {
+  loginGranted: [
+    ({ shortAddress }) => `Welcome back, ${shortAddress}. The gates are open and the farm remembers you.`,
+    ({ shortAddress }) => `I checked your wallet, ${shortAddress}. You are clear to enter Haruka's Realm.`
+  ],
+  loginDenied: [
+    ({ balance }) => `I can see ${formatHarukaAmount(balance)} $HARUKA right now. We still need 1,000 before I can open the realm.`,
+    ({ balance }) => `The wallet is connected, but only ${formatHarukaAmount(balance)} $HARUKA is showing. Bring it above the gate and I will let you in.`
+  ],
+  plant: [
+    ({ cropLabel, zoneLabel }) => `${cropLabel} is in the soil at ${zoneLabel}. I will keep an eye on that patch for you.`,
+    ({ cropLabel }) => `${cropLabel} planted. Good choice. It should keep the harvest loop moving.`
+  ],
+  harvest: [
+    ({ cropCount, harukaAmount }) => `Clean harvest. ${cropCount} plots converted into ${formatHarukaAmount(harukaAmount)} unclaimed $HARUKA.`,
+    ({ goldAmount }) => `That run looked efficient. Gold is up by ${goldAmount} and the farm pace is holding.`
+  ],
+  lucky: [
+    ({ cropLabel, harukaAmount }) => `Lucky break. ${cropLabel} doubled the reward and pushed ${formatHarukaAmount(harukaAmount)} $HARUKA into your stack.`
+  ],
+  superLucky: [
+    ({ cropLabel, harukaAmount }) => `That was a real spike. ${cropLabel} hit super lucky and dumped ${formatHarukaAmount(harukaAmount)} $HARUKA at once.`
+  ],
+  jackpot: [
+    ({ cropLabel, harukaAmount }) => `Jackpot confirmed. ${cropLabel} just exploded into ${formatHarukaAmount(harukaAmount)} $HARUKA. Screenshot-worthy.`
+  ],
+  streakMilestone: [
+    ({ streakDays, streakMultiplier }) => `Day ${streakDays} streak. The reward engine is running at ${streakMultiplier.toFixed(1)}x now.`,
+    ({ streakDays }) => `You held the streak through day ${streakDays}. That consistency is compounding.`
+  ],
+  dailyCap: [
+    ({ dailyCap }) => `Daily harvest cap reached at ${formatHarukaAmount(dailyCap)} $HARUKA. Next step is inventory management or marketplace prep.`
+  ],
+  claim: [
+    ({ netClaimed, burned }) => `Claim ledger updated. ${formatHarukaAmount(netClaimed)} $HARUKA is queued net and ${formatHarukaAmount(burned)} was marked for burn.`,
+    ({ netClaimed }) => `Claim request staged locally for ${formatHarukaAmount(netClaimed)} $HARUKA. Treasury settlement still belongs to the backend.`
+  ],
+  levelUp: [
+    ({ level }) => `Level ${level}. The farm is scaling with you now.`,
+    ({ level }) => `You just hit level ${level}. I can feel the loop tightening.`
+  ],
+  sellInventory: [
+    ({ goldAmount, cropCount }) => `Inventory cleared into ${goldAmount} gold across ${cropCount} crops. Clean shop turnover.`,
+    ({ goldAmount }) => `Shop sale completed. ${goldAmount} gold is back in circulation for seeds and expansion.`
+  ],
+  walletDisconnected: [
+    () => `Wallet link removed. I switched the farm back to local guest mode.`
+  ]
+}
+
+function pickHarukaScript(eventKey, payload = {}) {
+  const candidates = HARUKA_EVENT_SCRIPTS[eventKey]
+  if (!Array.isArray(candidates) || !candidates.length) {
+    return ''
+  }
+
+  const candidate = candidates[Math.floor(Math.random() * candidates.length)]
+  return typeof candidate === 'function' ? candidate(payload) : String(candidate)
+}
+
+function triggerHarukaNarration(eventKey, payload = {}) {
+  if (!farmUi.dialogueBox || battle.initiated || player.isInteracting) {
+    return
+  }
+
+  const message = pickHarukaScript(eventKey, payload)
+  if (!message) {
+    return
+  }
+
+  farmUi.dialogueBox.innerHTML = message
+  farmUi.dialogueBox.style.display = 'flex'
+  window.clearTimeout(harukaNarrationTimeoutId)
+  harukaNarrationTimeoutId = window.setTimeout(() => {
+    if (!player.isInteracting) {
+      farmUi.dialogueBox.style.display = 'none'
+    }
+  }, 5000)
 }
 
 function getPlayerLevel() {
@@ -718,6 +856,379 @@ function persistFarmState() {
   window.localStorage.setItem(key, JSON.stringify(farmState))
 }
 
+function toFiniteFarmNumber(value, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function getFarmDateKey(offsetDays = 0) {
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  date.setDate(date.getDate() + offsetDays)
+  return date.toISOString().slice(0, 10)
+}
+
+function createEmptyInventory() {
+  return FARM_SEED_ORDER.reduce((inventory, seedKey) => {
+    inventory[seedKey] = 0
+    return inventory
+  }, {})
+}
+
+function normalizeInventory(value) {
+  const inventory = createEmptyInventory()
+  FARM_SEED_ORDER.forEach((seedKey) => {
+    inventory[seedKey] = Math.max(0, Math.floor(toFiniteFarmNumber(value?.[seedKey], 0)))
+  })
+  return inventory
+}
+
+function createDailyRewards(date = getFarmDateKey()) {
+  return {
+    date,
+    earned: 0,
+    claimed: 0,
+    claimCount: 0
+  }
+}
+
+function normalizeDailyRewards(value) {
+  const today = getFarmDateKey()
+  if (!value || value.date !== today) {
+    return createDailyRewards(today)
+  }
+
+  return {
+    date: today,
+    earned: Math.max(0, toFiniteFarmNumber(value.earned, 0)),
+    claimed: Math.max(0, toFiniteFarmNumber(value.claimed, 0)),
+    claimCount: Math.max(0, Math.floor(toFiniteFarmNumber(value.claimCount, 0)))
+  }
+}
+
+function getDailyCapFromPool(poolBalance) {
+  if (poolBalance > 400000) return 1000
+  if (poolBalance > 200000) return 600
+  if (poolBalance > 50000) return 300
+  if (poolBalance > 10000) return 100
+  return 0
+}
+
+function getDailyCapForState() {
+  return getDailyCapFromPool(farmState?.rewardPoolBalance ?? HARUKA_INITIAL_REWARD_POOL)
+}
+
+function getStreakMultiplier(consecutiveDays) {
+  if (consecutiveDays >= 7) return 1.7
+  if (consecutiveDays >= 5) return 1.4
+  if (consecutiveDays >= 3) return 1.2
+  if (consecutiveDays >= 2) return 1.1
+  return 1.0
+}
+
+function rollLuckyHarvest() {
+  const roll = Math.random()
+  if (roll < 0.005) return { type: 'jackpot', multi: 10, label: 'JACKPOT' }
+  if (roll < 0.03) return { type: 'super_lucky', multi: 5, label: 'SUPER LUCKY' }
+  if (roll < 0.15) return { type: 'lucky', multi: 2, label: 'LUCKY' }
+  return { type: 'normal', multi: 1, label: 'Normal' }
+}
+
+function formatHarukaAmount(value) {
+  const amount = Math.max(0, toFiniteFarmNumber(value, 0))
+  if (amount >= 1000000) return `${(amount / 1000000).toFixed(2)}M`
+  if (amount >= 1000) return `${(amount / 1000).toFixed(1)}K`
+  return Number.isInteger(amount) ? String(amount) : amount.toFixed(2)
+}
+
+function getWalletHarukaBalance() {
+  const wallet = getWalletContext()
+  return Math.max(0, toFiniteFarmNumber(wallet?.haruka, 0))
+}
+
+function hasHarukaGameAccess() {
+  return getWalletHarukaBalance() >= HARUKA_MIN_HOLD_TO_PLAY
+}
+
+function getAccessGateMessage() {
+  const balance = getWalletHarukaBalance()
+  if (!getWalletContext()) {
+    return `Connect a Solana wallet holding at least ${HARUKA_MIN_HOLD_TO_PLAY} $HARUKA to enter Haruka's Realm.`
+  }
+
+  return `Hold at least ${HARUKA_MIN_HOLD_TO_PLAY} $HARUKA to enter. Current balance: ${formatHarukaAmount(balance)} $HARUKA.`
+}
+
+function getHolderRevenueBoost(balance) {
+  if (balance >= 5000000) return 1.15
+  if (balance >= 1000000) return 1.1
+  if (balance >= 100000) return 1.05
+  return 1.0
+}
+
+function getInventoryEntries() {
+  const inventory = normalizeInventory(farmState.inventory)
+  return FARM_SEED_ORDER
+    .map((cropKey) => ({ cropKey, quantity: inventory[cropKey], crop: FARM_CROPS[cropKey] }))
+    .filter((entry) => entry.quantity > 0)
+}
+
+function getInventoryMarketSnapshot() {
+  const entries = getInventoryEntries()
+  return entries.reduce((summary, entry) => {
+    summary.cropCount += entry.quantity
+    summary.shopValue += entry.quantity * entry.crop.sellPrice
+    summary.referenceHarukaValue += entry.quantity * entry.crop.harukaReward
+    return summary
+  }, {
+    cropCount: 0,
+    shopValue: 0,
+    referenceHarukaValue: 0
+  })
+}
+
+function formatInventorySummaryText() {
+  const entries = getInventoryEntries()
+  if (!entries.length) {
+    return 'No crops stored.'
+  }
+
+  return entries
+    .map((entry) => `${entry.crop.label} x${entry.quantity}`)
+    .join(' | ')
+}
+
+function setEconomyView(nextView) {
+  if (!nextView || currentEconomyView === nextView) {
+    return
+  }
+
+  currentEconomyView = nextView
+  updateEconomyUi()
+}
+
+function sellAllInventoryToShop() {
+  const snapshot = getInventoryMarketSnapshot()
+  if (!snapshot.cropCount) {
+    showFarmStatusMessage('No crop inventory is ready for the shop yet.')
+    updateFarmUi(true)
+    return
+  }
+
+  farmState.gold += snapshot.shopValue
+  farmState.inventory = createEmptyInventory()
+  persistFarmState()
+  showFarmStatusMessage(`Sold ${snapshot.cropCount} stored crops to the shop for ${snapshot.shopValue}g.`)
+  triggerHarukaNarration('sellInventory', {
+    goldAmount: snapshot.shopValue,
+    cropCount: snapshot.cropCount
+  })
+  updateFarmUi(true)
+}
+function refreshDailyRewards() {
+  farmState.dailyRewards = normalizeDailyRewards(farmState.dailyRewards)
+  return farmState.dailyRewards
+}
+
+function updateHarvestStreak() {
+  const today = getFarmDateKey()
+  const yesterday = getFarmDateKey(-1)
+
+  if (farmState.lastHarvestDate === today) {
+    return farmState.loginStreak || 1
+  }
+
+  farmState.loginStreak = farmState.lastHarvestDate === yesterday ? (farmState.loginStreak || 0) + 1 : 1
+  farmState.lastHarvestDate = today
+  return farmState.loginStreak
+}
+
+function recordInventoryHarvest(cropKey, quantity = 1) {
+  farmState.inventory = normalizeInventory(farmState.inventory)
+  farmState.inventory[cropKey] = (farmState.inventory[cropKey] || 0) + quantity
+}
+
+function creditHarukaHarvestReward({ cropKey, crop, plotId, plantedAt, streakMultiplier, luckyRoll, remainingDailyCap }) {
+  const uncappedReward = Math.round(crop.harukaReward * streakMultiplier * luckyRoll.multi)
+  const reward = Math.max(0, Math.min(uncappedReward, remainingDailyCap, farmState.rewardPoolBalance || 0))
+  const now = Date.now()
+
+  farmState.unclaimedHaruka += reward
+  farmState.totalEarnedHaruka += reward
+  farmState.rewardPoolBalance = Math.max(0, farmState.rewardPoolBalance - reward)
+  farmState.dailyRewards.earned += reward
+  farmState.harvestLog.unshift({
+    cropKey,
+    plotId,
+    plantedAt,
+    harvestedAt: now,
+    baseReward: crop.harukaReward,
+    streakMultiplier,
+    luckyMultiplier: luckyRoll.multi,
+    luckyType: luckyRoll.type,
+    finalReward: reward,
+    uncappedReward
+  })
+  farmState.harvestLog = farmState.harvestLog.slice(0, 30)
+
+  return { reward, uncappedReward }
+}
+
+function claimHarukaRewards() {
+  refreshDailyRewards()
+  const claimable = Math.floor(farmState.unclaimedHaruka)
+  if (claimable < HARUKA_MIN_CLAIM) {
+    showFarmStatusMessage(`Claim minimum is ${HARUKA_MIN_CLAIM} $HARUKA. Unclaimed: ${formatHarukaAmount(farmState.unclaimedHaruka)} $HARUKA.`)
+    updateFarmUi(true)
+    return
+  }
+
+  const burned = Number((claimable * HARUKA_CLAIM_BURN_RATE).toFixed(2))
+  const netClaimed = Number((claimable - burned).toFixed(2))
+  const simulatedSignature = `local-claim-${Date.now().toString(36)}`
+
+  farmState.unclaimedHaruka = Math.max(0, farmState.unclaimedHaruka - claimable)
+  farmState.totalClaimedHaruka += netClaimed
+  farmState.totalBurnedHaruka += burned
+  farmState.dailyRewards.claimed += claimable
+  farmState.dailyRewards.claimCount += 1
+  farmState.claimTransactions.unshift({
+    amount: claimable,
+    netClaimed,
+    burned,
+    txSignature: simulatedSignature,
+    claimedAt: new Date().toISOString(),
+    mode: 'local-simulation'
+  })
+  farmState.claimTransactions = farmState.claimTransactions.slice(0, 20)
+  persistFarmState()
+  showFarmStatusMessage(`Claim queued locally: ${formatHarukaAmount(netClaimed)} $HARUKA net, ${formatHarukaAmount(burned)} burned. Treasury transfer backend still required.`)
+  triggerHarukaNarration('claim', { netClaimed, burned })
+  updateFarmUi(true)
+}
+
+function updateEconomyUi() {
+  refreshDailyRewards()
+  const wallet = getWalletContext()
+  const walletBalance = getWalletHarukaBalance()
+  const dailyCap = getDailyCapForState()
+  const remainingDaily = Math.max(0, dailyCap - farmState.dailyRewards.earned)
+  const hasAccess = hasHarukaGameAccess()
+  const inventorySnapshot = getInventoryMarketSnapshot()
+  const revenueBoost = getHolderRevenueBoost(walletBalance)
+  const estimatedRevenueShare = Math.floor((farmState.marketStats.revenueSharePool || 0) * (walletBalance / REVENUE_SHARE_REFERENCE_SUPPLY) * revenueBoost)
+
+  if (farmUi.harukaValue) {
+    farmUi.harukaValue.textContent = `${formatHarukaAmount(walletBalance)} $HARUKA`
+  }
+
+  if (farmUi.unclaimedValue) {
+    farmUi.unclaimedValue.textContent = `${formatHarukaAmount(farmState.unclaimedHaruka)} $HARUKA`
+  }
+
+  if (farmUi.dailyCapValue) {
+    farmUi.dailyCapValue.textContent = `${formatHarukaAmount(farmState.dailyRewards.earned)} / ${formatHarukaAmount(dailyCap)}`
+  }
+
+  if (farmUi.streakValue) {
+    const streak = farmState.loginStreak || 0
+    farmUi.streakValue.textContent = `Day ${streak || 1} (${getStreakMultiplier(streak || 1).toFixed(1)}x)`
+  }
+
+  if (farmUi.claimButton) {
+    farmUi.claimButton.disabled = farmState.unclaimedHaruka < HARUKA_MIN_CLAIM
+    farmUi.claimButton.textContent = farmState.unclaimedHaruka >= HARUKA_MIN_CLAIM ? 'Claim Rewards' : `Claim at ${HARUKA_MIN_CLAIM}`
+  }
+
+  if (farmUi.economyGate) {
+    farmUi.economyGate.hidden = hasAccess
+  }
+
+  if (farmUi.economyGateBalance) {
+    farmUi.economyGateBalance.textContent = `${formatHarukaAmount(walletBalance)} $HARUKA`
+  }
+
+  if (farmUi.economyGateStatus) {
+    farmUi.economyGateStatus.textContent = hasAccess ? `Access granted. ${formatHarukaAmount(remainingDaily)} $HARUKA reward cap remains today.` : getAccessGateMessage()
+  }
+
+  if (farmUi.marketInventoryValue) {
+    farmUi.marketInventoryValue.textContent = formatInventorySummaryText()
+  }
+
+  if (farmUi.marketShopValue) {
+    farmUi.marketShopValue.textContent = `${inventorySnapshot.shopValue}g`
+  }
+
+  if (farmUi.marketSellerValue) {
+    farmUi.marketSellerValue.textContent = `${formatHarukaAmount(inventorySnapshot.referenceHarukaValue * MARKETPLACE_FEE_SPLIT.seller)} $HARUKA`
+  }
+
+  if (farmUi.marketRevenueValue) {
+    farmUi.marketRevenueValue.textContent = `${formatHarukaAmount(inventorySnapshot.referenceHarukaValue * MARKETPLACE_FEE_SPLIT.revenue)} $HARUKA`
+  }
+
+  if (farmUi.marketBurnValue) {
+    farmUi.marketBurnValue.textContent = `${formatHarukaAmount(inventorySnapshot.referenceHarukaValue * MARKETPLACE_FEE_SPLIT.burn)} $HARUKA`
+  }
+
+  if (farmUi.marketRefillValue) {
+    farmUi.marketRefillValue.textContent = `${formatHarukaAmount(inventorySnapshot.referenceHarukaValue * MARKETPLACE_FEE_SPLIT.rewardPool)} $HARUKA`
+  }
+
+  if (farmUi.marketStatusValue) {
+    farmUi.marketStatusValue.textContent = inventorySnapshot.cropCount
+      ? `Local inventory is ready. Marketplace listing and SPL settlement still need backend routes.`
+      : 'Harvest crops first. Inventory appears here before shop sale or marketplace listing.'
+  }
+
+  if (farmUi.sellInventoryButton) {
+    farmUi.sellInventoryButton.disabled = inventorySnapshot.cropCount === 0
+  }
+
+  if (farmUi.revenueWeekPoolValue) {
+    farmUi.revenueWeekPoolValue.textContent = `${formatHarukaAmount(farmState.marketStats.revenueSharePool || 0)} $HARUKA`
+  }
+
+  if (farmUi.revenueEstimateValue) {
+    farmUi.revenueEstimateValue.textContent = walletBalance >= HARUKA_MIN_HOLD_TO_PLAY
+      ? `${formatHarukaAmount(estimatedRevenueShare)} $HARUKA (local est.)`
+      : 'Hold 1,000+ $HARUKA to qualify.'
+  }
+
+  if (farmUi.revenueNextValue) {
+    farmUi.revenueNextValue.textContent = 'Sunday 00:00 UTC'
+  }
+
+  if (farmUi.revenueBoostValue) {
+    farmUi.revenueBoostValue.textContent = `${Math.round((revenueBoost - 1) * 100)}% holder boost`
+  }
+
+  farmUi.economyTabButtons.forEach((button) => {
+    const isActive = button.dataset.economyView === currentEconomyView
+    button.classList.toggle('is-active', isActive)
+    button.setAttribute('aria-selected', isActive ? 'true' : 'false')
+  })
+
+  farmUi.economyPanels.forEach((panel) => {
+    panel.hidden = panel.dataset.economyPanel !== currentEconomyView
+  })
+
+  const btnPlay = document.getElementById('btnPlayGame')
+  const btnBattle = document.getElementById('btnEnterBattle')
+  if (btnPlay) {
+    btnPlay.disabled = !hasAccess
+    btnPlay.title = hasAccess ? 'Enter Haruka Realm' : getAccessGateMessage()
+  }
+  if (btnBattle) {
+    btnBattle.disabled = !hasAccess
+    btnBattle.title = hasAccess ? 'Enter battle' : getAccessGateMessage()
+  }
+
+  const dropdownBalance = document.getElementById('walletDropdownBalance')
+  if (dropdownBalance) {
+    dropdownBalance.textContent = wallet ? `${formatHarukaAmount(walletBalance)} $HARUKA` : 'Not Connected'
+  }
+}
 function createBaseFarmState() {
   const plots = {}
 
@@ -733,7 +1244,24 @@ function createBaseFarmState() {
     harvests: 0,
     xp: 0,
     selectedSeed: 'carrot',
-    plots
+    plots,
+    inventory: createEmptyInventory(),
+    unclaimedHaruka: 0,
+    totalEarnedHaruka: 0,
+    totalClaimedHaruka: 0,
+    totalBurnedHaruka: 0,
+    rewardPoolBalance: HARUKA_INITIAL_REWARD_POOL,
+    loginStreak: 0,
+    lastHarvestDate: null,
+    dailyRewards: createDailyRewards(),
+    harvestLog: [],
+    claimTransactions: [],
+    marketStats: {
+      marketplaceVolume: 0,
+      revenueSharePool: 0,
+      burnedFromTrades: 0,
+      rewardPoolRefill: 0
+    }
   }
 }
 
@@ -770,13 +1298,36 @@ function normalizeFarmState(parsed, fallbackState) {
         ? parsed.xp
         : fallbackState.xp,
     selectedSeed: FARM_CROPS[parsed?.selectedSeed] ? parsed.selectedSeed : fallbackState.selectedSeed,
-    plots
+    plots,
+    inventory: normalizeInventory(parsed?.inventory || fallbackState.inventory),
+    unclaimedHaruka: Math.max(0, toFiniteFarmNumber(parsed?.unclaimedHaruka, fallbackState.unclaimedHaruka)),
+    totalEarnedHaruka: Math.max(0, toFiniteFarmNumber(parsed?.totalEarnedHaruka, fallbackState.totalEarnedHaruka)),
+    totalClaimedHaruka: Math.max(0, toFiniteFarmNumber(parsed?.totalClaimedHaruka, fallbackState.totalClaimedHaruka)),
+    totalBurnedHaruka: Math.max(0, toFiniteFarmNumber(parsed?.totalBurnedHaruka, fallbackState.totalBurnedHaruka)),
+    rewardPoolBalance: Math.max(0, toFiniteFarmNumber(parsed?.rewardPoolBalance, fallbackState.rewardPoolBalance)),
+    loginStreak: Math.max(0, Math.floor(toFiniteFarmNumber(parsed?.loginStreak, fallbackState.loginStreak))),
+    lastHarvestDate: typeof parsed?.lastHarvestDate === 'string' ? parsed.lastHarvestDate : fallbackState.lastHarvestDate,
+    dailyRewards: normalizeDailyRewards(parsed?.dailyRewards || fallbackState.dailyRewards),
+    harvestLog: Array.isArray(parsed?.harvestLog) ? parsed.harvestLog.slice(0, 30) : fallbackState.harvestLog,
+    claimTransactions: Array.isArray(parsed?.claimTransactions) ? parsed.claimTransactions.slice(0, 20) : fallbackState.claimTransactions,
+    marketStats: {
+      marketplaceVolume: Math.max(0, toFiniteFarmNumber(parsed?.marketStats?.marketplaceVolume, fallbackState.marketStats.marketplaceVolume)),
+      revenueSharePool: Math.max(0, toFiniteFarmNumber(parsed?.marketStats?.revenueSharePool, fallbackState.marketStats.revenueSharePool)),
+      burnedFromTrades: Math.max(0, toFiniteFarmNumber(parsed?.marketStats?.burnedFromTrades, fallbackState.marketStats.burnedFromTrades)),
+      rewardPoolRefill: Math.max(0, toFiniteFarmNumber(parsed?.marketStats?.rewardPoolRefill, fallbackState.marketStats.rewardPoolRefill))
+    }
   }
 }
 
 
 
 function harvestFarmZone(zone) {
+  if (!hasHarukaGameAccess()) {
+    showFarmStatusMessage(getAccessGateMessage())
+    updateFarmUi(true)
+    return
+  }
+
   const readyPlotIds = getReadyFarmPlots(zone)
 
   if (!readyPlotIds.length) {
@@ -791,15 +1342,38 @@ function harvestFarmZone(zone) {
     return
   }
 
+  refreshDailyRewards()
+  const streakDays = updateHarvestStreak()
+  const streakMultiplier = getStreakMultiplier(streakDays)
+  const dailyCap = getDailyCapForState()
+  let remainingDailyCap = Math.max(0, dailyCap - farmState.dailyRewards.earned)
   let totalGold = 0
   let totalXp = 0
+  let totalHaruka = 0
+  let strongestLucky = null
   const multiplier = getGoldMultiplier()
+
   readyPlotIds.forEach((plotId) => {
     const plotState = farmState.plots[plotId]
-    const crop = FARM_CROPS[plotState.cropKey]
+    const cropKey = plotState.cropKey
+    const crop = FARM_CROPS[cropKey]
+    const plantedAt = plotState.plantedAt
+    const luckyRoll = rollLuckyHarvest()
+    const rewardResult = creditHarukaHarvestReward({
+      cropKey,
+      crop,
+      plotId,
+      plantedAt,
+      streakMultiplier,
+      luckyRoll,
+      remainingDailyCap
+    })
+
+    remainingDailyCap = Math.max(0, remainingDailyCap - rewardResult.reward)
+    totalHaruka += rewardResult.reward
     totalGold += Math.round(crop.sellPrice * multiplier)
-    
-    // Add crop XP based on dev-brief:
+    recordInventoryHarvest(cropKey, 1)
+
     const xpTable = {
       carrot: 5,
       potato: 10,
@@ -808,7 +1382,11 @@ function harvestFarmZone(zone) {
       lettuce: 48,
       pumpkin: 75
     }
-    totalXp += xpTable[plotState.cropKey] || 5
+    totalXp += xpTable[cropKey] || 5
+
+    if (luckyRoll.multi > 1 && (!strongestLucky || luckyRoll.multi > strongestLucky.multi)) {
+      strongestLucky = { ...luckyRoll, cropLabel: crop.label, reward: rewardResult.reward }
+    }
 
     plotState.cropKey = null
     plotState.plantedAt = null
@@ -825,24 +1403,38 @@ function harvestFarmZone(zone) {
 
   const bonusPercent = Math.round((multiplier - 1) * 100)
   const bonusText = bonusPercent > 0 ? ` (+${bonusPercent}% Holder Bonus!)` : ''
-  showFarmStatusMessage(`Harvested ${readyPlotIds.length} plots in ${zone.label} for ${totalGold}g${bonusText} and +${totalXp} XP. The soil is now empty.`)
+  const streakText = streakMultiplier > 1 ? `, streak ${streakMultiplier.toFixed(1)}x` : ''
+  const harukaText = totalHaruka > 0 ? `, +${formatHarukaAmount(totalHaruka)} $HARUKA${streakText}` : ', daily $HARUKA cap reached'
+  const luckyText = strongestLucky ? ` ${strongestLucky.label}: ${strongestLucky.cropLabel} x${strongestLucky.multi}.` : ''
+  showFarmStatusMessage(`Harvested ${readyPlotIds.length} plots in ${zone.label} for ${totalGold}g${bonusText}, +${totalXp} XP${harukaText}.${luckyText}`)
+
+  if (totalHaruka <= 0) {
+    triggerHarukaNarration('dailyCap', { dailyCap })
+  } else if (strongestLucky?.type === 'jackpot') {
+    triggerHarukaNarration('jackpot', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+  } else if (strongestLucky?.type === 'super_lucky') {
+    triggerHarukaNarration('superLucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+  } else if (strongestLucky?.type === 'lucky') {
+    triggerHarukaNarration('lucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+  } else if (STREAK_MILESTONES.has(streakDays)) {
+    triggerHarukaNarration('streakMilestone', { streakDays, streakMultiplier })
+  } else {
+    triggerHarukaNarration('harvest', { cropCount: readyPlotIds.length, harukaAmount: totalHaruka, goldAmount: totalGold })
+  }
+
   updateFarmUi(true)
-  
-  // Trigger XP Gain HUD/floating text animation
   triggerXpGainAnimation(totalXp)
 
-  // Level Up check and Battle option
   if (newLvl > oldLvl) {
-    // Reset overworld direction keys to freeze character
     keys.w.pressed = false
     keys.a.pressed = false
     keys.s.pressed = false
     keys.d.pressed = false
     
-    // Play full-screen level up celebration
     triggerLevelUpCelebration(newLvl, () => {
       const modal = document.querySelector('#battleConfirmModal')
       if (modal) {
+        triggerHarukaNarration('levelUp', { level: newLvl })
         modal.querySelector('.rpg-confirm-title').textContent = 'LEVEL UP!'
         modal.querySelector('.rpg-confirm-text').textContent = `Congratulations! You reached Level ${newLvl}! Do you want to enter the Battle Zone to earn bonus XP and Gold?`
         modal.style.display = 'flex'
@@ -851,8 +1443,13 @@ function harvestFarmZone(zone) {
     })
   }
 }
-
 function plantFarmZone(zone) {
+  if (!hasHarukaGameAccess()) {
+    showFarmStatusMessage(getAccessGateMessage())
+    updateFarmUi(true)
+    return
+  }
+
   const emptyPlotIds = getEmptyFarmPlots(zone)
   if (!emptyPlotIds.length) {
     showFarmStatusMessage(`${zone.label} has no empty soil right now.`)
@@ -984,6 +1581,7 @@ function updateFarmUi(force = false) {
   }
 
   updateFarmSeedButtons()
+  updateEconomyUi()
 
   if (farmUi.hintValue) {
     if (farmHintOverride.expiresAt > now && farmHintOverride.text) {
@@ -1086,14 +1684,14 @@ function updateFarmSeedButtons() {
 
     if (iconSlot) {
       const defaultIcons = {
-        carrot: '🥕',
-        potato: '🥔',
-        tomato: '🍅',
-        strawberry: '🍓',
-        lettuce: '🥬',
-        pumpkin: '🎃'
+        carrot: 'CR',
+        potato: 'PT',
+        tomato: 'TM',
+        strawberry: 'SB',
+        lettuce: 'LT',
+        pumpkin: 'PK'
       }
-      iconSlot.textContent = isLocked ? '🔒' : defaultIcons[seedKey]
+      iconSlot.textContent = isLocked ? 'LOCK' : defaultIcons[seedKey]
     }
 
     if (keySlot) {
@@ -1538,7 +2136,7 @@ function triggerLevelUpCelebration(newLevel, onCelebrationComplete) {
 
       // Spawn floating sparkles/emojis
       const gameLayout = document.querySelector('.game-layout')
-      const emojis = ['✨', '⭐', '🎉', '🌟', '👑', '🔥']
+      const emojis = ['XP', 'STAR', 'WIN', 'SPARK', 'CROWN', 'FIRE']
       for (let i = 0; i < 20; i++) {
         setTimeout(() => {
           const particle = document.createElement('div')
@@ -1701,12 +2299,14 @@ function updateWalletNavbarUI(context) {
   const btn = document.getElementById('btnConnectWallet')
   const dropdown = document.getElementById('walletInfoDropdown')
   const dropdownAddress = document.getElementById('walletDropdownAddress')
+  const dropdownBalance = document.getElementById('walletDropdownBalance')
   const dropdownTier = document.getElementById('walletDropdownTier')
   const btnText = document.getElementById('walletBtnText')
 
   if (context) {
     if (btnText) btnText.textContent = context.shortAddress
     if (dropdownAddress) dropdownAddress.textContent = context.walletAddress
+    if (dropdownBalance) dropdownBalance.textContent = `${formatHarukaAmount(context.haruka)} $HARUKA`
     if (dropdownTier) {
       dropdownTier.textContent = `Tier ${context.tier} - ${context.tierLabel}`
       dropdownTier.className = `wallet-tier-pill tier-${context.tier}`
@@ -1714,6 +2314,7 @@ function updateWalletNavbarUI(context) {
     updatePlayerHUDMultiplier(context.tier)
   } else {
     if (btnText) btnText.textContent = 'Connect Wallet'
+    if (dropdownBalance) dropdownBalance.textContent = 'Not Connected'
     if (dropdown) dropdown.style.display = 'none'
     const badge = document.querySelector('.rpg-multiplier-badge')
     if (badge) badge.remove()
@@ -1811,7 +2412,15 @@ async function connectWallet(kind) {
     window.localStorage.setItem(HARUKA_PORTFOLIO_STORAGE_KEY, JSON.stringify(context))
     farmState = loadFarmState(walletAddress)
     updateWalletNavbarUI(context)
-    showFarmStatusMessage(`Connected! active tier: ${tier.label}`)
+    const accessGranted = hasHarukaGameAccess()
+    const accessMessage = accessGranted
+      ? `Connected! active tier: ${tier.label}. HARUKA Realm access granted.`
+      : `Connected, but access needs ${HARUKA_MIN_HOLD_TO_PLAY} $HARUKA. Current: ${formatHarukaAmount(context.haruka)} $HARUKA.`
+    showFarmStatusMessage(accessMessage)
+    triggerHarukaNarration(accessGranted ? 'loginGranted' : 'loginDenied', {
+      shortAddress: context.shortAddress,
+      balance: context.haruka
+    })
     
     if (window.updateProfileAndRecords) {
       window.updateProfileAndRecords()
@@ -1841,6 +2450,7 @@ async function disconnectWallet() {
   farmState = loadFarmState()
   updateWalletNavbarUI(null)
   showFarmStatusMessage('Wallet disconnected.')
+  triggerHarukaNarration('walletDisconnected')
   
   if (window.updateProfileAndRecords) {
     window.updateProfileAndRecords()
@@ -1858,6 +2468,7 @@ function initializeWallet() {
   const btnSolflare = document.getElementById('btnConnectSolflare')
   const btnCloseModal = document.getElementById('btnCloseWalletModal')
   const btnDisconnect = document.getElementById('btnDisconnectWallet')
+  const btnGateConnect = document.getElementById('btnGateConnectWallet')
 
   if (btnConnect) {
     btnConnect.addEventListener('click', (e) => {
@@ -1895,6 +2506,12 @@ function initializeWallet() {
     })
   }
 
+  if (btnGateConnect) {
+    btnGateConnect.addEventListener('click', () => {
+      if (modal) modal.style.display = 'flex'
+    })
+  }
+
   if (btnDisconnect) {
     btnDisconnect.addEventListener('click', () => {
       disconnectWallet()
@@ -1915,8 +2532,10 @@ function initializeWallet() {
   if (context) {
     updateWalletNavbarUI(context)
   }
+  updateFarmUi(true)
 }
 
 animate()
 updateFarmUi(true)
 initializeWallet()
+

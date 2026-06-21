@@ -9,6 +9,10 @@ import { runHarukaGameFrame } from './src/server/harukaGameFrameService';
 
 const require = createRequire(import.meta.url);
 const { PumpChatClient } = require('pump-chat-client') as typeof import('pump-chat-client');
+const harukaPortfolioSnapshotHandler = require('./api/haruka/portfolio-snapshot.js') as (
+  request: IncomingMessage & { body?: unknown },
+  response: ServerResponse
+) => void | Promise<void>;
 
 function createPumpfunStreamPlugin(): Plugin {
   return {
@@ -281,6 +285,52 @@ function createHarukaChatPlugin(): Plugin {
       });
   };
 
+  const adaptNodeResponse = (
+    res: ServerResponse
+  ): ServerResponse & {
+    status: (code: number) => ServerResponse;
+    json: (payload: unknown) => void;
+  } => {
+    const response = res as ServerResponse & {
+      status?: (code: number) => ServerResponse;
+      json?: (payload: unknown) => void;
+    };
+
+    if (typeof response.status !== 'function') {
+      response.status = (code: number) => {
+        response.statusCode = code;
+        return response;
+      };
+    }
+
+    if (typeof response.json !== 'function') {
+      response.json = (payload: unknown) => {
+        if (!response.headersSent) {
+          response.setHeader('Content-Type', 'application/json');
+        }
+        response.end(JSON.stringify(payload));
+      };
+    }
+
+    return response as ServerResponse & {
+      status: (code: number) => ServerResponse;
+      json: (payload: unknown) => void;
+    };
+  };
+
+  const handleVercelNodeRoute = async (
+    req: IncomingMessage & { body?: unknown },
+    res: ServerResponse,
+    routeHandler: (request: IncomingMessage & { body?: unknown }, response: ServerResponse) => void | Promise<void>
+  ): Promise<void> => {
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE') {
+      req.body = await readJsonBody<Record<string, unknown>>(req);
+    }
+
+    const adaptedResponse = adaptNodeResponse(res);
+    await routeHandler(req, adaptedResponse);
+  };
+
   const attach = (server: { middlewares: { use: (handler: (req: IncomingMessage, res: ServerResponse, next: () => void) => void) => void } }) => {
     server.middlewares.use((req, res, next) => {
       const requestUrl = req.url ? new URL(req.url, 'http://127.0.0.1') : null;
@@ -300,6 +350,22 @@ function createHarukaChatPlugin(): Plugin {
 
       if (requestUrl?.pathname === '/api/haruka/game-frame') {
         handleGameFrameNodeRequest(req, res);
+        return;
+      }
+
+      if (requestUrl?.pathname === '/api/haruka/portfolio-snapshot') {
+        void handleVercelNodeRoute(req, res, harukaPortfolioSnapshotHandler).catch((error: unknown) => {
+          res.writeHead(500, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(
+            JSON.stringify({
+              ok: false,
+              error: error instanceof Error ? error.message : String(error)
+            })
+          );
+        });
         return;
       }
 

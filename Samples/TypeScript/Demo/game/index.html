@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -120,7 +120,7 @@
     }
 
     #characterDialogueBox::after {
-      content: "▼";
+      content: "v";
       position: absolute;
       bottom: 6px;
       right: 14px;
@@ -282,7 +282,7 @@
     }
 
     #dialogueBox::after {
-      content: "▼";
+      content: "v";
       position: absolute;
       bottom: 12px;
       right: 20px;
@@ -1407,6 +1407,254 @@
       background: rgba(255, 77, 79, 0.08);
     }
 
+
+    .economy-panel {
+      width: min(380px, calc(100vw - 32px));
+      background: linear-gradient(180deg, rgba(9, 13, 20, 0.94), rgba(7, 11, 18, 0.88));
+      border: 1px solid rgba(255, 202, 40, 0.32);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      pointer-events: auto;
+      backdrop-filter: blur(10px);
+    }
+
+    .economy-panel[hidden] {
+      display: none;
+    }
+
+    .economy-panel__header {
+      display: grid;
+      gap: 10px;
+    }
+
+    .economy-panel__title {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .economy-tablist {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .economy-tab {
+      min-height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: #c9d0d9;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .economy-tab.is-active {
+      border-color: rgba(255, 202, 40, 0.45);
+      background: rgba(255, 202, 40, 0.16);
+      color: #fff4c6;
+      box-shadow: 0 0 18px rgba(255, 202, 40, 0.16);
+    }
+
+    .economy-panel__section {
+      display: grid;
+      gap: 10px;
+    }
+
+    .economy-panel__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .economy-stat {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px;
+      min-width: 0;
+    }
+
+    .economy-stat span {
+      display: block;
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .economy-stat strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .economy-stack {
+      display: grid;
+      gap: 8px;
+    }
+
+    .economy-info-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .economy-info-card p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #d8dde4;
+    }
+
+    .economy-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .economy-info-row strong {
+      color: #fff;
+      font-size: 11px;
+      text-align: right;
+    }
+
+    .economy-note {
+      margin: 0;
+      font-size: 10px;
+      line-height: 1.5;
+      color: #8aa0b6;
+    }
+
+    .economy-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .economy-claim-btn,
+    .economy-secondary-btn {
+      min-height: 34px;
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0 12px;
+    }
+
+    .economy-claim-btn {
+      border: 1px solid rgba(129, 199, 132, 0.55);
+      background: rgba(129, 199, 132, 0.16);
+      color: #d6ffd7;
+      flex: 1 1 190px;
+    }
+
+    .economy-secondary-btn {
+      border: 1px solid rgba(255, 202, 40, 0.25);
+      background: rgba(255, 202, 40, 0.08);
+      color: #ffe39c;
+      flex: 1 1 160px;
+    }
+
+    .economy-claim-btn:disabled,
+    .economy-secondary-btn:disabled {
+      cursor: not-allowed;
+      color: var(--muted);
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .economy-gate-panel {
+      position: absolute;
+      left: 50%;
+      top: 92px;
+      transform: translateX(-50%);
+      width: min(460px, calc(100vw - 32px));
+      z-index: 480;
+      background: rgba(8, 10, 15, 0.94);
+      border: 1px solid rgba(255, 202, 40, 0.4);
+      border-radius: 8px;
+      padding: 16px;
+      color: #fff;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+      pointer-events: auto;
+    }
+
+    .economy-gate-panel[hidden] {
+      display: none;
+    }
+
+    .economy-gate-panel h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+      color: var(--gold);
+    }
+
+    .economy-gate-panel p {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: #d6d8dc;
+      line-height: 1.5;
+    }
+
+    .economy-gate-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .economy-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .rpg-menu-btn:disabled,
+    .rpg-menu-btn[disabled] {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+      box-shadow: none;
+    }
     .menu-footer {
       margin-top: 32px;
       font-family: var(--mono);
@@ -1724,6 +1972,15 @@
       word-break: break-all;
     }
 
+    .game-navbar #walletDropdownBalance {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: #ffd778;
+      text-align: center;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
     .game-navbar #walletDropdownTier {
       font-family: var(--sans);
       font-size: 11px;
@@ -1801,7 +2058,7 @@
     <!-- Game Navbar -->
     <header class="game-navbar">
       <div class="nav-brand">
-        <span class="brand-logo">🌾</span>
+        <span class="brand-logo">HR</span>
         <span class="brand-name">HARUKA'S FARM</span>
       </div>
       <div class="nav-menu">
@@ -1811,11 +2068,12 @@
       </div>
       <div class="nav-wallet">
         <button id="btnConnectWallet" class="wallet-connect-btn" type="button">
-          <span class="btn-icon">🔌</span>
+          <span class="btn-icon">W</span>
           <span id="walletBtnText">Connect Wallet</span>
         </button>
         <div id="walletInfoDropdown" class="wallet-info-dropdown" style="display: none;">
           <span id="walletDropdownAddress">Abc...xyz</span>
+          <span id="walletDropdownBalance">0 $HARUKA</span>
           <span id="walletDropdownTier" class="wallet-tier-pill">Tier 0 - Free</span>
           <button id="btnDisconnectWallet" class="wallet-disconnect-btn" type="button">Disconnect</button>
         </div>
@@ -1850,7 +2108,7 @@
             <img src="/hiyori_avatar.png" class="menu-profile-img" alt="Player Avatar">
             <div class="menu-profile-info">
               <span class="menu-profile-name">HARUKA</span>
-              <span id="menuProfileStats" class="menu-profile-stats">Lv 1 | 🪙 100g</span>
+              <span id="menuProfileStats" class="menu-profile-stats">Lv 1 | Gold 100g</span>
             </div>
           </div>
 
@@ -1875,10 +2133,10 @@
               <p>Connect your Solana wallet to unlock holder perks inside Haruka Farm!</p>
               <div class="wallet-options-grid">
                 <button id="btnConnectPhantom" class="rpg-menu-btn rpg-menu-btn--primary" type="button">
-                  <span class="btn-icon">👻</span> Phantom
+                  <span class="btn-icon">P</span> Phantom
                 </button>
                 <button id="btnConnectSolflare" class="rpg-menu-btn rpg-menu-btn--battle" type="button">
-                  <span class="btn-icon">☀️</span> Solflare
+                  <span class="btn-icon">S</span> Solflare
                 </button>
               </div>
             </div>
@@ -1891,20 +2149,23 @@
           <div class="rpg-modal-content">
             <h3 class="rpg-modal-title">How To Play</h3>
             <div class="rpg-modal-body">
-              <p>🌾 <strong>Farming Loop:</strong></p>
+              <p><strong>Farming Loop:</strong></p>
               <ul>
                 <li>Select a seed from the hotbar (keys 1-6 or Q/E).</li>
                 <li>Walk into an empty field patch (dark green ground).</li>
                 <li>Press <strong>Spacebar</strong> to plant. Seed cost will be deducted from your gold.</li>
                 <li>Wait for the crops to grow!</li>
-                <li>Once ready (marked by gold/harvest indicators), <strong>Left Click</strong> inside the patch to harvest and earn Gold + XP!</li>
+                <li>Once ready, <strong>Left Click</strong> inside the patch to harvest and earn Gold, XP, crop inventory, and unclaimed $HARUKA.</li>
+                <li>Hold at least <strong>1,000 $HARUKA</strong> in the connected wallet to play the economy loop.</li>
+                <li>Daily streak and lucky harvest rolls can multiply $HARUKA rewards before the daily cap is applied.</li>
+                <li>Claim rewards from the economy panel once unclaimed rewards reach <strong>100 $HARUKA</strong>; on-chain treasury transfer still needs backend settlement.</li>
               </ul>
-              <p>⚔️ <strong>Battle Zone:</strong></p>
+              <p><strong>Battle Zone:</strong></p>
               <ul>
                 <li>Defeat enemies in battle encounters to earn +50 Gold and +30 XP!</li>
                 <li>Enter the Battle Zone manually from the Main Menu or immediately after leveling up.</li>
               </ul>
-              <p>🎮 <strong>Controls:</strong></p>
+              <p><strong>Controls:</strong></p>
               <ul>
                 <li>Move: <strong>WASD / Arrow Keys</strong></li>
                 <li>Plant / Interact: <strong>Spacebar</strong></li>
@@ -1938,6 +2199,22 @@
                   <span class="record-label">Planted Plots</span>
                   <span id="recordPlanted" class="record-value">0 / 12</span>
                 </div>
+                <div class="record-item">
+                  <span class="record-label">Unclaimed $HARUKA</span>
+                  <span id="recordUnclaimedHaruka" class="record-value">0</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Total Claimed</span>
+                  <span id="recordClaimedHaruka" class="record-value">0</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Reward Pool</span>
+                  <span id="recordRewardPool" class="record-value">500K</span>
+                </div>
+                <div class="record-item">
+                  <span class="record-label">Inventory</span>
+                  <span id="recordInventory" class="record-value">Empty</span>
+                </div>
                 <div class="record-item" id="recordWalletRow">
                   <span class="record-label">Connected Wallet</span>
                   <span id="recordWallet" class="record-value">Not Connected</span>
@@ -1955,7 +2232,7 @@
         <!-- Battle Confirmation Modal -->
         <div id="battleConfirmModal" class="rpg-confirm-modal" style="display: none;">
           <div class="rpg-confirm-content">
-            <span class="rpg-confirm-icon">⚔️</span>
+            <span class="rpg-confirm-icon">VS</span>
             <h3 class="rpg-confirm-title">Battle Triggered</h3>
             <p class="rpg-confirm-text">A wild monster is lurking in this zone! Do you want to battle?</p>
             <div class="rpg-confirm-actions">
@@ -2026,7 +2303,7 @@
                 <span id="farmZoneValue" class="rpg-zone-badge">Free roam</span>
               </div>
               <div class="rpg-gold-box">
-                <span class="rpg-gold-coin">🪙</span>
+                <span class="rpg-gold-coin">G</span>
                 <span id="farmGoldValue" class="rpg-gold-val">100g</span>
               </div>
               <div class="rpg-xp-row">
@@ -2069,6 +2346,65 @@
           </div>
 
           <!-- Floating Action Prompt -->
+          <div class="economy-panel" aria-label="HARUKA economy dashboard">
+            <div class="economy-panel__header">
+              <span class="economy-panel__title">HARUKA Economy</span>
+              <div class="economy-tablist" role="tablist" aria-label="HARUKA economy views">
+                <button class="economy-tab is-active" type="button" role="tab" aria-selected="true" data-economy-view="harvest">Harvest</button>
+                <button class="economy-tab" type="button" role="tab" aria-selected="false" data-economy-view="market">Market</button>
+                <button class="economy-tab" type="button" role="tab" aria-selected="false" data-economy-view="revenue">Revenue</button>
+              </div>
+            </div>
+            <div class="economy-panel__body">
+              <div class="economy-panel__section" data-economy-panel="harvest">
+                <div class="economy-panel__grid">
+                  <div class="economy-stat"><span>Wallet</span><strong id="farmHarukaValue">0 $HARUKA</strong></div>
+                  <div class="economy-stat"><span>Unclaimed</span><strong id="farmUnclaimedValue">0 $HARUKA</strong></div>
+                  <div class="economy-stat"><span>Daily Cap</span><strong id="farmDailyCapValue">0 / 1000</strong></div>
+                  <div class="economy-stat"><span>Streak</span><strong id="farmStreakValue">Day 1 (1.0x)</strong></div>
+                </div>
+                <div class="economy-action-row">
+                  <button id="btnClaimRewards" class="economy-claim-btn" type="button" disabled>Claim at 100</button>
+                </div>
+                <p class="economy-note">Harvest rewards stay local-first for now. Claim preview is simulated until backend treasury transfer and anti-cheat validation go live.</p>
+              </div>
+              <div class="economy-panel__section" data-economy-panel="market" hidden>
+                <div class="economy-info-card">
+                  <div class="economy-info-row"><span>Inventory</span><strong id="marketInventoryValue">No crops stored.</strong></div>
+                  <div class="economy-info-row"><span>Sell to Shop</span><strong id="marketShopValue">0g</strong></div>
+                  <div class="economy-info-row"><span>Seller Take</span><strong id="marketSellerValue">0 $HARUKA</strong></div>
+                  <div class="economy-info-row"><span>Revenue Pool</span><strong id="marketRevenueValue">0 $HARUKA</strong></div>
+                  <div class="economy-info-row"><span>Burn</span><strong id="marketBurnValue">0 $HARUKA</strong></div>
+                  <div class="economy-info-row"><span>Reward Refill</span><strong id="marketRefillValue">0 $HARUKA</strong></div>
+                </div>
+                <div class="economy-stack">
+                  <p id="marketStatusValue" class="economy-note">Harvest crops first. Inventory appears here before shop sale or marketplace listing.</p>
+                  <div class="economy-action-row">
+                    <button id="btnSellInventory" class="economy-secondary-btn" type="button" disabled>Sell Inventory To Shop</button>
+                  </div>
+                </div>
+              </div>
+              <div class="economy-panel__section" data-economy-panel="revenue" hidden>
+                <div class="economy-info-card">
+                  <div class="economy-info-row"><span>This Week Pool</span><strong id="revenueWeekPoolValue">0 $HARUKA</strong></div>
+                  <div class="economy-info-row"><span>My Estimate</span><strong id="revenueEstimateValue">Hold 1,000+ $HARUKA to qualify.</strong></div>
+                  <div class="economy-info-row"><span>Next Payout</span><strong id="revenueNextValue">Sunday 00:00 UTC</strong></div>
+                  <div class="economy-info-row"><span>Holder Boost</span><strong id="revenueBoostValue">0% holder boost</strong></div>
+                </div>
+                <p class="economy-note">Revenue share is still a local projection. The UI now mirrors the brief flow so backend distribution, payment history, and public dashboard can plug in later.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="economyGatePanel" class="economy-gate-panel">
+            <h2>Hold To Play</h2>
+            <p id="economyGateStatus">Connect a wallet holding at least 1,000 $HARUKA to enter Haruka's Realm.</p>
+            <p>Current balance: <strong id="economyGateBalance">0 $HARUKA</strong></p>
+            <div class="economy-gate-actions">
+              <a class="economy-link-btn" href="https://pump.fun/coin/9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump" target="_blank" rel="noopener noreferrer">Buy on Pump.fun</a>
+              <button id="btnGateConnectWallet" class="economy-link-btn" type="button">Connect Wallet</button>
+            </div>
+          </div>
           <div class="rpg-action-prompt-container">
             <div class="rpg-action-prompt">
               <span class="rpg-key-badge">SPACE</span>
@@ -2083,7 +2419,7 @@
             <div class="rpg-hotbar-slots">
               <button type="button" class="farm-seed-button" data-farm-seed="carrot" aria-pressed="true">
                 <span class="farm-seed-button__key">1</span>
-                <span class="seed-icon">🥕</span>
+                <span class="seed-icon">CR</span>
                 <span class="farm-seed-button__name">Carrot</span>
                 <span class="farm-seed-button__meta">
                   <span>12g</span>
@@ -2092,7 +2428,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="potato" aria-pressed="false">
                 <span class="farm-seed-button__key">2</span>
-                <span class="seed-icon">🥔</span>
+                <span class="seed-icon">PT</span>
                 <span class="farm-seed-button__name">Potato</span>
                 <span class="farm-seed-button__meta">
                   <span>18g</span>
@@ -2101,7 +2437,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="tomato" aria-pressed="false">
                 <span class="farm-seed-button__key">3</span>
-                <span class="seed-icon">🍅</span>
+                <span class="seed-icon">TM</span>
                 <span class="farm-seed-button__name">Tomato</span>
                 <span class="farm-seed-button__meta">
                   <span>28g</span>
@@ -2110,7 +2446,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="strawberry" aria-pressed="false">
                 <span class="farm-seed-button__key">4</span>
-                <span class="seed-icon">🍓</span>
+                <span class="seed-icon">SB</span>
                 <span class="farm-seed-button__name">Strawberry</span>
                 <span class="farm-seed-button__meta">
                   <span>42g</span>
@@ -2119,7 +2455,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="lettuce" aria-pressed="false">
                 <span class="farm-seed-button__key">5</span>
-                <span class="seed-icon">🥬</span>
+                <span class="seed-icon">LT</span>
                 <span class="farm-seed-button__name">Lettuce</span>
                 <span class="farm-seed-button__meta">
                   <span>60g</span>
@@ -2128,7 +2464,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="pumpkin" aria-pressed="false">
                 <span class="farm-seed-button__key">6</span>
-                <span class="seed-icon">🎃</span>
+                <span class="seed-icon">PK</span>
                 <span class="farm-seed-button__name">Pumpkin</span>
                 <span class="farm-seed-button__meta">
                   <span>90g</span>
@@ -2172,7 +2508,7 @@
   <script src="/game/js/utils.js"></script>
   <script src="/game/classes.js?v=1.0.2"></script>
   <script src="/game/battleScene.js?v=1.0.2"></script>
-  <script src="/game/index.js?v=1.0.2"></script>
+  <script src="/game/index.js?v=1.0.3"></script>
   <!-- Main Menu controller script -->
   <script>
     window.addEventListener('load', () => {
@@ -2198,6 +2534,34 @@
 
       const STORAGE_KEY = 'haruka-realm-canvas-farm-v1';
 
+      function getActiveFarmStorageKey() {
+        try {
+          const walletRaw = localStorage.getItem('haruka.portfolio.context.v1');
+          if (walletRaw) {
+            const wallet = JSON.parse(walletRaw);
+            if (wallet && wallet.walletAddress) {
+              return `${STORAGE_KEY}-${wallet.walletAddress}`;
+            }
+          }
+        } catch (_) {}
+        return STORAGE_KEY;
+      }
+
+      function formatHarukaRecord(value) {
+        const amount = typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
+        if (amount >= 1000000) return `${(amount / 1000000).toFixed(2)}M`;
+        if (amount >= 1000) return `${(amount / 1000).toFixed(1)}K`;
+        return Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
+      }
+
+      function formatInventoryRecord(inventory) {
+        if (!inventory || typeof inventory !== 'object') return 'Empty';
+        const entries = Object.entries(inventory)
+          .filter(([, quantity]) => typeof quantity === 'number' && quantity > 0)
+          .map(([crop, quantity]) => `${crop}:${quantity}`);
+        return entries.length ? entries.join(' ') : 'Empty';
+      }
+
       function getLevelFromXp(xp) {
         let level = 1;
         if (xp >= 3500) level = 10;
@@ -2214,7 +2578,7 @@
 
       function updateProfileAndRecords() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(getActiveFarmStorageKey());
           const walletRaw = localStorage.getItem('haruka.portfolio.context.v1');
           if (raw) {
             const state = JSON.parse(raw);
@@ -2230,10 +2594,10 @@
               if (walletRaw) {
                 try {
                   const w = JSON.parse(walletRaw);
-                  walletSuffix = ` | 🔌 ${w.shortAddress}`;
+                  walletSuffix = ` | Wallet ${w.shortAddress}`;
                 } catch (_) {}
               }
-              menuProfileStats.textContent = `Lv ${level} | 🪙 ${gold}g${walletSuffix}`;
+              menuProfileStats.textContent = `Lv ${level} | Gold ${gold}g${walletSuffix}`;
               return;
             }
           }
@@ -2308,21 +2672,20 @@
 
       btnRecords.addEventListener('click', () => {
         // Load latest stats
+        let state = null;
         let gold = 100;
         let harvests = 0;
         let plantedPlots = 0;
         let xp = 0;
 
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(getActiveFarmStorageKey());
           if (raw) {
-            const state = JSON.parse(raw);
+            state = JSON.parse(raw);
             if (state) {
               gold = typeof state.gold === 'number' ? state.gold : 100;
               harvests = typeof state.harvests === 'number' ? state.harvests : 0;
               xp = typeof state.xp === 'number' ? state.xp : harvests * 12;
-              
-              // Count planted plots
               if (state.plots) {
                 plantedPlots = Object.values(state.plots).filter(p => p && p.cropKey !== null).length;
               }
@@ -2338,6 +2701,15 @@
         recordLevel.textContent = `Lv ${level}`;
         recordXp.textContent = `${xp} XP (${harvests} harvests)`;
         recordPlanted.textContent = `${plantedPlots} / 12`;
+
+        const recordUnclaimedHaruka = document.getElementById('recordUnclaimedHaruka');
+        const recordClaimedHaruka = document.getElementById('recordClaimedHaruka');
+        const recordRewardPool = document.getElementById('recordRewardPool');
+        const recordInventory = document.getElementById('recordInventory');
+        if (recordUnclaimedHaruka) recordUnclaimedHaruka.textContent = `${formatHarukaRecord(state?.unclaimedHaruka)} $HARUKA`;
+        if (recordClaimedHaruka) recordClaimedHaruka.textContent = `${formatHarukaRecord(state?.totalClaimedHaruka)} $HARUKA`;
+        if (recordRewardPool) recordRewardPool.textContent = `${formatHarukaRecord(state?.rewardPoolBalance || 500000)} $HARUKA`;
+        if (recordInventory) recordInventory.textContent = formatInventoryRecord(state?.inventory);
 
         // Update wallet records
         const recordWallet = document.getElementById('recordWallet');
@@ -2366,7 +2738,6 @@
           { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(1.7)' }
         );
       });
-
       btnCloseRecords.addEventListener('click', () => {
         gsap.to(modalRecords.querySelector('.rpg-modal-content'), {
           scale: 0.8,
@@ -2382,7 +2753,7 @@
       btnResetData.addEventListener('click', () => {
         const confirmReset = confirm('Are you sure you want to RESET all your farming and battle progress? This cannot be undone.');
         if (confirmReset) {
-          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(getActiveFarmStorageKey());
           window.location.reload();
         }
       });
@@ -2390,3 +2761,7 @@
   </script>
 </body>
 </html>
+
+
+
+
