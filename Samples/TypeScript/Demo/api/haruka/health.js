@@ -1,9 +1,9 @@
 const { buildBuybackSnapshot } = require('../../lib/haruka/buyback.js');
-const { buildRewardLedgerSnapshot } = require('../../lib/haruka/reward-ledger.js');
+const { buildRewardLedgerSnapshot, ensureRewardLedgerSchema } = require('../../lib/haruka/reward-ledger.js');
 const { buildRewardStateSnapshot } = require('../../lib/haruka/reward-state.js');
 const { buildX402Snapshot } = require('./x402.js');
 
-const ROUTE_VERSION = 'api-haruka-health-2026-06-14-v5';
+const ROUTE_VERSION = 'api-haruka-health-2026-06-22-v6';
 
 function readEmbedKeys() {
   return String(process.env.HARUKA_EMBED_API_KEYS || '')
@@ -52,7 +52,21 @@ function parseKeyLimits(value) {
   return count;
 }
 
-module.exports = function handler(_request, response) {
+function isTruthyQueryFlag(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
+}
+
+function readRequestQuery(request) {
+  try {
+    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
+    return requestUrl.searchParams;
+  } catch (_error) {
+    return new URLSearchParams();
+  }
+}
+
+module.exports = async function handler(request, response) {
   const apiKey = process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
   const baseUrl = process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '';
   const model = process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || '';
@@ -63,6 +77,21 @@ module.exports = function handler(_request, response) {
   const usageGateEnabled = parseBooleanFlag(process.env.HARUKA_USAGE_GATE_ENABLED);
   const dedicatedVisionConfigured = Boolean(visionApiKey && visionBaseUrl && visionModel);
   const visionFallbackToMainProvider = !dedicatedVisionConfigured && Boolean(apiKey && baseUrl && model);
+  const rewardLedgerSnapshot = buildRewardLedgerSnapshot();
+  const deepCheckRequested = isTruthyQueryFlag(readRequestQuery(request).get('deep'));
+  let rewardLedgerConnectionChecked = false;
+  let rewardLedgerConnectionVerified = false;
+  let rewardLedgerConnectionError = null;
+
+  if (deepCheckRequested && rewardLedgerSnapshot.rewardLedgerEnabled && rewardLedgerSnapshot.rewardLedgerReady) {
+    rewardLedgerConnectionChecked = true;
+    try {
+      await ensureRewardLedgerSchema();
+      rewardLedgerConnectionVerified = true;
+    } catch (error) {
+      rewardLedgerConnectionError = error instanceof Error ? error.message : String(error);
+    }
+  }
 
   response.setHeader('Content-Type', 'application/json');
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -96,7 +125,10 @@ module.exports = function handler(_request, response) {
     configuredUsageKeyCount: parseKeyLimits(process.env.HARUKA_USAGE_KEY_LIMITS),
     usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length,
     ...buildRewardStateSnapshot(),
-    ...buildRewardLedgerSnapshot(),
+    ...rewardLedgerSnapshot,
+    rewardLedgerConnectionChecked,
+    rewardLedgerConnectionVerified,
+    ...(rewardLedgerConnectionError ? { rewardLedgerConnectionError } : {}),
     ...buildX402Snapshot(),
     ...buildBuybackSnapshot()
   });

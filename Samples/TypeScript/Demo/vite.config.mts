@@ -9,6 +9,10 @@ import { runHarukaGameFrame } from './src/server/harukaGameFrameService';
 
 const require = createRequire(import.meta.url);
 const { PumpChatClient } = require('pump-chat-client') as typeof import('pump-chat-client');
+const harukaHealthHandler = require('./api/haruka/health.js') as (
+  request: IncomingMessage & { body?: unknown },
+  response: ServerResponse
+) => void | Promise<void>;
 const harukaPortfolioSnapshotHandler = require('./api/haruka/portfolio-snapshot.js') as (
   request: IncomingMessage & { body?: unknown },
   response: ServerResponse
@@ -104,100 +108,6 @@ function createStaticRouteAliasPlugin(): Plugin {
 }
 
 function createHarukaChatPlugin(): Plugin {
-  const readEmbedKeys = (): string[] =>
-    String(process.env.HARUKA_EMBED_API_KEYS || '')
-      .split(/[\r\n,]/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-  const parseBooleanFlag = (value: string | undefined): boolean => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
-  };
-
-  const parsePositiveInteger = (value: string | undefined, fallback: number): number => {
-    const parsed = Number.parseInt(String(value || '').trim(), 10);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return fallback;
-    }
-
-    return parsed;
-  };
-
-  const splitEnvList = (value: string | undefined): string[] =>
-    String(value || '')
-      .split(/[\r\n,]/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-  const countKeyLimits = (value: string | undefined): number => {
-    let count = 0;
-
-    for (const entry of splitEnvList(value)) {
-      const separatorIndex = entry.indexOf(':');
-      if (separatorIndex <= 0) {
-        continue;
-      }
-
-      const rawLimit = entry.slice(separatorIndex + 1).trim();
-      const limit = parsePositiveInteger(rawLimit, 0);
-      if (limit > 0) {
-        count += 1;
-      }
-    }
-
-    return count;
-  };
-
-  const handleHealthRequest = (res: ServerResponse): void => {
-    const apiKey = process.env.MEGALLM_API_KEY || process.env.VITE_MEGALLM_API_KEY || '';
-    const baseUrl = process.env.MEGALLM_BASE_URL || process.env.VITE_MEGALLM_BASE_URL || '';
-    const model = process.env.MEGALLM_MODEL || process.env.VITE_MEGALLM_MODEL || '';
-    const visionApiKey = process.env.HARUKA_VISION_API_KEY || '';
-    const visionBaseUrl = process.env.HARUKA_VISION_BASE_URL || '';
-    const visionModel = process.env.HARUKA_VISION_MODEL || '';
-    const embedKeys = readEmbedKeys();
-    const dedicatedVisionConfigured = Boolean(visionApiKey && visionBaseUrl && visionModel);
-    const visionFallbackToMainProvider = !dedicatedVisionConfigured && Boolean(apiKey && baseUrl && model);
-
-    res.writeHead(200, {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    });
-    res.end(
-      JSON.stringify({
-        ok: true,
-        routeVersion: 'api-haruka-health-2026-06-14-v5',
-        deploymentEnv: process.env.VERCEL_ENV || 'local',
-        vercelRegion: process.env.VERCEL_REGION || 'unknown',
-        hasMegallmApiKey: Boolean(apiKey),
-        megallmApiKeyLength: apiKey.length,
-        megallmBaseUrl: baseUrl,
-        megallmModel: model,
-        gamingCompanionEnabled: true,
-        gameFrameRouteEnabled: true,
-        hasVisionApiKey: Boolean(visionApiKey),
-        visionApiKeyLength: visionApiKey.length,
-        visionBaseUrl: visionBaseUrl || baseUrl || '',
-        visionModel: visionModel || model || '',
-        dedicatedVisionProviderConfigured: dedicatedVisionConfigured,
-        visionUsesMainProviderFallback: visionFallbackToMainProvider,
-        visionProviderConfigured: dedicatedVisionConfigured || visionFallbackToMainProvider,
-        bundledOpenSoulsBridgeReady: true,
-        defaultOpenSoulsMode: 'bundled',
-        externalOpenSoulsBridgeRequired: false,
-        embedApiKeyRequired: embedKeys.length > 0,
-        configuredEmbedKeyCount: embedKeys.length,
-        usageGateEnabled: parseBooleanFlag(process.env.HARUKA_USAGE_GATE_ENABLED),
-        usageWindowMinutes: parsePositiveInteger(process.env.HARUKA_USAGE_WINDOW_MINUTES, 60) || 60,
-        webAppWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_WEB_APP, 0),
-        embedWidgetWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_EMBED_WIDGET, 0),
-        configuredUsageKeyCount: countKeyLimits(process.env.HARUKA_USAGE_KEY_LIMITS),
-        usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length
-      })
-    );
-  };
-
   const handleNodeRequest = (req: IncomingMessage, res: ServerResponse): void => {
     if (req.method === 'OPTIONS') {
       res.writeHead(204, {
@@ -343,16 +253,18 @@ function createHarukaChatPlugin(): Plugin {
     server.middlewares.use((req, res, next) => {
       const requestUrl = req.url ? new URL(req.url, 'http://127.0.0.1') : null;
       if (requestUrl?.pathname === '/api/haruka/health') {
-        if (req.method !== 'GET') {
-          res.writeHead(405, {
+        void handleVercelNodeRoute(req, res, harukaHealthHandler).catch((error: unknown) => {
+          res.writeHead(500, {
             'Content-Type': 'application/json',
-            Allow: 'GET'
+            'Access-Control-Allow-Origin': '*'
           });
-          res.end(JSON.stringify({ ok: false, error: 'Method not allowed.' }));
-          return;
-        }
-
-        handleHealthRequest(res);
+          res.end(
+            JSON.stringify({
+              ok: false,
+              error: error instanceof Error ? error.message : String(error)
+            })
+          );
+        });
         return;
       }
 
