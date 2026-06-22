@@ -1,11 +1,13 @@
-const ROUTE_VERSION = 'api-haruka-reward-claim-2026-06-22-v1';
+const ROUTE_VERSION = 'api-haruka-reward-claim-2026-06-22-v2';
 const DEFAULT_RPC_URL = 'https://api.mainnet-beta.solana.com';
 const DEFAULT_HARUKA_MINT = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
 const DEFAULT_BURN_RATE = 0.02;
 const DEFAULT_MIN_CLAIM = 100;
 const DEFAULT_DECIMAL_SCALE = 1000000n;
 const MEMO_PROGRAM_ID = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
-const DEFAULT_MEMO_LOOKBACK = 250;
+const DEFAULT_MEMO_LOOKBACK = 60;
+const DEFAULT_RPC_RETRY_ATTEMPTS = 4;
+const DEFAULT_RPC_RETRY_DELAY_MS = 350;
 const BAD_REQUEST_ERROR_CODE = 'HARUKA_REWARD_CLAIM_BAD_REQUEST';
 
 const {
@@ -52,6 +54,15 @@ function parsePositiveNumber(value, fallback) {
   return parsed;
 }
 
+function parsePositiveInteger(value, fallback) {
+  const parsed = Number.parseInt(String(value || '').trim(), 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
 function readHeaderValue(request, name) {
   const value = request && request.headers ? request.headers[name] || request.headers[name.toLowerCase()] : undefined;
   return Array.isArray(value) ? value[0] : value;
@@ -63,6 +74,58 @@ function parseBody(body) {
   }
 
   return body || {};
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function isRetryableRpcError(error) {
+  const message = String(error && error.message ? error.message : error || '').toLowerCase();
+  return (
+    message.includes('429') ||
+    message.includes('too many requests') ||
+    message.includes('rate limit') ||
+    message.includes('rate exceeded') ||
+    message.includes('temporarily unavailable') ||
+    message.includes('gateway timeout') ||
+    message.includes('timed out') ||
+    message.includes('timeout')
+  );
+}
+
+function readRewardClaimRuntimeConfig() {
+  return {
+    memoLookback: parsePositiveInteger(process.env.HARUKA_REWARD_CLAIM_MEMO_LOOKBACK, DEFAULT_MEMO_LOOKBACK),
+    rpcRetryAttempts: Math.max(1, parsePositiveInteger(process.env.HARUKA_REWARD_CLAIM_RPC_RETRY_ATTEMPTS, DEFAULT_RPC_RETRY_ATTEMPTS)),
+    rpcRetryDelayMs: Math.max(50, parsePositiveInteger(process.env.HARUKA_REWARD_CLAIM_RPC_RETRY_DELAY_MS, DEFAULT_RPC_RETRY_DELAY_MS)),
+    memoRpcCheckMode: String(process.env.HARUKA_REWARD_MEMO_RPC_CHECK || 'best-effort').trim().toLowerCase()
+  };
+}
+
+async function withRpcRetry(label, operation, runtimeConfig) {
+  const attempts = Math.max(1, Number(runtimeConfig?.rpcRetryAttempts) || DEFAULT_RPC_RETRY_ATTEMPTS);
+  const baseDelayMs = Math.max(50, Number(runtimeConfig?.rpcRetryDelayMs) || DEFAULT_RPC_RETRY_DELAY_MS);
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= attempts || !isRetryableRpcError(error)) {
+        throw error;
+      }
+
+      const delayMs = baseDelayMs * attempt;
+      console.warn(`[haruka-claim] ${label} hit RPC rate limits on attempt ${attempt}/${attempts}. Retrying in ${delayMs}ms.`);
+      await sleep(delayMs);
+    }
+  }
+
+  throw lastError || new Error(`HARUKA reward claim RPC retry failed for ${label}.`);
 }
 
 function toUiAmount(amountRaw, decimals) {
@@ -143,6 +206,7 @@ function buildRewardClaimSnapshot() {
   const config = readRewardTreasuryConfig();
   const rewardState = buildRewardStateSnapshot();
   const rewardLedger = buildRewardLedgerSnapshot();
+  const runtime = readRewardClaimRuntimeConfig();
   return {
     rewardClaimEnabled: true,
     rewardClaimReady: config.ready && rewardState.rewardStateReady && (!rewardLedger.rewardLedgerEnabled || rewardLedger.rewardLedgerReady),
@@ -154,6 +218,9 @@ function buildRewardClaimSnapshot() {
     rewardClaimHarukaMint: config.harukaMint,
     rewardClaimMinClaim: config.minClaim,
     rewardClaimBurnRate: config.burnRate,
+    rewardClaimMemoLookback: runtime.memoLookback,
+    rewardClaimRpcRetryAttempts: runtime.rpcRetryAttempts,
+    rewardClaimMemoRpcCheckMode: runtime.memoRpcCheckMode,
     rewardStateReady: rewardState.rewardStateReady,
     rewardLedgerReady: !rewardLedger.rewardLedgerEnabled || rewardLedger.rewardLedgerReady,
     ...(config.issues.length || rewardState.rewardStateIssues
@@ -229,14 +296,18 @@ async function getTreasuryKeypair(config, sdk) {
   return keypair;
 }
 
-async function getTokenProgramIdForMint(connection, mintPublicKey, sdk) {
+async function getTokenProgramIdForMint(connection, mintPublicKey, sdk, runtimeConfig) {
   const cacheKey = mintPublicKey.toString();
   const cached = mintProgramCache.get(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const accountInfo = await connection.getAccountInfo(mintPublicKey, 'confirmed');
+  const accountInfo = await withRpcRetry(
+    `mint-account:${cacheKey}`,
+    () => connection.getAccountInfo(mintPublicKey, 'confirmed'),
+    runtimeConfig
+  );
   if (!accountInfo) {
     throw new Error(`Mint account ${cacheKey} was not found on the configured RPC.`);
   }
@@ -250,16 +321,20 @@ async function getTokenProgramIdForMint(connection, mintPublicKey, sdk) {
   return owner;
 }
 
-async function getMintDetails(connection, mintPublicKey, sdk) {
-  const tokenProgramId = await getTokenProgramIdForMint(connection, mintPublicKey, sdk);
-  const mint = await sdk.splToken.getMint(connection, mintPublicKey, 'confirmed', tokenProgramId);
+async function getMintDetails(connection, mintPublicKey, sdk, runtimeConfig) {
+  const tokenProgramId = await getTokenProgramIdForMint(connection, mintPublicKey, sdk, runtimeConfig);
+  const mint = await withRpcRetry(
+    `mint-details:${mintPublicKey.toString()}`,
+    () => sdk.splToken.getMint(connection, mintPublicKey, 'confirmed', tokenProgramId),
+    runtimeConfig
+  );
   return {
     decimals: mint.decimals,
     tokenProgramId
   };
 }
 
-async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk) {
+async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk, runtimeConfig) {
   const ata = await sdk.splToken.getAssociatedTokenAddress(
     mintPublicKey,
     ownerPublicKey,
@@ -269,7 +344,11 @@ async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, t
   );
 
   try {
-    const account = await sdk.splToken.getAccount(connection, ata, 'confirmed', tokenProgramId);
+    const account = await withRpcRetry(
+      `token-account:${ata.toString()}`,
+      () => sdk.splToken.getAccount(connection, ata, 'confirmed', tokenProgramId),
+      runtimeConfig
+    );
     return {
       ata,
       amountRaw: account.amount
@@ -294,9 +373,13 @@ async function getTokenAccountState(connection, mintPublicKey, ownerPublicKey, t
   }
 }
 
-async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublicKey, ownerPublicKey, tokenProgramId, sdk) {
-  const tokenState = await getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk);
-  const accountInfo = await connection.getAccountInfo(tokenState.ata, 'confirmed');
+async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublicKey, ownerPublicKey, tokenProgramId, sdk, runtimeConfig) {
+  const tokenState = await getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk, runtimeConfig);
+  const accountInfo = await withRpcRetry(
+    `ata-account:${tokenState.ata.toString()}`,
+    () => connection.getAccountInfo(tokenState.ata, 'confirmed'),
+    runtimeConfig
+  );
   if (accountInfo) {
     return {
       ata: tokenState.ata,
@@ -314,7 +397,11 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
     sdk.splToken.ASSOCIATED_TOKEN_PROGRAM_ID
   );
 
-  const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+  const latestBlockhash = await withRpcRetry(
+    'ata-create-blockhash',
+    () => connection.getLatestBlockhash('confirmed'),
+    runtimeConfig
+  );
   const transaction = new sdk.web3.Transaction({
     feePayer: payerKeypair.publicKey,
     recentBlockhash: latestBlockhash.blockhash,
@@ -322,16 +409,24 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
   }).add(instruction);
 
   transaction.sign(payerKeypair);
-  const signature = await connection.sendRawTransaction(transaction.serialize(), {
-    skipPreflight: false
-  });
-  await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-    },
-    'confirmed'
+  const signature = await withRpcRetry(
+    'ata-create-send',
+    () => connection.sendRawTransaction(transaction.serialize(), {
+      skipPreflight: false
+    }),
+    runtimeConfig
+  );
+  await withRpcRetry(
+    'ata-create-confirm',
+    () => connection.confirmTransaction(
+      {
+        signature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+      },
+      'confirmed'
+    ),
+    runtimeConfig
   );
 
   return {
@@ -341,9 +436,13 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
   };
 }
 
-async function inspectAssociatedTokenAccount(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk) {
-  const tokenState = await getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk);
-  const accountInfo = await connection.getAccountInfo(tokenState.ata, 'confirmed');
+async function inspectAssociatedTokenAccount(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk, runtimeConfig) {
+  const tokenState = await getTokenAccountState(connection, mintPublicKey, ownerPublicKey, tokenProgramId, sdk, runtimeConfig);
+  const accountInfo = await withRpcRetry(
+    `ata-inspect:${tokenState.ata.toString()}`,
+    () => connection.getAccountInfo(tokenState.ata, 'confirmed'),
+    runtimeConfig
+  );
 
   return {
     ata: tokenState.ata,
@@ -351,8 +450,12 @@ async function inspectAssociatedTokenAccount(connection, mintPublicKey, ownerPub
   };
 }
 
-async function sendTransferChecked(connection, payerKeypair, sourceAta, destinationAta, ownerPublicKey, mintPublicKey, amountRaw, decimals, tokenProgramId, memoText, sdk) {
-  const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+async function sendTransferChecked(connection, payerKeypair, sourceAta, destinationAta, ownerPublicKey, mintPublicKey, amountRaw, decimals, tokenProgramId, memoText, sdk, runtimeConfig) {
+  const latestBlockhash = await withRpcRetry(
+    'reward-transfer-blockhash',
+    () => connection.getLatestBlockhash('confirmed'),
+    runtimeConfig
+  );
   const memoInstruction = new sdk.web3.TransactionInstruction({
     keys: [],
     programId: new sdk.web3.PublicKey(MEMO_PROGRAM_ID),
@@ -377,16 +480,24 @@ async function sendTransferChecked(connection, payerKeypair, sourceAta, destinat
   );
 
   transaction.sign(payerKeypair);
-  const signature = await connection.sendRawTransaction(transaction.serialize(), {
-    skipPreflight: false
-  });
-  await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-    },
-    'confirmed'
+  const signature = await withRpcRetry(
+    'reward-transfer-send',
+    () => connection.sendRawTransaction(transaction.serialize(), {
+      skipPreflight: false
+    }),
+    runtimeConfig
+  );
+  await withRpcRetry(
+    'reward-transfer-confirm',
+    () => connection.confirmTransaction(
+      {
+        signature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+      },
+      'confirmed'
+    ),
+    runtimeConfig
   );
 
   return signature;
@@ -419,13 +530,49 @@ function containsMemoValue(transaction, memoText) {
   return logMessages.some((entry) => String(entry || '').includes(memoText));
 }
 
-async function wasClaimMemoUsed(connection, treasuryPublicKey, memoText, lookback = DEFAULT_MEMO_LOOKBACK) {
-  const signatures = await connection.getSignaturesForAddress(treasuryPublicKey, { limit: lookback }, 'confirmed');
-  for (const entry of signatures) {
-    const transaction = await connection.getParsedTransaction(entry.signature, {
-      maxSupportedTransactionVersion: 0,
-      commitment: 'confirmed'
-    });
+async function wasClaimMemoUsed(connection, treasuryPublicKey, memoText, lookback = DEFAULT_MEMO_LOOKBACK, runtimeConfig) {
+  const signatures = await withRpcRetry(
+    `memo-signatures:${treasuryPublicKey.toString()}`,
+    () => connection.getSignaturesForAddress(treasuryPublicKey, { limit: lookback }, 'confirmed'),
+    runtimeConfig
+  );
+  if (!Array.isArray(signatures) || signatures.length === 0) {
+    return false;
+  }
+
+  const signatureList = signatures
+    .map((entry) => String(entry?.signature || '').trim())
+    .filter(Boolean);
+  if (!signatureList.length) {
+    return false;
+  }
+
+  let transactions = [];
+  if (typeof connection.getParsedTransactions === 'function') {
+    transactions = await withRpcRetry(
+      `memo-transactions-batch:${signatureList.length}`,
+      () => connection.getParsedTransactions(signatureList, {
+        maxSupportedTransactionVersion: 0,
+        commitment: 'confirmed'
+      }),
+      runtimeConfig
+    );
+  } else {
+    transactions = await Promise.all(
+      signatureList.map((signature) =>
+        withRpcRetry(
+          `memo-transaction:${signature}`,
+          () => connection.getParsedTransaction(signature, {
+            maxSupportedTransactionVersion: 0,
+            commitment: 'confirmed'
+          }),
+          runtimeConfig
+        )
+      )
+    );
+  }
+
+  for (const transaction of transactions) {
     if (containsMemoValue(transaction, memoText)) {
       return true;
     }
@@ -434,8 +581,12 @@ async function wasClaimMemoUsed(connection, treasuryPublicKey, memoText, lookbac
   return false;
 }
 
-async function burnChecked(connection, payerKeypair, tokenAccountAddress, mintPublicKey, amountRaw, decimals, tokenProgramId, sdk) {
-  const latestBlockhash = await connection.getLatestBlockhash('confirmed');
+async function burnChecked(connection, payerKeypair, tokenAccountAddress, mintPublicKey, amountRaw, decimals, tokenProgramId, sdk, runtimeConfig) {
+  const latestBlockhash = await withRpcRetry(
+    'reward-burn-blockhash',
+    () => connection.getLatestBlockhash('confirmed'),
+    runtimeConfig
+  );
   const transaction = new sdk.web3.Transaction({
     feePayer: payerKeypair.publicKey,
     recentBlockhash: latestBlockhash.blockhash,
@@ -453,16 +604,24 @@ async function burnChecked(connection, payerKeypair, tokenAccountAddress, mintPu
   );
 
   transaction.sign(payerKeypair);
-  const signature = await connection.sendRawTransaction(transaction.serialize(), {
-    skipPreflight: false
-  });
-  await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
-    },
-    'confirmed'
+  const signature = await withRpcRetry(
+    'reward-burn-send',
+    () => connection.sendRawTransaction(transaction.serialize(), {
+      skipPreflight: false
+    }),
+    runtimeConfig
+  );
+  await withRpcRetry(
+    'reward-burn-confirm',
+    () => connection.confirmTransaction(
+      {
+        signature,
+        blockhash: latestBlockhash.blockhash,
+        lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+      },
+      'confirmed'
+    ),
+    runtimeConfig
   );
 
   return signature;
@@ -504,6 +663,9 @@ async function runRewardClaim(options = {}) {
   const config = readRewardTreasuryConfig();
   const rewardStateConfig = readRewardStateConfig();
   const snapshot = buildRewardClaimSnapshot();
+  const runtimeConfig = readRewardClaimRuntimeConfig();
+  const rewardLedgerSnapshot = snapshot.rewardLedger || buildRewardLedgerSnapshot();
+  const ledgerBacked = Boolean(rewardLedgerSnapshot.rewardLedgerEnabled);
 
   if (!config.ready || !rewardStateConfig.ready) {
     return {
@@ -527,7 +689,7 @@ async function runRewardClaim(options = {}) {
     throw createBadRequestError('walletAddress must be a valid Solana public key.');
   }
   const mintPublicKey = new sdk.web3.PublicKey(config.harukaMint);
-  const mintDetails = await getMintDetails(connection, mintPublicKey, sdk);
+  const mintDetails = await getMintDetails(connection, mintPublicKey, sdk, runtimeConfig);
   const now = Date.now();
   let proofState;
   try {
@@ -588,7 +750,14 @@ async function runRewardClaim(options = {}) {
     };
   }
 
-  const treasuryHarukaState = await getTokenAccountState(connection, mintPublicKey, treasuryPublicKey, mintDetails.tokenProgramId, sdk);
+  const treasuryHarukaState = await getTokenAccountState(
+    connection,
+    mintPublicKey,
+    treasuryPublicKey,
+    mintDetails.tokenProgramId,
+    sdk,
+    runtimeConfig
+  );
   if (treasuryHarukaState.amountRaw < amountRaw) {
     return {
       ok: false,
@@ -621,7 +790,21 @@ async function runRewardClaim(options = {}) {
     };
   }
 
-  const memoAlreadyUsed = await wasClaimMemoUsed(connection, treasuryPublicKey, claimMemo);
+  let memoRpcChecked = false;
+  let memoRpcCheckSkippedReason = null;
+  let memoAlreadyUsed = false;
+  try {
+    memoAlreadyUsed = await wasClaimMemoUsed(connection, treasuryPublicKey, claimMemo, runtimeConfig.memoLookback, runtimeConfig);
+    memoRpcChecked = true;
+  } catch (error) {
+    if (ledgerBacked && runtimeConfig.memoRpcCheckMode !== 'strict' && isRetryableRpcError(error)) {
+      memoRpcCheckSkippedReason = error instanceof Error ? error.message : String(error);
+      console.warn(`[haruka-claim] Skipping on-chain memo replay scan because ledger checks are enabled and RPC is rate-limited: ${memoRpcCheckSkippedReason}`);
+    } else {
+      throw error;
+    }
+  }
+
   if (memoAlreadyUsed) {
     return {
       ok: false,
@@ -638,7 +821,8 @@ async function runRewardClaim(options = {}) {
     mintPublicKey,
     playerPublicKey,
     mintDetails.tokenProgramId,
-    sdk
+    sdk,
+    runtimeConfig
   );
 
   if (options.dryRun) {
@@ -671,8 +855,10 @@ async function runRewardClaim(options = {}) {
       proof: createRewardStateProof(rewardState, rewardStateConfig),
       antiCheat: {
         claimMemo,
-        memoLookback: DEFAULT_MEMO_LOOKBACK,
-        ledgerBacked: buildRewardLedgerSnapshot().rewardLedgerEnabled
+        memoLookback: runtimeConfig.memoLookback,
+        ledgerBacked,
+        memoRpcChecked,
+        ...(memoRpcCheckSkippedReason ? { memoRpcCheckSkippedReason } : {})
       }
     };
   }
@@ -689,7 +875,8 @@ async function runRewardClaim(options = {}) {
         mintPublicKey,
         playerPublicKey,
         mintDetails.tokenProgramId,
-        sdk
+        sdk,
+        runtimeConfig
       );
 
   const transferSignature = await sendTransferChecked(
@@ -703,7 +890,8 @@ async function runRewardClaim(options = {}) {
     mintDetails.decimals,
     mintDetails.tokenProgramId,
     claimMemo,
-    sdk
+    sdk,
+    runtimeConfig
   );
 
   let burnSignature = null;
@@ -716,11 +904,19 @@ async function runRewardClaim(options = {}) {
       burnedRaw,
       mintDetails.decimals,
       mintDetails.tokenProgramId,
-      sdk
+      sdk,
+      runtimeConfig
     );
   }
 
-  const finalTreasuryState = await getTokenAccountState(connection, mintPublicKey, treasuryPublicKey, mintDetails.tokenProgramId, sdk);
+  const finalTreasuryState = await getTokenAccountState(
+    connection,
+    mintPublicKey,
+    treasuryPublicKey,
+    mintDetails.tokenProgramId,
+    sdk,
+    runtimeConfig
+  );
   const settled = applyClaimSettlement(rewardState, rewardStateConfig, {
     now: Date.now(),
     transferSignature,
@@ -783,8 +979,10 @@ async function runRewardClaim(options = {}) {
     state: summarizeRewardState(persisted.state, rewardStateConfig, Date.now()),
     antiCheat: {
       claimMemo,
-      memoLookback: DEFAULT_MEMO_LOOKBACK,
-      ledgerBacked: buildRewardLedgerSnapshot().rewardLedgerEnabled
+      memoLookback: runtimeConfig.memoLookback,
+      ledgerBacked,
+      memoRpcChecked,
+      ...(memoRpcCheckSkippedReason ? { memoRpcCheckSkippedReason } : {})
     }
   };
 }
