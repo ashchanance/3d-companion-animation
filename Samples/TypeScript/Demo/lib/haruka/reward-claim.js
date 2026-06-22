@@ -11,12 +11,22 @@ const {
   applyClaimSettlement,
   buildClaimPreview,
   buildRewardStateSnapshot,
+  createBaseRewardState,
   createClaimMemo,
   createRewardStateProof,
+  normalizeRewardState,
   parseRewardStateProof,
   readRewardStateConfig,
   summarizeRewardState
 } = require('./reward-state.js');
+const {
+  CONFLICT_ERROR_CODE,
+  bootstrapRewardLedgerState,
+  buildRewardLedgerSnapshot,
+  hasLedgerClaimMemo,
+  persistRewardLedgerState,
+  readCurrentRewardLedgerState
+} = require('./reward-ledger.js');
 
 let cachedSdkPromise = null;
 const mintProgramCache = new Map();
@@ -125,9 +135,10 @@ function readRewardTreasuryConfig() {
 function buildRewardClaimSnapshot() {
   const config = readRewardTreasuryConfig();
   const rewardState = buildRewardStateSnapshot();
+  const rewardLedger = buildRewardLedgerSnapshot();
   return {
     rewardClaimEnabled: true,
-    rewardClaimReady: config.ready && rewardState.rewardStateReady,
+    rewardClaimReady: config.ready && rewardState.rewardStateReady && (!rewardLedger.rewardLedgerEnabled || rewardLedger.rewardLedgerReady),
     rewardClaimRouteVersion: ROUTE_VERSION,
     rewardClaimRpcUrl: config.rpcUrl,
     rewardClaimTreasuryConfigured: Boolean(config.treasuryPublicKey),
@@ -137,6 +148,7 @@ function buildRewardClaimSnapshot() {
     rewardClaimMinClaim: config.minClaim,
     rewardClaimBurnRate: config.burnRate,
     rewardStateReady: rewardState.rewardStateReady,
+    rewardLedgerReady: !rewardLedger.rewardLedgerEnabled || rewardLedger.rewardLedgerReady,
     ...(config.issues.length || rewardState.rewardStateIssues
       ? {
           rewardClaimIssues: [
@@ -145,6 +157,8 @@ function buildRewardClaimSnapshot() {
           ]
         }
       : {})
+    ,
+    rewardLedger
   };
 }
 
@@ -502,7 +516,20 @@ async function runRewardClaim(options = {}) {
   const playerPublicKey = new sdk.web3.PublicKey(options.walletAddress);
   const mintPublicKey = new sdk.web3.PublicKey(config.harukaMint);
   const mintDetails = await getMintDetails(connection, mintPublicKey, sdk);
-  const rewardState = parseRewardStateProof(options.proof, options.walletAddress, rewardStateConfig, Date.now());
+  const now = Date.now();
+  const proofState = parseRewardStateProof(options.proof, options.walletAddress, rewardStateConfig, now);
+  const ledgerContext = await bootstrapRewardLedgerState({
+    walletAddress: options.walletAddress,
+    rewardStateConfig,
+    fallbackState: proofState,
+    fallbackProof: options.proof,
+    helpers: {
+      createBaseRewardState,
+      normalizeRewardState
+    },
+    now
+  });
+  const rewardState = ledgerContext.state;
   const claimPreview = buildClaimPreview(rewardState, rewardStateConfig);
   const amountRaw = parseUiAmountToRaw(String(claimPreview.grossClaimed), mintDetails.decimals);
   const requestedAmountRaw = parseUiAmountToRaw(options.amount, mintDetails.decimals);
@@ -563,6 +590,20 @@ async function runRewardClaim(options = {}) {
   }
 
   const claimMemo = createClaimMemo(options.walletAddress, rewardState.claimNonce);
+  const memoAlreadyUsedInLedger = await hasLedgerClaimMemo(claimMemo);
+  if (memoAlreadyUsedInLedger) {
+    return {
+      ok: false,
+      executed: false,
+      skipped: true,
+      statusCode: 409,
+      reason: 'This reward proof was already claimed. Refresh the game state to continue.',
+      snapshot,
+      state: summarizeRewardState(rewardState, rewardStateConfig, Date.now()),
+      proof: createRewardStateProof(rewardState, rewardStateConfig)
+    };
+  }
+
   const memoAlreadyUsed = await wasClaimMemoUsed(connection, treasuryPublicKey, claimMemo);
   if (memoAlreadyUsed) {
     return {
@@ -613,7 +654,8 @@ async function runRewardClaim(options = {}) {
       proof: createRewardStateProof(rewardState, rewardStateConfig),
       antiCheat: {
         claimMemo,
-        memoLookback: DEFAULT_MEMO_LOOKBACK
+        memoLookback: DEFAULT_MEMO_LOOKBACK,
+        ledgerBacked: buildRewardLedgerSnapshot().rewardLedgerEnabled
       }
     };
   }
@@ -667,6 +709,27 @@ async function runRewardClaim(options = {}) {
     transferSignature,
     burnSignature
   });
+  const persisted = await persistRewardLedgerState({
+    walletAddress: options.walletAddress,
+    rewardStateConfig,
+    state: settled.state,
+    expectedVersion: ledgerContext.version,
+    proof: options.proof,
+    helpers: {
+      normalizeRewardState
+    },
+    action: 'claim',
+    amountHaruka: Number(claimPreview.grossClaimed),
+    claimMemo,
+    eventPayload: {
+      transferSignature,
+      burnSignature: burnSignature || null,
+      grossUi: toUiAmount(amountRaw, mintDetails.decimals),
+      netUi: toUiAmount(netClaimedRaw, mintDetails.decimals),
+      burnedUi: toUiAmount(burnedRaw, mintDetails.decimals)
+    },
+    now: Date.now()
+  });
 
   return {
     ok: true,
@@ -699,18 +762,41 @@ async function runRewardClaim(options = {}) {
       harukaRaw: finalTreasuryState.amountRaw.toString(),
       harukaUi: toUiAmount(finalTreasuryState.amountRaw, mintDetails.decimals)
     },
-    proof: createRewardStateProof(settled.state, rewardStateConfig),
-    state: summarizeRewardState(settled.state, rewardStateConfig, Date.now()),
+    proof: createRewardStateProof(persisted.state, rewardStateConfig),
+    state: summarizeRewardState(persisted.state, rewardStateConfig, Date.now()),
     antiCheat: {
       claimMemo,
-      memoLookback: DEFAULT_MEMO_LOOKBACK
+      memoLookback: DEFAULT_MEMO_LOOKBACK,
+      ledgerBacked: buildRewardLedgerSnapshot().rewardLedgerEnabled
     }
   };
 }
 
+async function getLatestRewardLedgerClaimState(walletAddress, rewardStateConfig) {
+  const latest = await readCurrentRewardLedgerState({
+    walletAddress,
+    rewardStateConfig,
+    helpers: {
+      normalizeRewardState
+    },
+    now: Date.now()
+  });
+
+  if (!latest) {
+    return null;
+  }
+
+  return {
+    proof: createRewardStateProof(latest.state, rewardStateConfig),
+    state: summarizeRewardState(latest.state, rewardStateConfig, Date.now())
+  };
+}
+
 module.exports = {
+  CONFLICT_ERROR_CODE,
   ROUTE_VERSION,
   buildRewardClaimSnapshot,
+  getLatestRewardLedgerClaimState,
   isAuthorizedRewardClaimRequest,
   parseRewardClaimRequest,
   readRewardTreasuryConfig,

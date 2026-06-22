@@ -3,11 +3,20 @@ const {
   applyHarvestAction,
   applyPlantAction,
   buildRewardStateSnapshot,
+  createBaseRewardState,
   createRewardStateProof,
+  normalizeRewardState,
   parseRewardStateProof,
   readRewardStateConfig,
   summarizeRewardState
 } = require('../../lib/haruka/reward-state.js');
+const {
+  CONFLICT_ERROR_CODE,
+  bootstrapRewardLedgerState,
+  buildRewardLedgerSnapshot,
+  persistRewardLedgerState,
+  readCurrentRewardLedgerState
+} = require('../../lib/haruka/reward-ledger.js');
 
 function applyHeaders(response) {
   response.setHeader('Content-Type', 'application/json');
@@ -76,7 +85,20 @@ module.exports = async function handler(request, response) {
       return;
     }
 
-    const currentState = parseRewardStateProof(proof, walletAddress, config, now);
+    const proofState = parseRewardStateProof(proof, walletAddress, config, now);
+    const ledgerContext = await bootstrapRewardLedgerState({
+      walletAddress,
+      rewardStateConfig: config,
+      fallbackState: proofState,
+      fallbackProof: proof,
+      helpers: {
+        createBaseRewardState,
+        normalizeRewardState
+      },
+      now
+    });
+
+    const currentState = ledgerContext.state;
     let result = {
       state: currentState
     };
@@ -104,20 +126,73 @@ module.exports = async function handler(request, response) {
     }
 
     const nextState = result.state;
+    const persistedState =
+      action === 'load'
+        ? ledgerContext
+        : await persistRewardLedgerState({
+            walletAddress,
+            rewardStateConfig: config,
+            state: nextState,
+            expectedVersion: ledgerContext.version,
+            proof,
+            helpers: {
+              normalizeRewardState
+            },
+            action,
+            eventPayload: {
+              action,
+              zoneId: String(body.zoneId || '').trim() || null,
+              cropKey: String(body.cropKey || '').trim() || null
+            },
+            now
+          });
+
     response.status(200).json({
       ok: true,
       action,
-      proof: createRewardStateProof(nextState, config),
-      state: summarizeRewardState(nextState, config, now),
+      proof: createRewardStateProof(persistedState.state, config),
+      state: summarizeRewardState(persistedState.state, config, now),
       plant: result.plant || null,
       harvest: result.harvest || null,
       debug: {
         routeVersion: ROUTE_VERSION,
         deploymentEnv: process.env.VERCEL_ENV || 'local',
-        vercelRegion: process.env.VERCEL_REGION || 'unknown'
+        vercelRegion: process.env.VERCEL_REGION || 'unknown',
+        rewardLedger: buildRewardLedgerSnapshot(),
+        rewardLedgerSource: ledgerContext.source
       }
     });
   } catch (error) {
+    if (error && error.code === CONFLICT_ERROR_CODE) {
+      const body = parseBody(request.body);
+      const walletAddress = String(body.walletAddress || '').trim();
+      const latest = walletAddress
+        ? await readCurrentRewardLedgerState({
+            walletAddress,
+            rewardStateConfig: config,
+            helpers: {
+              normalizeRewardState
+            },
+            now: Date.now()
+          }).catch(() => null)
+        : null;
+
+      response.status(409).json({
+        ok: false,
+        error: error.message,
+        proof: latest ? createRewardStateProof(latest.state, config) : null,
+        state: latest ? summarizeRewardState(latest.state, config, Date.now()) : null,
+        debug: {
+          routeVersion: ROUTE_VERSION,
+          deploymentEnv: process.env.VERCEL_ENV || 'local',
+          vercelRegion: process.env.VERCEL_REGION || 'unknown',
+          rewardState: buildRewardStateSnapshot(),
+          rewardLedger: buildRewardLedgerSnapshot()
+        }
+      });
+      return;
+    }
+
     response.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : String(error),
@@ -125,7 +200,8 @@ module.exports = async function handler(request, response) {
         routeVersion: ROUTE_VERSION,
         deploymentEnv: process.env.VERCEL_ENV || 'local',
         vercelRegion: process.env.VERCEL_REGION || 'unknown',
-        rewardState: buildRewardStateSnapshot()
+        rewardState: buildRewardStateSnapshot(),
+        rewardLedger: buildRewardLedgerSnapshot()
       }
     });
   }

@@ -1,10 +1,13 @@
 const {
+  CONFLICT_ERROR_CODE,
   ROUTE_VERSION,
   buildRewardClaimSnapshot,
+  getLatestRewardLedgerClaimState,
   isAuthorizedRewardClaimRequest,
   parseRewardClaimRequest,
   runRewardClaim
 } = require('../../lib/haruka/reward-claim.js');
+const { readRewardStateConfig } = require('../../lib/haruka/reward-state.js');
 
 function applyHeaders(response) {
   response.setHeader('Content-Type', 'application/json');
@@ -62,6 +65,24 @@ module.exports = async function handler(request, response) {
       }
     });
   } catch (error) {
+    if (error && error.code === CONFLICT_ERROR_CODE) {
+      const options = parseRewardClaimRequest(request.body);
+      const latest = await getLatestRewardLedgerClaimState(options.walletAddress, readRewardStateConfig()).catch(() => null);
+
+      response.status(409).json({
+        ok: false,
+        error: error.message,
+        ...(latest ? latest : {}),
+        debug: {
+          routeVersion: ROUTE_VERSION,
+          deploymentEnv: process.env.VERCEL_ENV || 'local',
+          vercelRegion: process.env.VERCEL_REGION || 'unknown',
+          rewardClaim: buildRewardClaimSnapshot()
+        }
+      });
+      return;
+    }
+
     response.status(500).json({
       ok: false,
       error: error instanceof Error ? error.message : String(error),

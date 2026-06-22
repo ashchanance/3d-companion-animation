@@ -525,6 +525,7 @@ module.exports = {
   createRewardStateProof,
   createClaimMemo,
   getDailyCapFromPool,
+  normalizeRewardState,
   parseRewardStateProof,
   readRewardStateConfig,
   summarizeRewardState

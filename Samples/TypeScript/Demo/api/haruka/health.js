@@ -1,4 +1,6 @@
 const { buildBuybackSnapshot } = require('../../lib/haruka/buyback.js');
+const { buildRewardLedgerSnapshot } = require('../../lib/haruka/reward-ledger.js');
+const { buildRewardStateSnapshot } = require('../../lib/haruka/reward-state.js');
 const { buildX402Snapshot } = require('./x402.js');
 
 const ROUTE_VERSION = 'api-haruka-health-2026-06-14-v5';
@@ -93,6 +95,8 @@ module.exports = function handler(_request, response) {
     embedWidgetWindowLimit: parsePositiveInteger(process.env.HARUKA_USAGE_LIMIT_EMBED_WIDGET, 0),
     configuredUsageKeyCount: parseKeyLimits(process.env.HARUKA_USAGE_KEY_LIMITS),
     usageBypassKeyCount: splitEnvList(process.env.HARUKA_USAGE_BYPASS_KEYS).length,
+    ...buildRewardStateSnapshot(),
+    ...buildRewardLedgerSnapshot(),
     ...buildX402Snapshot(),
     ...buildBuybackSnapshot()
   });
