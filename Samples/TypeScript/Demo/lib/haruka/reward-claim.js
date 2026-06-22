@@ -6,6 +6,7 @@ const DEFAULT_MIN_CLAIM = 100;
 const DEFAULT_DECIMAL_SCALE = 1000000n;
 const MEMO_PROGRAM_ID = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
 const DEFAULT_MEMO_LOOKBACK = 250;
+const BAD_REQUEST_ERROR_CODE = 'HARUKA_REWARD_CLAIM_BAD_REQUEST';
 
 const {
   applyClaimSettlement,
@@ -30,6 +31,12 @@ const {
 
 let cachedSdkPromise = null;
 const mintProgramCache = new Map();
+
+function createBadRequestError(message) {
+  const error = new Error(message);
+  error.code = BAD_REQUEST_ERROR_CODE;
+  return error;
+}
 
 function parseBooleanFlag(value) {
   const normalized = String(value || '').trim().toLowerCase();
@@ -73,11 +80,11 @@ function toUiAmount(amountRaw, decimals) {
 function parseUiAmountToRaw(value, decimals) {
   const normalized = String(value || '').trim();
   if (!normalized) {
-    throw new Error('Claim amount is required.');
+    throw createBadRequestError('Claim amount is required.');
   }
 
   if (!/^\d+(\.\d+)?$/.test(normalized)) {
-    throw new Error('Claim amount must be a positive numeric string.');
+    throw createBadRequestError('Claim amount must be a positive numeric string.');
   }
 
   const [wholePart, fractionPart = ''] = normalized.split('.');
@@ -476,13 +483,13 @@ function parseRewardClaimRequest(body) {
   const dryRun = parseBooleanFlag(payload.dryRun);
 
   if (!walletAddress) {
-    throw new Error('walletAddress is required.');
+    throw createBadRequestError('walletAddress is required.');
   }
   if (!amount) {
-    throw new Error('amount is required.');
+    throw createBadRequestError('amount is required.');
   }
   if (!proof) {
-    throw new Error('proof is required.');
+    throw createBadRequestError('proof is required.');
   }
 
   return {
@@ -513,11 +520,21 @@ async function runRewardClaim(options = {}) {
   const connection = new sdk.web3.Connection(config.rpcUrl, 'confirmed');
   const treasuryKeypair = await getTreasuryKeypair(config, sdk);
   const treasuryPublicKey = treasuryKeypair.publicKey;
-  const playerPublicKey = new sdk.web3.PublicKey(options.walletAddress);
+  let playerPublicKey;
+  try {
+    playerPublicKey = new sdk.web3.PublicKey(options.walletAddress);
+  } catch (_error) {
+    throw createBadRequestError('walletAddress must be a valid Solana public key.');
+  }
   const mintPublicKey = new sdk.web3.PublicKey(config.harukaMint);
   const mintDetails = await getMintDetails(connection, mintPublicKey, sdk);
   const now = Date.now();
-  const proofState = parseRewardStateProof(options.proof, options.walletAddress, rewardStateConfig, now);
+  let proofState;
+  try {
+    proofState = parseRewardStateProof(options.proof, options.walletAddress, rewardStateConfig, now);
+  } catch (error) {
+    throw createBadRequestError(error instanceof Error ? error.message : String(error));
+  }
   const ledgerContext = await bootstrapRewardLedgerState({
     walletAddress: options.walletAddress,
     rewardStateConfig,
@@ -793,6 +810,7 @@ async function getLatestRewardLedgerClaimState(walletAddress, rewardStateConfig)
 }
 
 module.exports = {
+  BAD_REQUEST_ERROR_CODE,
   CONFLICT_ERROR_CODE,
   ROUTE_VERSION,
   buildRewardClaimSnapshot,

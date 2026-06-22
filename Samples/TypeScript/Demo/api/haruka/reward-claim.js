@@ -1,4 +1,5 @@
 const {
+  BAD_REQUEST_ERROR_CODE,
   CONFLICT_ERROR_CODE,
   ROUTE_VERSION,
   buildRewardClaimSnapshot,
@@ -65,6 +66,20 @@ module.exports = async function handler(request, response) {
       }
     });
   } catch (error) {
+    if (error && error.code === BAD_REQUEST_ERROR_CODE) {
+      response.status(400).json({
+        ok: false,
+        error: error.message,
+        debug: {
+          routeVersion: ROUTE_VERSION,
+          deploymentEnv: process.env.VERCEL_ENV || 'local',
+          vercelRegion: process.env.VERCEL_REGION || 'unknown',
+          rewardClaim: buildRewardClaimSnapshot()
+        }
+      });
+      return;
+    }
+
     if (error && error.code === CONFLICT_ERROR_CODE) {
       const options = parseRewardClaimRequest(request.body);
       const latest = await getLatestRewardLedgerClaimState(options.walletAddress, readRewardStateConfig()).catch(() => null);
