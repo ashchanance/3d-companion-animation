@@ -62,6 +62,9 @@ const HARUKA_MIN_HOLD_TO_PLAY = 1000
 const HARUKA_INITIAL_REWARD_POOL = 500000
 const HARUKA_MIN_CLAIM = 100
 const HARUKA_CLAIM_BURN_RATE = 0.02
+const HARUKA_REWARD_CLAIM_TIMEOUT_MS = 15000
+const HARUKA_REWARD_STATE_TIMEOUT_MS = 12000
+const HARUKA_REWARD_PROOF_STORAGE_PREFIX = 'haruka.reward.proof.v1'
 const MARKETPLACE_FEE_SPLIT = {
   seller: 0.6,
   revenue: 0.3,
@@ -190,6 +193,8 @@ const offset = {
 }
 
 let farmState = loadFarmState()
+let claimRequestPending = false
+let rewardStateRequestPending = false
 
 collisionsMap.forEach((row, i) => {
   row.forEach((symbol, j) => {
@@ -1073,8 +1078,21 @@ function creditHarukaHarvestReward({ cropKey, crop, plotId, plantedAt, streakMul
   return { reward, uncappedReward }
 }
 
-function claimHarukaRewards() {
+async function claimHarukaRewards() {
   refreshDailyRewards()
+  const wallet = getWalletContext()
+  if (!wallet?.walletAddress) {
+    showFarmStatusMessage('Connect your wallet first so rewards can be claimed to the correct address.')
+    updateFarmUi(true)
+    return
+  }
+
+  if (claimRequestPending) {
+    showFarmStatusMessage('Reward claim already in progress.')
+    updateFarmUi(true)
+    return
+  }
+
   const claimable = Math.floor(farmState.unclaimedHaruka)
   if (claimable < HARUKA_MIN_CLAIM) {
     showFarmStatusMessage(`Claim minimum is ${HARUKA_MIN_CLAIM} $HARUKA. Unclaimed: ${formatHarukaAmount(farmState.unclaimedHaruka)} $HARUKA.`)
@@ -1082,28 +1100,35 @@ function claimHarukaRewards() {
     return
   }
 
-  const burned = Number((claimable * HARUKA_CLAIM_BURN_RATE).toFixed(2))
-  const netClaimed = Number((claimable - burned).toFixed(2))
-  const simulatedSignature = `local-claim-${Date.now().toString(36)}`
-
-  farmState.unclaimedHaruka = Math.max(0, farmState.unclaimedHaruka - claimable)
-  farmState.totalClaimedHaruka += netClaimed
-  farmState.totalBurnedHaruka += burned
-  farmState.dailyRewards.claimed += claimable
-  farmState.dailyRewards.claimCount += 1
-  farmState.claimTransactions.unshift({
-    amount: claimable,
-    netClaimed,
-    burned,
-    txSignature: simulatedSignature,
-    claimedAt: new Date().toISOString(),
-    mode: 'local-simulation'
-  })
-  farmState.claimTransactions = farmState.claimTransactions.slice(0, 20)
-  persistFarmState()
-  showFarmStatusMessage(`Claim queued locally: ${formatHarukaAmount(netClaimed)} $HARUKA net, ${formatHarukaAmount(burned)} burned. Treasury transfer backend still required.`)
-  triggerHarukaNarration('claim', { netClaimed, burned })
+  claimRequestPending = true
+  showFarmStatusMessage(`Submitting on-chain claim for ${formatHarukaAmount(claimable)} $HARUKA...`)
   updateFarmUi(true)
+
+  try {
+    const payload = await fetchRewardClaim(wallet.walletAddress, claimable, HARUKA_REWARD_CLAIM_TIMEOUT_MS)
+    const grossClaimed = Number.parseFloat(String(payload?.claim?.grossUi || claimable)) || claimable
+    const netClaimed = Number.parseFloat(String(payload?.claim?.netUi || 0)) || 0
+    const burned = Number.parseFloat(String(payload?.claim?.burnedUi || 0)) || 0
+    const transferSignature = String(payload?.transfer?.signature || '').trim()
+    applyAuthoritativeRewardStatePayload(payload, { persist: false })
+
+    const refreshedContext = await refreshWalletContextFromChain(wallet.walletAddress, wallet.walletProvider).catch((error) => {
+      console.warn('Wallet snapshot refresh after claim failed:', error)
+      return null
+    })
+
+    persistFarmState()
+    const signaturePreview = transferSignature ? ` Tx ${formatWalletAddress(transferSignature)}.` : ''
+    const refreshSuffix = refreshedContext ? ' Wallet balance has been refreshed from chain.' : ''
+    showFarmStatusMessage(`Claim complete: ${formatHarukaAmount(netClaimed)} $HARUKA sent, ${formatHarukaAmount(burned)} burned.${signaturePreview}${refreshSuffix}`)
+    triggerHarukaNarration('claim', { netClaimed, burned })
+  } catch (error) {
+    console.error(error)
+    showFarmStatusMessage(`Reward claim failed: ${error instanceof Error ? error.message : 'Unknown error.'}`)
+  } finally {
+    claimRequestPending = false
+    updateFarmUi(true)
+  }
 }
 
 function updateEconomyUi() {
@@ -1135,8 +1160,18 @@ function updateEconomyUi() {
   }
 
   if (farmUi.claimButton) {
-    farmUi.claimButton.disabled = farmState.unclaimedHaruka < HARUKA_MIN_CLAIM
-    farmUi.claimButton.textContent = farmState.unclaimedHaruka >= HARUKA_MIN_CLAIM ? 'Claim Rewards' : `Claim at ${HARUKA_MIN_CLAIM}`
+    const walletConnected = Boolean(wallet?.walletAddress)
+    const rewardProofReady = walletConnected && Boolean(getStoredRewardProof(wallet.walletAddress))
+    farmUi.claimButton.disabled = claimRequestPending || !rewardProofReady || farmState.unclaimedHaruka < HARUKA_MIN_CLAIM
+    if (claimRequestPending) {
+      farmUi.claimButton.textContent = 'Claiming...'
+    } else if (walletConnected && !rewardProofReady) {
+      farmUi.claimButton.textContent = 'Syncing reward proof...'
+    } else if (!walletConnected) {
+      farmUi.claimButton.textContent = 'Connect wallet to claim'
+    } else {
+      farmUi.claimButton.textContent = farmState.unclaimedHaruka >= HARUKA_MIN_CLAIM ? 'Claim Rewards' : `Claim at ${HARUKA_MIN_CLAIM}`
+    }
   }
 
   if (farmUi.economyGate) {
@@ -1321,9 +1356,22 @@ function normalizeFarmState(parsed, fallbackState) {
 
 
 
-function harvestFarmZone(zone) {
+async function harvestFarmZone(zone) {
   if (!hasHarukaGameAccess()) {
     showFarmStatusMessage(getAccessGateMessage())
+    updateFarmUi(true)
+    return
+  }
+
+  const wallet = getWalletContext()
+  if (!wallet?.walletAddress) {
+    showFarmStatusMessage('Connect your wallet first so server reward validation can run.')
+    updateFarmUi(true)
+    return
+  }
+
+  if (rewardStateRequestPending || claimRequestPending) {
+    showFarmStatusMessage('Reward state sync is already running. Please wait a moment.')
     updateFarmUi(true)
     return
   }
@@ -1343,37 +1391,23 @@ function harvestFarmZone(zone) {
   }
 
   refreshDailyRewards()
-  const streakDays = updateHarvestStreak()
-  const streakMultiplier = getStreakMultiplier(streakDays)
-  const dailyCap = getDailyCapForState()
-  let remainingDailyCap = Math.max(0, dailyCap - farmState.dailyRewards.earned)
-  let totalGold = 0
-  let totalXp = 0
-  let totalHaruka = 0
-  let strongestLucky = null
-  const multiplier = getGoldMultiplier()
+  rewardStateRequestPending = true
 
-  readyPlotIds.forEach((plotId) => {
-    const plotState = farmState.plots[plotId]
-    const cropKey = plotState.cropKey
-    const crop = FARM_CROPS[cropKey]
-    const plantedAt = plotState.plantedAt
-    const luckyRoll = rollLuckyHarvest()
-    const rewardResult = creditHarukaHarvestReward({
-      cropKey,
-      crop,
-      plotId,
-      plantedAt,
-      streakMultiplier,
-      luckyRoll,
-      remainingDailyCap
+  try {
+    const payload = await fetchRewardState(wallet.walletAddress, 'harvest', {
+      zoneId: zone.id
     })
+    const harvestEntries = Array.isArray(payload?.harvest?.entries) ? payload.harvest.entries : []
+    if (!harvestEntries.length) {
+      showFarmStatusMessage(`${zone.label} is still growing. Wait a moment and try harvesting again.`)
+      applyAuthoritativeRewardStatePayload(payload)
+      updateFarmUi(true)
+      return
+    }
 
-    remainingDailyCap = Math.max(0, remainingDailyCap - rewardResult.reward)
-    totalHaruka += rewardResult.reward
-    totalGold += Math.round(crop.sellPrice * multiplier)
-    recordInventoryHarvest(cropKey, 1)
+    applyAuthoritativeRewardStatePayload(payload, { persist: false })
 
+    const multiplier = getGoldMultiplier()
     const xpTable = {
       carrot: 5,
       potato: 10,
@@ -1382,70 +1416,109 @@ function harvestFarmZone(zone) {
       lettuce: 48,
       pumpkin: 75
     }
-    totalXp += xpTable[cropKey] || 5
 
-    if (luckyRoll.multi > 1 && (!strongestLucky || luckyRoll.multi > strongestLucky.multi)) {
-      strongestLucky = { ...luckyRoll, cropLabel: crop.label, reward: rewardResult.reward }
-    }
+    let totalGold = 0
+    let totalXp = 0
+    let strongestLucky = null
 
-    plotState.cropKey = null
-    plotState.plantedAt = null
-  })
+    harvestEntries.forEach((entry) => {
+      const crop = FARM_CROPS[entry.cropKey]
+      if (!crop) {
+        return
+      }
 
-  const oldLvl = getPlayerLevel()
+      totalGold += Math.round(crop.sellPrice * multiplier)
+      totalXp += xpTable[entry.cropKey] || 5
+      recordInventoryHarvest(entry.cropKey, 1)
 
-  farmState.gold += totalGold
-  farmState.harvests += readyPlotIds.length
-  farmState.xp = (farmState.xp || 0) + totalXp
-  persistFarmState()
-  
-  const newLvl = getPlayerLevel()
-
-  const bonusPercent = Math.round((multiplier - 1) * 100)
-  const bonusText = bonusPercent > 0 ? ` (+${bonusPercent}% Holder Bonus!)` : ''
-  const streakText = streakMultiplier > 1 ? `, streak ${streakMultiplier.toFixed(1)}x` : ''
-  const harukaText = totalHaruka > 0 ? `, +${formatHarukaAmount(totalHaruka)} $HARUKA${streakText}` : ', daily $HARUKA cap reached'
-  const luckyText = strongestLucky ? ` ${strongestLucky.label}: ${strongestLucky.cropLabel} x${strongestLucky.multi}.` : ''
-  showFarmStatusMessage(`Harvested ${readyPlotIds.length} plots in ${zone.label} for ${totalGold}g${bonusText}, +${totalXp} XP${harukaText}.${luckyText}`)
-
-  if (totalHaruka <= 0) {
-    triggerHarukaNarration('dailyCap', { dailyCap })
-  } else if (strongestLucky?.type === 'jackpot') {
-    triggerHarukaNarration('jackpot', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
-  } else if (strongestLucky?.type === 'super_lucky') {
-    triggerHarukaNarration('superLucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
-  } else if (strongestLucky?.type === 'lucky') {
-    triggerHarukaNarration('lucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
-  } else if (STREAK_MILESTONES.has(streakDays)) {
-    triggerHarukaNarration('streakMilestone', { streakDays, streakMultiplier })
-  } else {
-    triggerHarukaNarration('harvest', { cropCount: readyPlotIds.length, harukaAmount: totalHaruka, goldAmount: totalGold })
-  }
-
-  updateFarmUi(true)
-  triggerXpGainAnimation(totalXp)
-
-  if (newLvl > oldLvl) {
-    keys.w.pressed = false
-    keys.a.pressed = false
-    keys.s.pressed = false
-    keys.d.pressed = false
-    
-    triggerLevelUpCelebration(newLvl, () => {
-      const modal = document.querySelector('#battleConfirmModal')
-      if (modal) {
-        triggerHarukaNarration('levelUp', { level: newLvl })
-        modal.querySelector('.rpg-confirm-title').textContent = 'LEVEL UP!'
-        modal.querySelector('.rpg-confirm-text').textContent = `Congratulations! You reached Level ${newLvl}! Do you want to enter the Battle Zone to earn bonus XP and Gold?`
-        modal.style.display = 'flex'
-        battle.confirming = true
+      if (entry.luckyMultiplier > 1 && (!strongestLucky || entry.luckyMultiplier > strongestLucky.multi)) {
+        strongestLucky = {
+          type: entry.luckyType,
+          multi: entry.luckyMultiplier,
+          label: String(entry.luckyType || 'normal').replace(/_/g, ' ').toUpperCase(),
+          cropLabel: crop.label,
+          reward: entry.finalReward
+        }
       }
     })
+
+    const oldLvl = getPlayerLevel()
+    farmState.gold += totalGold
+    farmState.harvests += harvestEntries.length
+    farmState.xp = (farmState.xp || 0) + totalXp
+    persistFarmState()
+
+    const newLvl = getPlayerLevel()
+    const totalHaruka = Number(payload?.harvest?.totalHaruka || 0)
+    const streakDays = Number(payload?.harvest?.streakDays || farmState.loginStreak || 0)
+    const streakMultiplier = Number(payload?.harvest?.streakMultiplier || 1)
+    const dailyCap = Number(payload?.harvest?.dailyCap || getDailyCapForState())
+    const bonusPercent = Math.round((multiplier - 1) * 100)
+    const bonusText = bonusPercent > 0 ? ` (+${bonusPercent}% Holder Bonus!)` : ''
+    const streakText = streakMultiplier > 1 ? `, streak ${streakMultiplier.toFixed(1)}x` : ''
+    const harukaText = totalHaruka > 0 ? `, +${formatHarukaAmount(totalHaruka)} $HARUKA${streakText}` : ', daily $HARUKA cap reached'
+    const luckyText = strongestLucky ? ` ${strongestLucky.label}: ${strongestLucky.cropLabel} x${strongestLucky.multi}.` : ''
+    showFarmStatusMessage(`Harvested ${harvestEntries.length} plots in ${zone.label} for ${totalGold}g${bonusText}, +${totalXp} XP${harukaText}.${luckyText}`)
+
+    if (totalHaruka <= 0) {
+      triggerHarukaNarration('dailyCap', { dailyCap })
+    } else if (strongestLucky?.type === 'jackpot') {
+      triggerHarukaNarration('jackpot', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+    } else if (strongestLucky?.type === 'super_lucky') {
+      triggerHarukaNarration('superLucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+    } else if (strongestLucky?.type === 'lucky') {
+      triggerHarukaNarration('lucky', { cropLabel: strongestLucky.cropLabel, harukaAmount: strongestLucky.reward })
+    } else if (STREAK_MILESTONES.has(streakDays)) {
+      triggerHarukaNarration('streakMilestone', { streakDays, streakMultiplier })
+    } else {
+      triggerHarukaNarration('harvest', { cropCount: harvestEntries.length, harukaAmount: totalHaruka, goldAmount: totalGold })
+    }
+
+    updateFarmUi(true)
+    triggerXpGainAnimation(totalXp)
+
+    if (newLvl > oldLvl) {
+      keys.w.pressed = false
+      keys.a.pressed = false
+      keys.s.pressed = false
+      keys.d.pressed = false
+
+      triggerLevelUpCelebration(newLvl, () => {
+        const modal = document.querySelector('#battleConfirmModal')
+        if (modal) {
+          triggerHarukaNarration('levelUp', { level: newLvl })
+          modal.querySelector('.rpg-confirm-title').textContent = 'LEVEL UP!'
+          modal.querySelector('.rpg-confirm-text').textContent = `Congratulations! You reached Level ${newLvl}! Do you want to enter the Battle Zone to earn bonus XP and Gold?`
+          modal.style.display = 'flex'
+          battle.confirming = true
+        }
+      })
+    }
+  } catch (error) {
+    console.error(error)
+    showFarmStatusMessage(`Harvest sync failed: ${error instanceof Error ? error.message : 'Unknown error.'}`)
+    updateFarmUi(true)
+  } finally {
+    rewardStateRequestPending = false
   }
 }
-function plantFarmZone(zone) {
+
+async function plantFarmZone(zone) {
   if (!hasHarukaGameAccess()) {
     showFarmStatusMessage(getAccessGateMessage())
+    updateFarmUi(true)
+    return
+  }
+
+  const wallet = getWalletContext()
+  if (!wallet?.walletAddress) {
+    showFarmStatusMessage('Connect your wallet first so server reward validation can run.')
+    updateFarmUi(true)
+    return
+  }
+
+  if (rewardStateRequestPending || claimRequestPending) {
+    showFarmStatusMessage('Reward state sync is already running. Please wait a moment.')
     updateFarmUi(true)
     return
   }
@@ -1471,13 +1544,29 @@ function plantFarmZone(zone) {
     return
   }
 
-  const plotState = farmState.plots[emptyPlotIds[0]]
-  plotState.cropKey = farmState.selectedSeed
-  plotState.plantedAt = Date.now()
-  farmState.gold -= selectedCrop.cost
-  persistFarmState()
-  showFarmStatusMessage(`Planted ${selectedCrop.label} in ${zone.label} for ${selectedCrop.cost}g. Grow time: ${formatFarmDuration(selectedCrop.growMs)}.`)
-  updateFarmUi(true)
+  rewardStateRequestPending = true
+
+  try {
+    const payload = await fetchRewardState(wallet.walletAddress, 'plant', {
+      zoneId: zone.id,
+      cropKey: farmState.selectedSeed
+    })
+    applyAuthoritativeRewardStatePayload(payload, { persist: false })
+    farmState.gold -= selectedCrop.cost
+    persistFarmState()
+    const plantedAt = Number(payload?.plant?.plantedAt || Date.now())
+    showFarmStatusMessage(`Planted ${selectedCrop.label} in ${zone.label} for ${selectedCrop.cost}g. Grow time: ${formatFarmDuration(selectedCrop.growMs)}.`)
+    if (farmState.plots[payload?.plant?.plotId]) {
+      farmState.plots[payload.plant.plotId].plantedAt = plantedAt
+    }
+    updateFarmUi(true)
+  } catch (error) {
+    console.error(error)
+    showFarmStatusMessage(`Plant sync failed: ${error instanceof Error ? error.message : 'Unknown error.'}`)
+    updateFarmUi(true)
+  } finally {
+    rewardStateRequestPending = false
+  }
 }
 
 function updateFarmUi(force = false) {
@@ -2313,6 +2402,163 @@ async function fetchPortfolioSnapshot(walletAddress, timeoutMs = HARUKA_SNAPSHOT
   }
 }
 
+function getRewardProofStorageKey(walletAddress) {
+  return `${HARUKA_REWARD_PROOF_STORAGE_PREFIX}:${walletAddress}`
+}
+
+function getStoredRewardProof(walletAddress) {
+  const normalized = String(walletAddress || '').trim()
+  if (!normalized) {
+    return ''
+  }
+
+  try {
+    return String(window.localStorage.getItem(getRewardProofStorageKey(normalized)) || '').trim()
+  } catch (error) {
+    console.error(error)
+    return ''
+  }
+}
+
+function setStoredRewardProof(walletAddress, proof) {
+  const normalizedWallet = String(walletAddress || '').trim()
+  const normalizedProof = String(proof || '').trim()
+  if (!normalizedWallet || !normalizedProof) {
+    return
+  }
+
+  window.localStorage.setItem(getRewardProofStorageKey(normalizedWallet), normalizedProof)
+}
+
+function applyAuthoritativeRewardStatePayload(payload, { persist = true } = {}) {
+  const state = payload?.state
+  const walletAddress = String(state?.walletAddress || getWalletContext()?.walletAddress || '').trim()
+  if (!state || !walletAddress) {
+    return
+  }
+
+  if (payload?.proof) {
+    setStoredRewardProof(walletAddress, payload.proof)
+  }
+
+  if (state.plots && typeof state.plots === 'object') {
+    farmState.plots = JSON.parse(JSON.stringify(state.plots))
+  }
+  farmState.unclaimedHaruka = Math.max(0, Number(state.unclaimedHaruka) || 0)
+  farmState.totalEarnedHaruka = Math.max(0, Number(state.totalEarnedHaruka) || 0)
+  farmState.totalClaimedHaruka = Math.max(0, Number(state.totalClaimedHaruka) || 0)
+  farmState.totalBurnedHaruka = Math.max(0, Number(state.totalBurnedHaruka) || 0)
+  farmState.rewardPoolBalance = Math.max(0, Number(state.rewardPoolBalance) || 0)
+  farmState.loginStreak = Math.max(0, Number(state.loginStreak) || 0)
+  farmState.lastHarvestDate = typeof state.lastHarvestDate === 'string' ? state.lastHarvestDate : null
+  if (state.dailyRewards) {
+    farmState.dailyRewards = {
+      date: String(state.dailyRewards.date || getFarmDateKey()),
+      earned: Math.max(0, Number(state.dailyRewards.earned) || 0),
+      claimed: Math.max(0, Number(state.dailyRewards.claimed) || 0),
+      claimCount: Math.max(0, Math.floor(Number(state.dailyRewards.claimCount) || 0))
+    }
+  }
+  farmState.harvestLog = Array.isArray(state.harvestLog) ? state.harvestLog.slice(0, 30) : []
+  farmState.claimTransactions = Array.isArray(state.claimTransactions) ? state.claimTransactions.slice(0, 20) : []
+
+  if (persist) {
+    persistFarmState()
+  }
+}
+
+async function fetchRewardState(walletAddress, action = 'load', extra = {}, timeoutMs = HARUKA_REWARD_STATE_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
+
+  try {
+    const response = await fetch('/api/haruka/reward-state', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        walletAddress,
+        proof: getStoredRewardProof(walletAddress),
+        action,
+        ...extra
+      }),
+      signal: controller.signal
+    })
+
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok || !payload.ok) {
+      throw new Error(payload.error || `HARUKA reward state ${action} failed.`)
+    }
+
+    return payload
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`Reward state ${action} timed out before the server responded.`)
+    }
+
+    throw error
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
+async function hydrateRewardStateFromServer(walletAddress) {
+  const payload = await fetchRewardState(walletAddress, 'load')
+  applyAuthoritativeRewardStatePayload(payload)
+  return payload
+}
+
+async function fetchRewardClaim(walletAddress, amount, timeoutMs = HARUKA_REWARD_CLAIM_TIMEOUT_MS) {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
+
+  try {
+    const response = await fetch('/api/haruka/reward-claim', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        walletAddress,
+        amount: String(amount),
+        proof: getStoredRewardProof(walletAddress)
+      }),
+      signal: controller.signal
+    })
+
+    const payload = await response.json().catch(() => ({}))
+    if (!response.ok || !payload.ok) {
+      if (payload?.state && payload?.proof) {
+        applyAuthoritativeRewardStatePayload(payload)
+      }
+      throw new Error(payload.error || payload.reason || 'HARUKA reward claim failed.')
+    }
+
+    return payload
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Reward claim timed out before the treasury route responded.')
+    }
+
+    throw error
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
+async function refreshWalletContextFromChain(walletAddress, walletProvider) {
+  const snapshot = await fetchPortfolioSnapshot(walletAddress)
+  const context = createPortfolioContextFromSnapshot(walletAddress, walletProvider, snapshot, 'reward-claim-refresh')
+  window.localStorage.setItem(HARUKA_PORTFOLIO_STORAGE_KEY, JSON.stringify(context))
+  updateWalletNavbarUI(context)
+  return context
+}
+
 function getCachedWalletContextForAddress(walletAddress) {
   const cached = getWalletContext()
   if (!cached) {
@@ -2461,6 +2707,12 @@ async function connectWallet(kind) {
 
     window.localStorage.setItem(HARUKA_PORTFOLIO_STORAGE_KEY, JSON.stringify(context))
     farmState = loadFarmState(walletAddress)
+    try {
+      await hydrateRewardStateFromServer(walletAddress)
+    } catch (rewardStateError) {
+      console.warn('Reward proof hydration failed:', rewardStateError)
+      showFarmStatusMessage(`Wallet connected, but reward sync is unavailable: ${rewardStateError instanceof Error ? rewardStateError.message : 'Unknown error.'}`)
+    }
     updateWalletNavbarUI(context)
     const tier = detectHarukaTier(context.haruka)
     const accessGranted = hasHarukaGameAccess()
@@ -2588,6 +2840,13 @@ function initializeWallet() {
   const context = getWalletContext()
   if (context) {
     updateWalletNavbarUI(context)
+    void hydrateRewardStateFromServer(context.walletAddress)
+      .then(() => {
+        updateFarmUi(true)
+      })
+      .catch((error) => {
+        console.warn('Initial reward proof hydration failed:', error)
+      })
   }
   updateFarmUi(true)
 }

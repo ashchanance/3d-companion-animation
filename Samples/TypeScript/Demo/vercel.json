@@ -6,6 +6,12 @@
     "api/haruka/chat.js": {
       "maxDuration": 300
     },
+    "api/haruka/reward-state.js": {
+      "maxDuration": 300
+    },
+    "api/haruka/reward-claim.js": {
+      "maxDuration": 300
+    },
     "api/haruka/buyback-cycle.js": {
       "maxDuration": 300
     }

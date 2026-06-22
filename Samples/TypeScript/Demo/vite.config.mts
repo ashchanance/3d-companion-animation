@@ -13,6 +13,14 @@ const harukaPortfolioSnapshotHandler = require('./api/haruka/portfolio-snapshot.
   request: IncomingMessage & { body?: unknown },
   response: ServerResponse
 ) => void | Promise<void>;
+const harukaRewardStateHandler = require('./api/haruka/reward-state.js') as (
+  request: IncomingMessage & { body?: unknown },
+  response: ServerResponse
+) => void | Promise<void>;
+const harukaRewardClaimHandler = require('./api/haruka/reward-claim.js') as (
+  request: IncomingMessage & { body?: unknown },
+  response: ServerResponse
+) => void | Promise<void>;
 
 function createPumpfunStreamPlugin(): Plugin {
   return {
@@ -355,6 +363,38 @@ function createHarukaChatPlugin(): Plugin {
 
       if (requestUrl?.pathname === '/api/haruka/portfolio-snapshot') {
         void handleVercelNodeRoute(req, res, harukaPortfolioSnapshotHandler).catch((error: unknown) => {
+          res.writeHead(500, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(
+            JSON.stringify({
+              ok: false,
+              error: error instanceof Error ? error.message : String(error)
+            })
+          );
+        });
+        return;
+      }
+
+      if (requestUrl?.pathname === '/api/haruka/reward-state') {
+        void handleVercelNodeRoute(req, res, harukaRewardStateHandler).catch((error: unknown) => {
+          res.writeHead(500, {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
+          res.end(
+            JSON.stringify({
+              ok: false,
+              error: error instanceof Error ? error.message : String(error)
+            })
+          );
+        });
+        return;
+      }
+
+      if (requestUrl?.pathname === '/api/haruka/reward-claim') {
+        void handleVercelNodeRoute(req, res, harukaRewardClaimHandler).catch((error: unknown) => {
           res.writeHead(500, {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'

@@ -2158,7 +2158,7 @@
                 <li>Once ready, <strong>Left Click</strong> inside the patch to harvest and earn Gold, XP, crop inventory, and unclaimed $HARUKA.</li>
                 <li>Hold at least <strong>1,000 $HARUKA</strong> in the connected wallet to play the economy loop.</li>
                 <li>Daily streak and lucky harvest rolls can multiply $HARUKA rewards before the daily cap is applied.</li>
-                <li>Claim rewards from the economy panel once unclaimed rewards reach <strong>100 $HARUKA</strong>; on-chain treasury transfer still needs backend settlement.</li>
+                <li>Plant and harvest now sync reward proof on the server; once unclaimed rewards reach <strong>100 $HARUKA</strong>, claims send from the treasury wallet on-chain and burn a small portion.</li>
               </ul>
               <p><strong>Battle Zone:</strong></p>
               <ul>
@@ -2366,7 +2366,7 @@
                 <div class="economy-action-row">
                   <button id="btnClaimRewards" class="economy-claim-btn" type="button" disabled>Claim at 100</button>
                 </div>
-                <p class="economy-note">Harvest rewards stay local-first for now. Claim preview is simulated until backend treasury transfer and anti-cheat validation go live.</p>
+                <p class="economy-note">Gold, XP, and inventory still render locally, but HARUKA reward accrual and claim eligibility are now synced against a server-signed reward proof before any treasury payout happens.</p>
               </div>
               <div class="economy-panel__section" data-economy-panel="market" hidden>
                 <div class="economy-info-card">
