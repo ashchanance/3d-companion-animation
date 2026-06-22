@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -1083,8 +1083,16 @@
       }
 
       .seed-icon {
-        font-size: 18px;
+        width: 24px;
+        height: 24px;
+        background-size: 120px 144px;
       }
+      .seed-icon--pumpkin { background-position: -96px 0px; }
+      .seed-icon--strawberry { background-position: -96px -24px; }
+      .seed-icon--carrot { background-position: -96px -48px; }
+      .seed-icon--potato { background-position: -96px -72px; }
+      .seed-icon--tomato { background-position: -96px -96px; }
+      .seed-icon--lettuce { background-position: -96px -120px; }
 
       .farm-seed-button__name {
         font-size: 6px;
@@ -1836,6 +1844,8 @@
 
     /* Game Navbar Styles */
     .game-navbar {
+      position: relative;
+      z-index: 9999 !important;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -1945,9 +1955,9 @@
       border: 1.5px solid var(--gold);
       border-radius: 12px;
       padding: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
       backdrop-filter: blur(12px);
-      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+      z-index: 10000 !important;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -2051,6 +2061,119 @@
       text-transform: uppercase;
       box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
     }
+
+    /* Seed Crop Sprite Icons */
+    .seed-icon {
+      width: 32px;
+      height: 32px;
+      background-image: url('/game/farm-plants.png');
+      background-repeat: no-repeat;
+      background-size: 160px 192px; /* 5 columns of 16px = 80px * 2, 6 rows of 16px = 96px * 2 */
+      image-rendering: pixelated;
+      display: inline-block;
+      transition: transform 0.2s;
+    }
+
+    .seed-icon--pumpkin {
+      background-position: -128px 0px;
+    }
+
+    .seed-icon--strawberry {
+      background-position: -128px -32px;
+    }
+
+    .seed-icon--carrot {
+      background-position: -128px -64px;
+    }
+
+    .seed-icon--potato {
+      background-position: -128px -96px;
+    }
+
+    .seed-icon--tomato {
+      background-position: -128px -128px;
+    }
+
+    .seed-icon--lettuce {
+      background-position: -128px -160px;
+    }
+
+    .farm-seed-button.is-locked .seed-icon {
+      background-image: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #ff4d4f;
+    }
+
+    /* Economy Panel Minimize Styling */
+    .economy-minimize-btn {
+      background: rgba(255, 202, 40, 0.1);
+      border: 1px solid rgba(255, 202, 40, 0.4);
+      color: var(--gold);
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .economy-minimize-btn:hover {
+      background: var(--gold);
+      color: #000;
+      box-shadow: 0 0 8px var(--gold-glowing);
+    }
+
+    .economy-panel {
+      transition: max-height 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), gap 0.3s ease;
+    }
+
+    .economy-panel.is-minimized {
+      gap: 0 !important;
+      max-height: 44px;
+      overflow: hidden;
+      border-color: rgba(255, 202, 40, 0.2);
+    }
+
+    .economy-panel.is-minimized .economy-tablist,
+    .economy-panel.is-minimized .economy-panel__body {
+      display: none !important;
+    }
+
+    /* Game Brand Logo Image Styling */
+    .game-navbar .brand-logo-img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      box-shadow: 0 0 6px var(--gold-glowing);
+      object-fit: cover;
+      animation: logoFloat 3s infinite ease-in-out;
+    }
+
+    /* Wallet SVG Icons */
+    .wallet-btn-icon-svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .wallet-option-svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -2058,7 +2181,7 @@
     <!-- Game Navbar -->
     <header class="game-navbar">
       <div class="nav-brand">
-        <span class="brand-logo">HR</span>
+        <img src="/hiyori_avatar.png" class="brand-logo-img" alt="Haruka's Farm Logo">
         <span class="brand-name">HARUKA'S FARM</span>
       </div>
       <div class="nav-menu">
@@ -2068,7 +2191,9 @@
       </div>
       <div class="nav-wallet">
         <button id="btnConnectWallet" class="wallet-connect-btn" type="button">
-          <span class="btn-icon">W</span>
+          <svg class="wallet-btn-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2h-3a2 2 0 0 0-2 2v2"/>
+          </svg>
           <span id="walletBtnText">Connect Wallet</span>
         </button>
         <div id="walletInfoDropdown" class="wallet-info-dropdown" style="display: none;">
@@ -2133,10 +2258,16 @@
               <p>Connect your Solana wallet to unlock holder perks inside Haruka Farm!</p>
               <div class="wallet-options-grid">
                 <button id="btnConnectPhantom" class="rpg-menu-btn rpg-menu-btn--primary" type="button">
-                  <span class="btn-icon">P</span> Phantom
+                  <svg class="wallet-option-svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2A10 10 0 0 0 2 12a9.89 9.89 0 0 0 2.24 6.21.5.5 0 0 0 .76-.06C6.73 15.65 9.27 14 12 14s5.27 1.65 7 4.15a.5.5 0 0 0 .76.06A9.89 9.89 0 0 0 22 12 10 10 0 0 0 12 2zm-3.5 9a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 8.5 11zm7 0a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5z"/>
+                  </svg>
+                  <span>Phantom</span>
                 </button>
                 <button id="btnConnectSolflare" class="rpg-menu-btn rpg-menu-btn--battle" type="button">
-                  <span class="btn-icon">S</span> Solflare
+                  <svg class="wallet-option-svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.25a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75zM6.16 5.1a.75.75 0 0 1 1.06 0l1.59 1.59a.75.75 0 1 1-1.06 1.06L6.16 6.16a.75.75 0 0 1 0-1.06zm11.68 0a.75.75 0 0 1 0 1.06l-1.59 1.59a.75.75 0 1 1-1.06-1.06l1.59-1.59a.75.75 0 0 1 1.06 0zM3 11.25h2.25a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1 0-1.5zm15.75 0H21a.75.75 0 0 1 0 1.5h-2.25a.75.75 0 0 1 0-1.5zM6.16 17.84a.75.75 0 0 1 0-1.06l1.59-1.59a.75.75 0 1 1 1.06 1.06l-1.59 1.59a.75.75 0 0 1-1.06 0zm11.68 0a.75.75 0 0 1-1.06 0l-1.59-1.59a.75.75 0 1 1 1.06-1.06l1.59 1.59a.75.75 0 0 1 0 1.06zM12 17.25a.75.75 0 0 1 .75.75V21a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75zm0-11.5a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5zm0 1.5a4.75 4.75 0 1 0 0 9.5 4.75 4.75 0 0 0 0-9.5z"/>
+                  </svg>
+                  <span>Solflare</span>
                 </button>
               </div>
             </div>
@@ -2348,7 +2479,10 @@
           <!-- Floating Action Prompt -->
           <div class="economy-panel" aria-label="HARUKA economy dashboard">
             <div class="economy-panel__header">
-              <span class="economy-panel__title">HARUKA Economy</span>
+              <div class="economy-panel__title-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span class="economy-panel__title">HARUKA Economy</span>
+                <button id="btnMinimizeEconomy" class="economy-minimize-btn" type="button" title="Minimize / Expand panel">−</button>
+              </div>
               <div class="economy-tablist" role="tablist" aria-label="HARUKA economy views">
                 <button class="economy-tab is-active" type="button" role="tab" aria-selected="true" data-economy-view="harvest">Harvest</button>
                 <button class="economy-tab" type="button" role="tab" aria-selected="false" data-economy-view="market">Market</button>
@@ -2419,8 +2553,7 @@
             <div class="rpg-hotbar-slots">
               <button type="button" class="farm-seed-button" data-farm-seed="carrot" aria-pressed="true">
                 <span class="farm-seed-button__key">1</span>
-                <span class="seed-icon">CR</span>
-                <span class="farm-seed-button__name">Carrot</span>
+                <span class="seed-icon seed-icon--carrot"></span>
                 <span class="farm-seed-button__meta">
                   <span>12g</span>
                   <span>1m 30s</span>
@@ -2428,8 +2561,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="potato" aria-pressed="false">
                 <span class="farm-seed-button__key">2</span>
-                <span class="seed-icon">PT</span>
-                <span class="farm-seed-button__name">Potato</span>
+                <span class="seed-icon seed-icon--potato"></span>
                 <span class="farm-seed-button__meta">
                   <span>18g</span>
                   <span>2m 30s</span>
@@ -2437,8 +2569,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="tomato" aria-pressed="false">
                 <span class="farm-seed-button__key">3</span>
-                <span class="seed-icon">TM</span>
-                <span class="farm-seed-button__name">Tomato</span>
+                <span class="seed-icon seed-icon--tomato"></span>
                 <span class="farm-seed-button__meta">
                   <span>28g</span>
                   <span>4m</span>
@@ -2446,8 +2577,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="strawberry" aria-pressed="false">
                 <span class="farm-seed-button__key">4</span>
-                <span class="seed-icon">SB</span>
-                <span class="farm-seed-button__name">Strawberry</span>
+                <span class="seed-icon seed-icon--strawberry"></span>
                 <span class="farm-seed-button__meta">
                   <span>42g</span>
                   <span>6m</span>
@@ -2455,8 +2585,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="lettuce" aria-pressed="false">
                 <span class="farm-seed-button__key">5</span>
-                <span class="seed-icon">LT</span>
-                <span class="farm-seed-button__name">Lettuce</span>
+                <span class="seed-icon seed-icon--lettuce"></span>
                 <span class="farm-seed-button__meta">
                   <span>60g</span>
                   <span>9m</span>
@@ -2464,8 +2593,7 @@
               </button>
               <button type="button" class="farm-seed-button" data-farm-seed="pumpkin" aria-pressed="false">
                 <span class="farm-seed-button__key">6</span>
-                <span class="seed-icon">PK</span>
-                <span class="farm-seed-button__name">Pumpkin</span>
+                <span class="seed-icon seed-icon--pumpkin"></span>
                 <span class="farm-seed-button__meta">
                   <span>90g</span>
                   <span>12m</span>
@@ -2508,10 +2636,35 @@
   <script src="/game/js/utils.js"></script>
   <script src="/game/classes.js?v=1.0.2"></script>
   <script src="/game/battleScene.js?v=1.0.2"></script>
-  <script src="/game/index.js?v=1.0.3"></script>
+  <script src="/game/index.js?v=1.0.4"></script>
   <!-- Main Menu controller script -->
   <script>
     window.addEventListener('load', () => {
+      // Economy panel minimize/expand controller
+      const economyPanel = document.querySelector('.economy-panel');
+      const btnMinimizeEconomy = document.getElementById('btnMinimizeEconomy');
+      if (btnMinimizeEconomy && economyPanel) {
+        const isMinimized = localStorage.getItem('haruka-economy-minimized') === 'true';
+        if (isMinimized) {
+          economyPanel.classList.add('is-minimized');
+          btnMinimizeEconomy.textContent = '+';
+        }
+
+        btnMinimizeEconomy.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const willMinimize = !economyPanel.classList.contains('is-minimized');
+          if (willMinimize) {
+            economyPanel.classList.add('is-minimized');
+            btnMinimizeEconomy.textContent = '+';
+            localStorage.setItem('haruka-economy-minimized', 'true');
+          } else {
+            economyPanel.classList.remove('is-minimized');
+            btnMinimizeEconomy.textContent = '−';
+            localStorage.setItem('haruka-economy-minimized', 'false');
+          }
+        });
+      }
+
       const mainMenu = document.getElementById('mainMenu');
       const modalHowToPlay = document.getElementById('modalHowToPlay');
       const modalRecords = document.getElementById('modalRecords');
