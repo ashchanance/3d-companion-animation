@@ -1,4 +1,4 @@
-﻿const canvas = document.querySelector('#haruka-game-canvas')
+const canvas = document.querySelector('#haruka-game-canvas')
 if (!canvas) {
   throw new Error('Missing #haruka-game-canvas element for the HARUKA game route.')
 }
@@ -1772,15 +1772,7 @@ function updateFarmSeedButtons() {
     const iconSlot = button.querySelector('.seed-icon')
 
     if (iconSlot) {
-      const defaultIcons = {
-        carrot: 'CR',
-        potato: 'PT',
-        tomato: 'TM',
-        strawberry: 'SB',
-        lettuce: 'LT',
-        pumpkin: 'PK'
-      }
-      iconSlot.textContent = isLocked ? 'LOCK' : defaultIcons[seedKey]
+      iconSlot.textContent = isLocked ? '🔒' : ''
     }
 
     if (keySlot) {

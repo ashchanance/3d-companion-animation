@@ -1142,6 +1142,12 @@
         border-left: none;
         border-top: 2px solid var(--gold);
       }
+
+      .economy-panel {
+        right: 8px;
+        bottom: 8px;
+        width: min(270px, calc(100vw - 16px));
+      }
     }
 
     @media (max-width: 580px) {
@@ -1176,6 +1182,14 @@
         position: relative;
         top: auto;
         left: auto;
+        width: auto;
+        margin: 4px;
+      }
+
+      .economy-panel {
+        position: relative;
+        right: auto;
+        bottom: auto;
         width: auto;
         margin: 4px;
       }
@@ -1417,14 +1431,18 @@
 
 
     .economy-panel {
-      width: min(380px, calc(100vw - 32px));
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 102;
+      width: min(290px, calc(100vw - 32px));
       background: linear-gradient(180deg, rgba(9, 13, 20, 0.94), rgba(7, 11, 18, 0.88));
       border: 1px solid rgba(255, 202, 40, 0.32);
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
       display: grid;
-      gap: 10px;
+      gap: 8px;
       pointer-events: auto;
       backdrop-filter: blur(10px);
     }
@@ -1435,12 +1453,12 @@
 
     .economy-panel__header {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .economy-panel__title {
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 800;
       color: var(--gold);
       letter-spacing: 0.08em;
@@ -1450,17 +1468,17 @@
     .economy-tablist {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
+      gap: 4px;
     }
 
     .economy-tab {
-      min-height: 30px;
+      min-height: 24px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.04);
       color: #c9d0d9;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 8.5px;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
@@ -1477,36 +1495,36 @@
 
     .economy-panel__section {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .economy-panel__grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .economy-stat {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 6px;
+      padding: 6px;
       min-width: 0;
     }
 
     .economy-stat span {
       display: block;
       font-family: var(--mono);
-      font-size: 9px;
+      font-size: 8px;
       color: var(--muted);
       text-transform: uppercase;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
 
     .economy-stat strong {
       display: block;
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 10.5px;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
@@ -1515,22 +1533,22 @@
 
     .economy-stack {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .economy-info-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 10px;
+      border-radius: 6px;
+      padding: 8px;
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .economy-info-card p {
       margin: 0;
-      font-size: 11px;
-      line-height: 1.5;
+      font-size: 9.5px;
+      line-height: 1.4;
       color: #d8dde4;
     }
 
@@ -1538,41 +1556,38 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 6px;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 9px;
       color: var(--muted);
     }
 
     .economy-info-row strong {
       color: #fff;
-      font-size: 11px;
+      font-size: 9.5px;
       text-align: right;
     }
 
     .economy-note {
-      margin: 0;
-      font-size: 10px;
-      line-height: 1.5;
-      color: #8aa0b6;
+      display: none;
     }
 
     .economy-action-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .economy-claim-btn,
     .economy-secondary-btn {
-      min-height: 34px;
-      border-radius: 8px;
+      min-height: 28px;
+      border-radius: 6px;
       font-family: var(--mono);
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
       text-transform: uppercase;
       cursor: pointer;
-      padding: 0 12px;
+      padding: 0 10px;
     }
 
     .economy-claim-btn {
@@ -2114,12 +2129,12 @@
       border: 1px solid rgba(255, 202, 40, 0.4);
       color: var(--gold);
       border-radius: 4px;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       cursor: pointer;
       transition: all 0.2s;
@@ -2507,9 +2522,6 @@
                   <div class="economy-info-row"><span>Inventory</span><strong id="marketInventoryValue">No crops stored.</strong></div>
                   <div class="economy-info-row"><span>Sell to Shop</span><strong id="marketShopValue">0g</strong></div>
                   <div class="economy-info-row"><span>Seller Take</span><strong id="marketSellerValue">0 $HARUKA</strong></div>
-                  <div class="economy-info-row"><span>Revenue Pool</span><strong id="marketRevenueValue">0 $HARUKA</strong></div>
-                  <div class="economy-info-row"><span>Burn</span><strong id="marketBurnValue">0 $HARUKA</strong></div>
-                  <div class="economy-info-row"><span>Reward Refill</span><strong id="marketRefillValue">0 $HARUKA</strong></div>
                 </div>
                 <div class="economy-stack">
                   <p id="marketStatusValue" class="economy-note">Harvest crops first. Inventory appears here before shop sale or marketplace listing.</p>
@@ -2636,7 +2648,7 @@
   <script src="/game/js/utils.js"></script>
   <script src="/game/classes.js?v=1.0.2"></script>
   <script src="/game/battleScene.js?v=1.0.2"></script>
-  <script src="/game/index.js?v=1.0.5"></script>
+  <script src="/game/index.js?v=1.0.6"></script>
   <!-- Main Menu controller script -->
   <script>
     window.addEventListener('load', () => {
