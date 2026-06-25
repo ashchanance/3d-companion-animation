@@ -62,7 +62,7 @@ const HARUKA_MIN_HOLD_TO_PLAY = 1000
 const HARUKA_INITIAL_REWARD_POOL = 500000
 const HARUKA_MIN_CLAIM = 100
 const HARUKA_CLAIM_BURN_RATE = 0.02
-const HARUKA_REWARD_CLAIM_TIMEOUT_MS = 15000
+const HARUKA_REWARD_CLAIM_TIMEOUT_MS = 60000
 const HARUKA_REWARD_STATE_TIMEOUT_MS = 12000
 const HARUKA_REWARD_PROOF_STORAGE_PREFIX = 'haruka.reward.proof.v1'
 const MARKETPLACE_FEE_SPLIT = {
@@ -2542,7 +2542,7 @@ async function fetchRewardClaim(walletAddress, amount, timeoutMs = HARUKA_REWARD
     return payload
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('Reward claim timed out before the treasury route responded.')
+      throw new Error('Reward claim exceeded the 60 second treasury timeout. The Solana RPC is responding too slowly.')
     }
 
     throw error
