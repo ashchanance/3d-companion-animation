@@ -1,4 +1,4 @@
-const ROUTE_VERSION = 'api-haruka-reward-claim-2026-06-22-v2';
+const ROUTE_VERSION = 'api-haruka-reward-claim-2026-06-25-v3';
 const DEFAULT_RPC_URL = 'https://api.mainnet-beta.solana.com';
 const DEFAULT_HARUKA_MINT = '9AWBK3E1ALof3LtUqUrxzagNV3gDtkBa2bGvv4mepump';
 const DEFAULT_BURN_RATE = 0.02;
@@ -408,10 +408,12 @@ async function ensureAssociatedTokenAccount(connection, payerKeypair, mintPublic
     lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
   }).add(instruction);
 
+  transaction.recentBlockhash = latestBlockhash.blockhash;
   transaction.sign(payerKeypair);
+  const serializedTransaction = transaction.serialize();
   const signature = await withRpcRetry(
     'ata-create-send',
-    () => connection.sendRawTransaction(transaction.serialize(), {
+    () => connection.sendRawTransaction(serializedTransaction, {
       skipPreflight: false
     }),
     runtimeConfig
@@ -479,10 +481,12 @@ async function sendTransferChecked(connection, payerKeypair, sourceAta, destinat
     memoInstruction
   );
 
+  transaction.recentBlockhash = latestBlockhash.blockhash;
   transaction.sign(payerKeypair);
+  const serializedTransaction = transaction.serialize();
   const signature = await withRpcRetry(
     'reward-transfer-send',
-    () => connection.sendRawTransaction(transaction.serialize(), {
+    () => connection.sendRawTransaction(serializedTransaction, {
       skipPreflight: false
     }),
     runtimeConfig
@@ -603,10 +607,12 @@ async function burnChecked(connection, payerKeypair, tokenAccountAddress, mintPu
     )
   );
 
+  transaction.recentBlockhash = latestBlockhash.blockhash;
   transaction.sign(payerKeypair);
+  const serializedTransaction = transaction.serialize();
   const signature = await withRpcRetry(
     'reward-burn-send',
-    () => connection.sendRawTransaction(transaction.serialize(), {
+    () => connection.sendRawTransaction(serializedTransaction, {
       skipPreflight: false
     }),
     runtimeConfig
